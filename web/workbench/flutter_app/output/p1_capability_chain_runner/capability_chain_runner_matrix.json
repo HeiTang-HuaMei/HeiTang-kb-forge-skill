@@ -1,0 +1,46 @@
+﻿{
+    "schema_version":  "heitang_p1_capability_chain_runner_matrix.v1",
+    "status":  "capability_chain_runner_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T18:01:01.8248258Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-2 Capability Registry",
+    "next_gate":  "P1-2 Capability Registry",
+    "remaining_gates_count":  90,
+    "global_goal_complete":  false,
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_chain_runner\\capability_chain_runner_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_chain_runner\\capability_chain_runner_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_chain_runner\\capability_chain_runner_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "current gate is P1-1 and global goal is guarded",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-2 Capability Registry; first_remaining=P1-2 Capability Registry; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release gate evidence precedes P1 runner",
+                     "status":  "passed",
+                     "actual":  "p0_release_completed=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining gate chain preserves P1/P2/final sequence",
+                     "status":  "passed",
+                     "actual":  "remaining=90; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "runner can compute next gate without executing it",
+                     "status":  "passed",
+                     "actual":  "next_after_current=P1-2 Capability Registry",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "runner registry rows are discoverable",
+                     "status":  "passed",
+                     "actual":  "registry_rows_present=True",
+                     "blocker":  ""
+                 }
+             ]
+}

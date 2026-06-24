@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-1 Capability Chain Runner",
+  "current_gate": "P1-2 Capability Registry",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -25,11 +25,11 @@
     "P0-5B Knowledge Reliability Minimal Core Gate",
     "P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)",
     "P0-10 Assistant Bound-KB Integration Gate",
-    "P0 Release Gate"
+    "P0 Release Gate",
+    "P1-1 Capability Chain Runner"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-1 Capability Chain Runner",
     "P1-2 Capability Registry",
     "P1-3 Memory Layer Separation Basic",
     "P1-4 Evidence Graph Basic",
@@ -150,7 +150,9 @@
     "P0-10 Assistant Bound-KB Integration has capability-level closure evidence and remains subject to P0 Release Gate.",
     "P0 Release Gate remains the active automatic stage gate before P1 entry.",
     "P0 Release Gate passed as an automatic stage gate and needs Owner Review; P1 queue is now the active phase.",
-    "P1 entry does not imply P1 capability execution has started before the next gate runs."
+    "P1 entry does not imply P1 capability execution has started before the next gate runs.",
+    "P1-1 Capability Chain Runner has core-only runner evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-2 Capability Registry."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
