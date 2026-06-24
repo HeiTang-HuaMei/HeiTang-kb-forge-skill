@@ -1083,11 +1083,40 @@ class Rc6RuntimeController extends ChangeNotifier {
     final reportPath = _join(queryDir.path, 'validation_report.json');
     final markdownPath = _join(queryDir.path, 'validation_report.md');
     final historyPath = _join(queryDir.path, 'validation_history.jsonl');
+    final scope = await _currentIndustrialScopeMetadata(workspace);
+    final missingEvidence =
+        rows.isEmpty || (_asDouble(citationCoverage) ?? 0) < 1;
+    final answerStatus = rows.isEmpty
+        ? 'blocked_missing_evidence'
+        : conflictCount > 0
+            ? 'blocked_conflict_needs_review'
+            : 'answered_direct_citation';
     final payload = {
       'schema_version': 'prd_v3_retrieval_validation_report.v1',
       'created_at': DateTime.now().toUtc().toIso8601String(),
       'query': (queryReport['query'] ?? state.searchQuery).toString(),
       'selected_kb_ids': queryReport['selected_kb_ids'] ?? const <String>[],
+      'scope_resolution': {
+        'status': rows.isEmpty ? 'evidence_missing' : 'scope_reserved',
+        'primary_knowledge_base_id': scope['primary_knowledge_base_id'],
+        'used_knowledge_base_ids': scope['used_knowledge_base_ids'],
+        'allowed_reference_kb_ids': scope['allowed_reference_kb_ids'],
+        'knowledge_base_version_ids': scope['knowledge_base_version_ids'],
+        'kb_scope_mode': scope['kb_scope_mode'],
+        'permission_scope': scope['permission_scope'],
+      },
+      'primary_knowledge_base_id': scope['primary_knowledge_base_id'],
+      'used_knowledge_base_ids': scope['used_knowledge_base_ids'],
+      'knowledge_base_version_ids': scope['knowledge_base_version_ids'],
+      'answer_status': answerStatus,
+      'evidence_status': missingEvidence ? 'missing_evidence' : 'sufficient',
+      'risk_level': scope['risk_level'],
+      'missing_evidence': missingEvidence,
+      'exception_count': 0,
+      'human_review_required': conflictCount > 0 ||
+          _stringValue(scope['risk_level'], 'normal') == 'high',
+      'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+      'rule_engine_status': 'rule_engine_not_implemented',
       'result_count': rows.length,
       'retrieval_plan_path': state.retrievalPlanPath,
       'rerank_report_path': state.retrievalRerankReportPath,
@@ -1152,6 +1181,13 @@ class Rc6RuntimeController extends ChangeNotifier {
             'conflict_report_path': payload['conflict_report_path'],
             'external_validation_boundary_path':
                 payload['external_validation_boundary_path'],
+            'scope_resolution': payload['scope_resolution'],
+            'primary_knowledge_base_id': payload['primary_knowledge_base_id'],
+            'used_knowledge_base_ids': payload['used_knowledge_base_ids'],
+            'knowledge_base_version_ids': payload['knowledge_base_version_ids'],
+            'answer_status': payload['answer_status'],
+            'evidence_status': payload['evidence_status'],
+            'risk_level': payload['risk_level'],
             'report_path': reportPath,
             'markdown_report_path': markdownPath,
           })}\n',
@@ -1176,6 +1212,18 @@ class Rc6RuntimeController extends ChangeNotifier {
         'report_path': reportPath,
         'markdown_report_path': markdownPath,
         'history_path': historyPath,
+        'scope_resolution': payload['scope_resolution'],
+        'primary_knowledge_base_id': payload['primary_knowledge_base_id'],
+        'used_knowledge_base_ids': payload['used_knowledge_base_ids'],
+        'knowledge_base_version_ids': payload['knowledge_base_version_ids'],
+        'answer_status': payload['answer_status'],
+        'evidence_status': payload['evidence_status'],
+        'risk_level': payload['risk_level'],
+        'missing_evidence': payload['missing_evidence'],
+        'exception_count': payload['exception_count'],
+        'human_review_required': payload['human_review_required'],
+        'semantic_reasoning_status': payload['semantic_reasoning_status'],
+        'rule_engine_status': payload['rule_engine_status'],
         'retrieval_plan_path': payload['retrieval_plan_path'],
         'rerank_report_path': payload['rerank_report_path'],
         'citation_coverage_report_path':
@@ -5488,6 +5536,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final now = DateTime.now().toUtc().toIso8601String();
     final profiles = await _readAgentProfiles(workspace);
+    final cleanedKbIds = _cleanStringList(boundKnowledgeBaseIds);
+    final scope = _agentProfileScopeDefaults(
+      workspace: workspace,
+      boundKnowledgeBaseIds: cleanedKbIds,
+      settings: settings,
+    );
     final profile = Rc6AgentProfile(
       id: _newAgentProfileId(trimmedName, profiles.length),
       name: trimmedName,
@@ -5496,7 +5550,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       status: 'available',
       createdAt: now,
       updatedAt: now,
-      boundKnowledgeBaseIds: _cleanStringList(boundKnowledgeBaseIds),
+      workspaceId:
+          _stringValue(scope['workspace_id'], state.currentWorkbookName),
+      primaryKnowledgeBaseId:
+          _stringValue(scope['primary_knowledge_base_id'], ''),
+      allowedReferenceKbIds: _listOfStrings(scope['allowed_reference_kb_ids']),
+      kbScopeMode: _stringValue(scope['kb_scope_mode'], 'none'),
+      answerPolicyId:
+          _stringValue(scope['answer_policy_id'], 'strict_evidence'),
+      aiProfileId:
+          _stringValue(scope['ai_profile_id'], 'ai_profile_default_local'),
+      boundKnowledgeBaseIds: cleanedKbIds,
       boundSkillIds: _cleanStringList(boundSkillIds),
       settings: Map<String, String>.from(settings),
     );
@@ -5552,12 +5616,29 @@ class Rc6RuntimeController extends ChangeNotifier {
       return null;
     }
     final current = profiles[index];
+    final cleanedKbIds = _cleanStringList(boundKnowledgeBaseIds);
+    final scope = _agentProfileScopeDefaults(
+      workspace: workspace,
+      boundKnowledgeBaseIds: cleanedKbIds,
+      settings: settings,
+      current: current,
+    );
     final updated = current.copyWith(
       name: trimmedName,
       description: description.trim(),
       role: role.trim().isEmpty ? current.role : role.trim(),
       updatedAt: DateTime.now().toUtc().toIso8601String(),
-      boundKnowledgeBaseIds: _cleanStringList(boundKnowledgeBaseIds),
+      workspaceId: _stringValue(scope['workspace_id'], current.workspaceId),
+      primaryKnowledgeBaseId: _stringValue(
+        scope['primary_knowledge_base_id'],
+        current.primaryKnowledgeBaseId,
+      ),
+      allowedReferenceKbIds: _listOfStrings(scope['allowed_reference_kb_ids']),
+      kbScopeMode: _stringValue(scope['kb_scope_mode'], current.kbScopeMode),
+      answerPolicyId:
+          _stringValue(scope['answer_policy_id'], current.answerPolicyId),
+      aiProfileId: _stringValue(scope['ai_profile_id'], current.aiProfileId),
+      boundKnowledgeBaseIds: cleanedKbIds,
       boundSkillIds: _cleanStringList(boundSkillIds),
       settings: Map<String, String>.from(settings),
     );
@@ -7898,8 +7979,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       'schema_version': 'prd_v2_knowledge_base_record.v1',
       'kb_id': kbId,
       'workspace_id': 'default',
+      'project_id': 'local_project',
+      'version_id': currentVersion,
+      'knowledge_base_version_id': '${kbId}_$currentVersion',
       'kb_name': name,
       'kb_type': type,
+      'domain': 'general',
+      'risk_level': 'normal',
+      'jurisdiction_scope': const <String>[],
+      'time_scope': {
+        'effective_from': now.split('T').first,
+        'effective_to': null,
+      },
+      'default_answer_policy': 'strict_evidence',
+      'cross_kb_default': false,
       'status': 'searchable',
       'operation': operation,
       'created_at': now,
@@ -8562,17 +8655,68 @@ class Rc6RuntimeController extends ChangeNotifier {
     await catalogDir.create(recursive: true);
     records.sort((a, b) =>
         (a['kb_id'] ?? '').toString().compareTo((b['kb_id'] ?? '').toString()));
+    final normalizedRecords = records
+        .map((record) => _withKnowledgeScopeDefaults(workspace, record))
+        .toList(growable: false);
     final payload = {
       'schema_version': 'prd_v2_knowledge_base_catalog.v1',
       'workspace': workspace.path,
+      'workspace_id': state.currentWorkbookName,
+      'project_id': 'local_project',
       'updated_at': DateTime.now().toUtc().toIso8601String(),
       'last_operation': operation,
-      'knowledge_bases': records,
+      'knowledge_bases': normalizedRecords,
     };
     await File(_join(catalogDir.path, 'kb_catalog.json')).writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
+  }
+
+  Map<String, dynamic> _withKnowledgeScopeDefaults(
+    Directory workspace,
+    Map<String, dynamic> record,
+  ) {
+    final kbId = _stringValue(record['kb_id'], 'current_kb');
+    final currentVersion = _stringValue(record['current_version'], 'v1');
+    final existingTimeScope = _mapValue(record['time_scope']);
+    final existingWorkspaceId = _stringValue(record['workspace_id'], '');
+    return {
+      ...record,
+      'workspace_id':
+          existingWorkspaceId.isEmpty || existingWorkspaceId == 'default'
+              ? state.currentWorkbookName
+              : existingWorkspaceId,
+      'project_id': _stringValue(record['project_id'], 'local_project'),
+      'version_id': _stringValue(record['version_id'], currentVersion),
+      'knowledge_base_version_id': _stringValue(
+        record['knowledge_base_version_id'],
+        '${kbId}_$currentVersion',
+      ),
+      'domain': _stringValue(record['domain'], 'general'),
+      'risk_level': _stringValue(record['risk_level'], 'normal'),
+      'jurisdiction_scope': _listOfStrings(record['jurisdiction_scope']),
+      'time_scope': {
+        'effective_from': _stringValue(
+          existingTimeScope['effective_from'],
+          DateTime.now().toUtc().toIso8601String().split('T').first,
+        ),
+        'effective_to': existingTimeScope['effective_to'],
+      },
+      'default_answer_policy': _stringValue(
+        record['default_answer_policy'],
+        'strict_evidence',
+      ),
+      'cross_kb_default': record['cross_kb_default'] == true,
+      'permission_scope': _stringValue(
+        record['permission_scope'],
+        'workspace_default',
+      ),
+      'scope_metadata_reserved': true,
+      'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+      'rule_engine_status': 'rule_engine_not_implemented',
+      'workspace_path': workspace.path,
+    };
   }
 
   Future<void> _writeStage2MultiKbRetrievalEvidence(
@@ -10533,6 +10677,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentModelRouteBinding,
       ['agent_chat', 'agent_reasoning', 'agent_tool_planning'],
     );
+    final industrialScope = await _currentIndustrialScopeMetadata(workspace);
     const specs = [
       {
         'id': 'reading_summary_agent',
@@ -10619,6 +10764,26 @@ class Rc6RuntimeController extends ChangeNotifier {
             : 'local-default-or-configured-provider',
         'model_route_binding': agentGenerationRoute,
         'kb_ids': kbIds,
+        'scope_metadata_schema_version':
+            industrialScope['scope_metadata_schema_version'],
+        'scope_metadata_reserved': true,
+        'project_id': industrialScope['project_id'],
+        'source_workspace_id': industrialScope['workspace_id'],
+        'bound_knowledge_base_ids': kbIds,
+        'primary_knowledge_base_id': kbIds.isEmpty ? '' : kbIds.first,
+        'allowed_reference_kb_ids': const <String>[],
+        'knowledge_base_version_ids':
+            industrialScope['knowledge_base_version_ids'],
+        'kb_scope_mode': kbIds.isEmpty ? 'none' : 'single',
+        'permission_scope': industrialScope['permission_scope'],
+        'domain_scope': industrialScope['domain_scope'],
+        'jurisdiction_scope': industrialScope['jurisdiction_scope'],
+        'time_scope': industrialScope['time_scope'],
+        'answer_policy_id': industrialScope['answer_policy_id'],
+        'ai_profile_id': industrialScope['ai_profile_id'],
+        'risk_level': industrialScope['risk_level'],
+        'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+        'rule_engine_status': 'rule_engine_not_implemented',
         'skill_ids': skillIds,
         'tool_ids': creationMode == 'advanced'
             ? ['kb_retrieval', 'document_export']
@@ -10650,6 +10815,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             'name: $name',
             'role_goal: $goal',
             'knowledge_binding: ${payload['knowledge_binding']}',
+            'primary_knowledge_base_id: ${payload['primary_knowledge_base_id']}',
+            'kb_scope_mode: ${payload['kb_scope_mode']}',
+            'answer_policy_id: ${payload['answer_policy_id']}',
+            'ai_profile_id: ${payload['ai_profile_id']}',
             'skill_binding: ${payload['skill_binding']}',
             'boundary: local_kb_skill_only',
           ].join('\n'),
@@ -10661,6 +10830,15 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'Agent package created from real KB/Skill artifacts.',
             'output_summary': 'Agent is ready for minimal local dialogue.',
             'called_kbs': kbIds,
+            'scope_metadata_reserved': true,
+            'primary_knowledge_base_id': payload['primary_knowledge_base_id'],
+            'allowed_reference_kb_ids': payload['allowed_reference_kb_ids'],
+            'knowledge_base_version_ids': payload['knowledge_base_version_ids'],
+            'kb_scope_mode': payload['kb_scope_mode'],
+            'answer_policy_id': payload['answer_policy_id'],
+            'ai_profile_id': payload['ai_profile_id'],
+            'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+            'rule_engine_status': 'rule_engine_not_implemented',
             'called_skills': skillIds,
             'called_tools': const <String>[],
             'model': selectedPrimary
@@ -11866,6 +12044,49 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
   }
 
+  Map<String, Object?> _agentProfileScopeDefaults({
+    required Directory workspace,
+    required List<String> boundKnowledgeBaseIds,
+    required Map<String, String> settings,
+    Rc6AgentProfile? current,
+  }) {
+    final primaryFromSettings =
+        _stringValue(settings['primary_knowledge_base_id'], '');
+    final primary = primaryFromSettings.isNotEmpty
+        ? primaryFromSettings
+        : boundKnowledgeBaseIds.isNotEmpty
+            ? boundKnowledgeBaseIds.first
+            : current?.primaryKnowledgeBaseId ?? '';
+    return {
+      'workspace_id': _stringValue(
+        settings['workspace_id'],
+        current?.workspaceId ?? state.currentWorkbookName,
+      ),
+      'primary_knowledge_base_id': primary,
+      'allowed_reference_kb_ids': _cleanStringList(
+        settings['allowed_reference_kb_ids']
+                ?.split(',')
+                .map((item) => item.trim())
+                .toList(growable: false) ??
+            current?.allowedReferenceKbIds ??
+            const <String>[],
+      ),
+      'kb_scope_mode': _stringValue(
+        settings['kb_scope_mode'],
+        primary.isEmpty ? 'none' : 'single',
+      ),
+      'answer_policy_id': _stringValue(
+        settings['answer_policy_id'],
+        current?.answerPolicyId ?? 'strict_evidence',
+      ),
+      'ai_profile_id': _stringValue(
+        settings['ai_profile_id'],
+        current?.aiProfileId ?? 'ai_profile_default_local',
+      ),
+      'workspace_path': workspace.path,
+    };
+  }
+
   Future<Rc6AgentConversation> _readAgentConversation(
     Directory workspace,
     String agentId,
@@ -12017,6 +12238,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final workspace = _requireWorkspace();
     final now = DateTime.now().toUtc().toIso8601String();
+    final scope = await _currentIndustrialScopeMetadata(workspace);
+    final mergedMetadata = {
+      ...scope,
+      ...metadata,
+    };
     final record = {
       'schema_version': 'heitang_event_ledger.v1',
       'event_id': 'evt_${DateTime.now().microsecondsSinceEpoch}',
@@ -12026,12 +12252,28 @@ class Rc6RuntimeController extends ChangeNotifier {
       'target_id': targetId,
       'target_name': targetName,
       'workspace_id': state.currentWorkbookName,
+      'project_id': scope['project_id'],
+      'assistant_id': scope['assistant_id'],
+      'task_id': scope['task_id'],
+      'user_id': scope['user_id'],
+      'primary_knowledge_base_id': scope['primary_knowledge_base_id'],
+      'used_knowledge_base_ids': scope['used_knowledge_base_ids'],
+      'knowledge_base_version_ids': scope['knowledge_base_version_ids'],
+      'kb_scope_mode': scope['kb_scope_mode'],
+      'permission_scope': scope['permission_scope'],
+      'domain_scope': scope['domain_scope'],
+      'jurisdiction_scope': scope['jurisdiction_scope'],
+      'time_scope': scope['time_scope'],
+      'answer_status': scope['answer_status'],
+      'evidence_status': scope['evidence_status'],
+      'risk_level': scope['risk_level'],
+      'created_artifact_ids': const <String>[],
       'status': status,
       'created_at': now,
       'source': source,
       'artifact_path': artifactPath,
       'error_message': errorMessage,
-      'metadata': metadata,
+      'metadata': mergedMetadata,
     };
     final path = _eventLedgerPath(workspace);
     await File(path).parent.create(recursive: true);
@@ -12057,6 +12299,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final catalog = await _readJsonObject(catalogPath);
     final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
     final now = DateTime.now().toUtc().toIso8601String();
+    final scope = await _currentIndustrialScopeMetadata(workspace);
+    final mergedMetadata = {
+      ...scope,
+      ...metadata,
+    };
     final index = records.indexWhere(
         (row) => (row['artifact_id'] ?? '').toString() == artifactId);
     final previous =
@@ -12068,11 +12315,28 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_module': sourceModule,
       'source_id': sourceId,
       'workspace_id': state.currentWorkbookName,
+      'project_id': scope['project_id'],
+      'assistant_id': scope['assistant_id'],
+      'task_id': scope['task_id'],
+      'user_id': scope['user_id'],
+      'primary_knowledge_base_id': scope['primary_knowledge_base_id'],
+      'used_knowledge_base_ids': scope['used_knowledge_base_ids'],
+      'knowledge_base_version_ids': scope['knowledge_base_version_ids'],
+      'source_document_ids': scope['source_document_ids'],
+      'source_chunk_ids': scope['source_chunk_ids'],
+      'answer_status': scope['answer_status'],
+      'evidence_status': scope['evidence_status'],
+      'risk_level': scope['risk_level'],
+      'validation_report_path': scope['validation_report_path'],
+      'reasoning_report_path': scope['reasoning_report_path'],
+      'citation_report_path': scope['citation_report_path'],
+      'conflict_report_path': scope['conflict_report_path'],
+      'exception_report_path': scope['exception_report_path'],
       'file_path': filePath,
       'created_at': previous?['created_at'] ?? now,
       'updated_at': now,
       'status': status,
-      'metadata': metadata,
+      'metadata': mergedMetadata,
     };
     if (index >= 0) {
       records[index] = record;
@@ -12092,6 +12356,79 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
   }
 
+  Future<Map<String, Object?>> _currentIndustrialScopeMetadata(
+    Directory workspace,
+  ) async {
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final primary = records.isEmpty ? const <String, dynamic>{} : records.first;
+    final kbId = _stringValue(primary['kb_id'], '');
+    final currentVersion = _stringValue(primary['current_version'], 'v1');
+    final versionId = _stringValue(
+      primary['knowledge_base_version_id'],
+      kbId.isEmpty ? '' : '${kbId}_$currentVersion',
+    );
+    final sourceDocs = _listOfMaps(primary['source_documents']);
+    final validationReportPath =
+        _join(workspace.path, 'query', 'validation_report.json');
+    final citationReportPath =
+        _join(workspace.path, 'query', 'citation_coverage_report.json');
+    final conflictReportPath =
+        _join(workspace.path, 'query', 'conflict_report.json');
+    final validationExists = await File(validationReportPath).exists();
+    final citationExists = await File(citationReportPath).exists();
+    final conflictExists = await File(conflictReportPath).exists();
+    return {
+      'scope_metadata_schema_version': 'heitang_industrial_scope_metadata.v1',
+      'scope_metadata_reserved': true,
+      'workspace_id': state.currentWorkbookName,
+      'workspace_path': workspace.path,
+      'project_id': 'local_project',
+      'assistant_id': state.hasAgent ? 'knowledge_qa_agent' : '',
+      'task_id': '',
+      'user_id': 'local_user',
+      'primary_knowledge_base_id': kbId,
+      'used_knowledge_base_ids': kbId.isEmpty ? const <String>[] : [kbId],
+      'allowed_reference_kb_ids': const <String>[],
+      'knowledge_base_version_ids':
+          versionId.isEmpty ? const <String>[] : [versionId],
+      'kb_scope_mode': kbId.isEmpty ? 'none' : 'single',
+      'permission_scope': _stringValue(
+        primary['permission_scope'],
+        'workspace_default',
+      ),
+      'domain_scope': _stringValue(primary['domain'], 'general'),
+      'jurisdiction_scope': _listOfStrings(primary['jurisdiction_scope']),
+      'time_scope': _mapValue(primary['time_scope']),
+      'source_document_ids': sourceDocs
+          .map((doc) => _stringValue(doc['document_id'], ''))
+          .where((id) => id.isNotEmpty)
+          .toList(growable: false),
+      'source_chunk_ids': const <String>[],
+      'answer_policy_id': _stringValue(
+        primary['default_answer_policy'],
+        'strict_evidence',
+      ),
+      'ai_profile_id': _stringValue(
+        primary['ai_profile_id'],
+        'ai_profile_default_local',
+      ),
+      'answer_status':
+          kbId.isEmpty ? 'blocked_no_bound_kb' : 'reasoning_not_implemented',
+      'evidence_status': validationExists ? 'retrieval_validated' : 'reserved',
+      'risk_level': _stringValue(primary['risk_level'], 'normal'),
+      'validation_report_path': validationExists ? validationReportPath : '',
+      'reasoning_report_path': '',
+      'citation_report_path': citationExists ? citationReportPath : '',
+      'conflict_report_path': conflictExists ? conflictReportPath : '',
+      'exception_report_path': '',
+      'human_review_record_path': '',
+      'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+      'rule_engine_status': 'rule_engine_not_implemented',
+      'cross_kb_reasoning_status': 'cross_kb_reasoning_not_implemented',
+    };
+  }
+
   Future<void> _markArtifactRecordDeleted({
     required String artifactId,
     required String status,
@@ -12102,16 +12439,38 @@ class Rc6RuntimeController extends ChangeNotifier {
     final catalog = await _readJsonObject(catalogPath);
     final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
     final now = DateTime.now().toUtc().toIso8601String();
+    final scope = await _currentIndustrialScopeMetadata(workspace);
+    final mergedMetadata = {
+      ...scope,
+      ...metadata,
+    };
     final index = records.indexWhere(
         (row) => (row['artifact_id'] ?? '').toString() == artifactId);
     if (index >= 0) {
       records[index] = {
         ...records[index],
+        'project_id': records[index]['project_id'] ?? scope['project_id'],
+        'assistant_id': records[index]['assistant_id'] ?? scope['assistant_id'],
+        'task_id': records[index]['task_id'] ?? scope['task_id'],
+        'user_id': records[index]['user_id'] ?? scope['user_id'],
+        'primary_knowledge_base_id': records[index]
+                ['primary_knowledge_base_id'] ??
+            scope['primary_knowledge_base_id'],
+        'used_knowledge_base_ids': records[index]['used_knowledge_base_ids'] ??
+            scope['used_knowledge_base_ids'],
+        'knowledge_base_version_ids': records[index]
+                ['knowledge_base_version_ids'] ??
+            scope['knowledge_base_version_ids'],
+        'answer_status':
+            records[index]['answer_status'] ?? scope['answer_status'],
+        'evidence_status':
+            records[index]['evidence_status'] ?? scope['evidence_status'],
+        'risk_level': records[index]['risk_level'] ?? scope['risk_level'],
         'updated_at': now,
         'status': status,
         'metadata': {
           ..._mapValue(records[index]['metadata']),
-          ...metadata,
+          ...mergedMetadata,
         },
       };
     } else {
@@ -12122,11 +12481,25 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source_module': 'unknown',
         'source_id': artifactId,
         'workspace_id': state.currentWorkbookName,
+        'project_id': scope['project_id'],
+        'assistant_id': scope['assistant_id'],
+        'task_id': scope['task_id'],
+        'user_id': scope['user_id'],
+        'primary_knowledge_base_id': scope['primary_knowledge_base_id'],
+        'used_knowledge_base_ids': scope['used_knowledge_base_ids'],
+        'knowledge_base_version_ids': scope['knowledge_base_version_ids'],
+        'source_document_ids': scope['source_document_ids'],
+        'source_chunk_ids': scope['source_chunk_ids'],
+        'answer_status': scope['answer_status'],
+        'evidence_status': scope['evidence_status'],
+        'risk_level': scope['risk_level'],
+        'validation_report_path': scope['validation_report_path'],
+        'reasoning_report_path': scope['reasoning_report_path'],
         'file_path': '',
         'created_at': now,
         'updated_at': now,
         'status': status,
-        'metadata': metadata,
+        'metadata': mergedMetadata,
       });
     }
     await _writeJsonFile(catalogPath, {
@@ -19235,6 +19608,63 @@ class Rc6RuntimeController extends ChangeNotifier {
           'status': _userStatus(modelGateway['status']),
           'secret_masked': true,
         },
+        'ai_config_governance': {
+          'schema_version': 'heitang_ai_config_governance_reservation.v1',
+          'status': 'ai_config_governance_reserved_needs_review',
+          'task_profiles': {
+            'rule_extraction': {
+              'model_role': 'structured_extractor',
+              'temperature_max': 0,
+              'json_schema_required': true,
+              'source_trace_required': true,
+              'verifier_required': true,
+              'block_on_schema_error': true,
+            },
+            'knowledge_answer': {
+              'model_role': 'kb_grounded_answerer',
+              'temperature_max': 0.2,
+              'must_cite': true,
+              'must_verify': true,
+              'block_on_missing_evidence': true,
+            },
+          },
+          'kb_profiles': {
+            'default': {
+              'risk_level': 'normal',
+              'must_cite': true,
+              'must_verify': true,
+              'allow_creative_completion': false,
+              'cross_kb_default': false,
+            },
+          },
+          'risk_profiles': {
+            'high': {
+              'temperature_max': 0.2,
+              'must_cite': true,
+              'must_verify': true,
+              'block_on_missing_evidence': true,
+              'human_review_for_execution_advice': true,
+            },
+          },
+          'answer_policies': {
+            'strict_evidence': {
+              'allow_unbound_kb_answer': false,
+              'block_on_missing_evidence': true,
+              'block_on_conflict': true,
+              'human_review_on_high_risk': true,
+            },
+          },
+          'verifier_profiles': {
+            'default': {
+              'scope_check_required': true,
+              'citation_check_required': true,
+              'conflict_check_required': true,
+              'exception_check_reserved': true,
+            },
+          },
+          'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
+          'rule_engine_status': 'rule_engine_not_implemented',
+        },
         'embedding_provider': {
           'config_id': active.embeddingConfigId,
           'provider_type':
@@ -26321,6 +26751,12 @@ class Rc6AgentProfile {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    required this.workspaceId,
+    required this.primaryKnowledgeBaseId,
+    required this.allowedReferenceKbIds,
+    required this.kbScopeMode,
+    required this.answerPolicyId,
+    required this.aiProfileId,
     required this.boundKnowledgeBaseIds,
     required this.boundSkillIds,
     required this.settings,
@@ -26335,6 +26771,23 @@ class Rc6AgentProfile {
       status: _modelString(json['status'], 'available'),
       createdAt: _modelString(json['created_at'], ''),
       updatedAt: _modelString(json['updated_at'], ''),
+      workspaceId: _modelString(json['workspace_id'], ''),
+      primaryKnowledgeBaseId: _modelString(
+        json['primary_knowledge_base_id'],
+        _stringList(json['bound_knowledge_base_ids']).isEmpty
+            ? ''
+            : _stringList(json['bound_knowledge_base_ids']).first,
+      ),
+      allowedReferenceKbIds: _stringList(json['allowed_reference_kb_ids']),
+      kbScopeMode: _modelString(
+        json['kb_scope_mode'],
+        _stringList(json['bound_knowledge_base_ids']).isEmpty
+            ? 'none'
+            : 'single',
+      ),
+      answerPolicyId: _modelString(json['answer_policy_id'], 'strict_evidence'),
+      aiProfileId:
+          _modelString(json['ai_profile_id'], 'ai_profile_default_local'),
       boundKnowledgeBaseIds: _stringList(json['bound_knowledge_base_ids']),
       boundSkillIds: _stringList(json['bound_skill_ids']),
       settings: _stringMap(json['settings']),
@@ -26348,6 +26801,12 @@ class Rc6AgentProfile {
   final String status;
   final String createdAt;
   final String updatedAt;
+  final String workspaceId;
+  final String primaryKnowledgeBaseId;
+  final List<String> allowedReferenceKbIds;
+  final String kbScopeMode;
+  final String answerPolicyId;
+  final String aiProfileId;
   final List<String> boundKnowledgeBaseIds;
   final List<String> boundSkillIds;
   final Map<String, String> settings;
@@ -26360,6 +26819,12 @@ class Rc6AgentProfile {
         'status': status,
         'created_at': createdAt,
         'updated_at': updatedAt,
+        'workspace_id': workspaceId,
+        'primary_knowledge_base_id': primaryKnowledgeBaseId,
+        'allowed_reference_kb_ids': allowedReferenceKbIds,
+        'kb_scope_mode': kbScopeMode,
+        'answer_policy_id': answerPolicyId,
+        'ai_profile_id': aiProfileId,
         'bound_knowledge_base_ids': boundKnowledgeBaseIds,
         'bound_skill_ids': boundSkillIds,
         'settings': settings,
@@ -26373,6 +26838,12 @@ class Rc6AgentProfile {
     String? status,
     String? createdAt,
     String? updatedAt,
+    String? workspaceId,
+    String? primaryKnowledgeBaseId,
+    List<String>? allowedReferenceKbIds,
+    String? kbScopeMode,
+    String? answerPolicyId,
+    String? aiProfileId,
     List<String>? boundKnowledgeBaseIds,
     List<String>? boundSkillIds,
     Map<String, String>? settings,
@@ -26385,6 +26856,14 @@ class Rc6AgentProfile {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      workspaceId: workspaceId ?? this.workspaceId,
+      primaryKnowledgeBaseId:
+          primaryKnowledgeBaseId ?? this.primaryKnowledgeBaseId,
+      allowedReferenceKbIds:
+          allowedReferenceKbIds ?? this.allowedReferenceKbIds,
+      kbScopeMode: kbScopeMode ?? this.kbScopeMode,
+      answerPolicyId: answerPolicyId ?? this.answerPolicyId,
+      aiProfileId: aiProfileId ?? this.aiProfileId,
       boundKnowledgeBaseIds:
           boundKnowledgeBaseIds ?? this.boundKnowledgeBaseIds,
       boundSkillIds: boundSkillIds ?? this.boundSkillIds,

@@ -617,6 +617,12 @@ class Rc6AgentProfile {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    required this.workspaceId,
+    required this.primaryKnowledgeBaseId,
+    required this.allowedReferenceKbIds,
+    required this.kbScopeMode,
+    required this.answerPolicyId,
+    required this.aiProfileId,
     required this.boundKnowledgeBaseIds,
     required this.boundSkillIds,
     required this.settings,
@@ -631,6 +637,19 @@ class Rc6AgentProfile {
       status: (json['status'] ?? 'available').toString(),
       createdAt: (json['created_at'] ?? '').toString(),
       updatedAt: (json['updated_at'] ?? '').toString(),
+      workspaceId: (json['workspace_id'] ?? '').toString(),
+      primaryKnowledgeBaseId:
+          (json['primary_knowledge_base_id'] ?? '').toString(),
+      allowedReferenceKbIds: _stringList(json['allowed_reference_kb_ids']),
+      kbScopeMode: (json['kb_scope_mode'] ??
+              (_stringList(json['bound_knowledge_base_ids']).isEmpty
+                  ? 'none'
+                  : 'single'))
+          .toString(),
+      answerPolicyId:
+          (json['answer_policy_id'] ?? 'strict_evidence').toString(),
+      aiProfileId:
+          (json['ai_profile_id'] ?? 'ai_profile_default_local').toString(),
       boundKnowledgeBaseIds: _stringList(json['bound_knowledge_base_ids']),
       boundSkillIds: _stringList(json['bound_skill_ids']),
       settings: _stringMap(json['settings']),
@@ -644,6 +663,12 @@ class Rc6AgentProfile {
   final String status;
   final String createdAt;
   final String updatedAt;
+  final String workspaceId;
+  final String primaryKnowledgeBaseId;
+  final List<String> allowedReferenceKbIds;
+  final String kbScopeMode;
+  final String answerPolicyId;
+  final String aiProfileId;
   final List<String> boundKnowledgeBaseIds;
   final List<String> boundSkillIds;
   final Map<String, String> settings;
@@ -656,6 +681,12 @@ class Rc6AgentProfile {
         'status': status,
         'created_at': createdAt,
         'updated_at': updatedAt,
+        'workspace_id': workspaceId,
+        'primary_knowledge_base_id': primaryKnowledgeBaseId,
+        'allowed_reference_kb_ids': allowedReferenceKbIds,
+        'kb_scope_mode': kbScopeMode,
+        'answer_policy_id': answerPolicyId,
+        'ai_profile_id': aiProfileId,
         'bound_knowledge_base_ids': boundKnowledgeBaseIds,
         'bound_skill_ids': boundSkillIds,
         'settings': settings,

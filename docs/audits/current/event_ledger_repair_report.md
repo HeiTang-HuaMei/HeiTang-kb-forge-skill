@@ -15,7 +15,7 @@ event_ledger_repair_completed_needs_owner_review
 - Matrix: D:\HeiTang-Codex-WorkSpace\Project_01_HeiTang_KB_Forge\kb-forge-skill-ui\web\workbench\flutter_app\output\event_ledger\event_ledger_blackbox_matrix.json
 - Workspace: C:\Users\Administrator\AppData\Local\HeiTangKBForge\rc10_product_flow_workspace
 - Data: C:\Users\Administrator\AppData\Local\HeiTangKBForge\rc10_product_flow_workspace\audit\event_ledger.jsonl
-- EXE screenshot after restart: D:\HeiTang-Codex-WorkSpace\Project_01_HeiTang_KB_Forge\kb-forge-skill-ui\web\workbench\flutter_app\output\artifact_lifecycle\event_artifact_lifecycle\event_artifact_lifecycle_20260624_160947\screenshots\event_artifact_after_restart.png
+- EXE screenshot after restart: D:\HeiTang-Codex-WorkSpace\Project_01_HeiTang_KB_Forge\kb-forge-skill-ui\web\workbench\flutter_app\output\artifact_lifecycle\event_artifact_lifecycle\event_artifact_lifecycle_20260624_192105\screenshots\event_artifact_after_restart.png
 
 ## Validation
 
