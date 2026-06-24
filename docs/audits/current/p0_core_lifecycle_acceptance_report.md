@@ -10,7 +10,7 @@
 
 ## 验证结论
 
-- gate rows: 13
+- gate rows: 14
 - blocked rows: 0
 - global_goal_complete: false
 - backfill_required: false
@@ -31,11 +31,12 @@
 - P0-7 Skill Generation: skill_generation_lifecycle_completed_needs_owner_review, blocked=0
 - P0-8 Settings / Path / Export: settings_export_basic_completed_needs_owner_review, blocked=0
 - P0-9 Memory and Evidence Metadata Reservation: memory_evidence_metadata_reserved_needs_review, blocked=0
+- P0-10 Assistant Bound-KB Integration: assistant_bound_kb_integration_completed_needs_owner_review, blocked=0
 
 ## 边界
 
 - 本报告是 P0 backfill 后的 Core Lifecycle rerun，不是阶段出门声明。
-- P0-4B OKF、P0-4C Agent Memory、P0-5B Knowledge Reliability 已纳入本次聚合检查。
+- P0-4B OKF、P0-4C Agent Memory、P0-5B Knowledge Reliability 和 P0-10 Assistant Bound-KB 已纳入本次聚合检查。
 - P0 主链路进入 Owner Review，不代表对外发布或最终完成。
 - P1 / P2 队列仍未执行，能力链总目标继续保持未完成。
 - A2A、工作小组、多模型调度、远程控制和发布均未进入本 Gate。

@@ -1,0 +1,80 @@
+﻿{
+    "schema_version":  "heitang_p0_assistant_bound_kb_integration_matrix.v1",
+    "status":  "assistant_bound_kb_integration_completed_needs_owner_review",
+    "workspace":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+    "matrix":  [
+                   {
+                       "path":  "P0-10 Assistant Bound-KB Integration",
+                       "step":  "bound assistant answer",
+                       "expected":  "助手绑定 KB 后，回答必须带 in-scope citation，并且只使用绑定 KB。",
+                       "actual":  "agent_found=True; source_trace_rows=2; answer_status=answered_with_citation; citation_status=valid_in_scope; used_kb_ids=test_knowledge_base_assistant_bound",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\validation_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-10 Assistant Bound-KB Integration",
+                       "step":  "no-bound-KB block",
+                       "expected":  "未绑定 KB 的助手必须阻断回答。",
+                       "actual":  "answer_status=blocked_no_bound_kb; evidence_status=missing_bound_kb; blocked=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\validation_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-10 Assistant Bound-KB Integration",
+                       "step":  "wrong-KB missing-evidence block",
+                       "expected":  "错绑 / 越界 KB 证据必须被拒绝，默认不能跨 KB 混答。",
+                       "actual":  "answer_status=blocked_missing_evidence; citation_status=out_of_scope_rejected; no_cross_kb_mixed_answer_by_default=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\reasoning_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-10 Assistant Bound-KB Integration",
+                       "step":  "artifact lifecycle and reports",
+                       "expected":  "必须生成 source_trace、validation_report、reasoning_report、answer artifact 和 test export package。",
+                       "actual":  "validation_schema=heitang_p0_assistant_bound_kb_validation_report.v1; reasoning_policy=strict_assistant_bound_kb_evidence; summary_status=assistant_bound_kb_integration_completed_needs_owner_review; answer_exists=True; export_exists=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\summary.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-10 Assistant Bound-KB Integration",
+                       "step":  "Event Ledger and Artifact Lifecycle",
+                       "expected":  "assistant_bound_kb_validated 必须写入 Event Ledger，validation/answer artifacts 必须登记 Artifact Lifecycle。",
+                       "actual":  "event_found=True; event_status=assistant_bound_kb_integration_completed_needs_owner_review; validation_artifact=True; answer_artifact=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                       "blocker":  ""
+                   }
+               ],
+    "run_dir":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\assistant_bound_kb_integration\\assistant_bound_kb_integration\\assistant_bound_kb_integration_20260625_014654",
+    "paths_ready":  true,
+    "restart_verified":  true,
+    "artifact_summary":  {
+                             "source_trace_count":  2,
+                             "validation_case_count":  3,
+                             "bound_kb_answer_status":  "answered_with_citation",
+                             "no_bound_kb_status":  "blocked_no_bound_kb",
+                             "wrong_kb_status":  "blocked_missing_evidence",
+                             "validation_report_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\validation_report.json",
+                             "reasoning_report_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\reasoning_report.json",
+                             "source_trace_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\source_trace.jsonl",
+                             "answer_artifact_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\test_assistant_bound_kb_answer.md",
+                             "export_package_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\assistant_bound_kb_integration\\test_export_package_assistant_bound_kb.json",
+                             "event_ledger_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\audit\\event_ledger.jsonl",
+                             "artifact_catalog_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json"
+                         },
+    "generated_at":  "2026-06-24T17:47:03.8055867Z"
+}

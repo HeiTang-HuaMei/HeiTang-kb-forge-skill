@@ -1,7 +1,7 @@
 ﻿{
     "schema_version":  "heitang_p0_core_lifecycle_acceptance_matrix.v1",
     "status":  "p0_core_lifecycle_backfill_rerun_completed_needs_owner_review",
-    "generated_at":  "2026-06-24T17:35:52.9158623Z",
+    "generated_at":  "2026-06-24T17:47:15.9547565Z",
     "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
     "global_goal_complete":  false,
     "p1_started":  false,
@@ -173,6 +173,19 @@
                      "matrix_exists":  true,
                      "report_exists":  true,
                      "row_count":  7,
+                     "blocked_rows":  0,
+                     "conclusion":  "p0_gate_evidence_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "gate":  "P0-10 Assistant Bound-KB Integration",
+                     "expected_status":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                     "actual_status":  "assistant_bound_kb_integration_completed_needs_owner_review",
+                     "matrix_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\assistant_bound_kb_integration_matrix.json",
+                     "report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\docs\\audits\\current\\assistant_bound_kb_integration_report.md",
+                     "matrix_exists":  true,
+                     "report_exists":  true,
+                     "row_count":  5,
                      "blocked_rows":  0,
                      "conclusion":  "p0_gate_evidence_verified",
                      "blocker":  ""

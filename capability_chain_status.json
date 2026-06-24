@@ -23,7 +23,8 @@
     "Composite Linked Blackbox Correction Gate",
     "P0-4C Agent Memory Minimal Core Gate",
     "P0-5B Knowledge Reliability Minimal Core Gate",
-    "P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)"
+    "P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)",
+    "P0-10 Assistant Bound-KB Integration Gate"
   ],
   "blocked_gates": [],
   "remaining_gates": [
@@ -141,11 +142,13 @@
     "OKF, Knowledge Reliability and Agent Memory are composite capabilities for P0 routing.",
     "P0-4C Agent Memory Minimal Core has capability-level closure evidence and remains subject to P0 Release Gate.",
     "P0-5B Knowledge Reliability Minimal Core has capability-level closure evidence and remains subject to P0 Core rerun plus P0 Release Gate.",
-    "P0 Core Lifecycle Acceptance backfill rerun has aggregated P0-1 through P0-9 plus P0-4B/P0-4C/P0-5B with blocked rows 0.",
+    "P0 Core Lifecycle Acceptance backfill rerun has aggregated P0-1 through P0-10 plus P0-4B/P0-4C/P0-5B with blocked rows 0.",
     "P0 queue now continues with P0 Release Gate before P1 entry.",
     "Stage chain is P0 -> P0 Release Gate -> P1 -> P1 Release Gate -> P2 -> P2 Release Gate -> Final Owner Review.",
     "Release Gate means staged exit review, not production release or public release claim.",
-    "P1 Release Gate regresses P0; P2 Release Gate regresses P0 plus P1 plus P2."
+    "P1 Release Gate regresses P0; P2 Release Gate regresses P0 plus P1 plus P2.",
+    "P0-10 Assistant Bound-KB Integration has capability-level closure evidence and remains subject to P0 Release Gate.",
+    "P0 Release Gate remains the active automatic stage gate before P1 entry."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

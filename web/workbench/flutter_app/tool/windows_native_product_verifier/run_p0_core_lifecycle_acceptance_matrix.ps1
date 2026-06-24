@@ -99,6 +99,9 @@ Add-AcceptanceRow $rows "P0-8 Settings / Path / Export" "settings_export_basic_c
 Add-AcceptanceRow $rows "P0-9 Memory and Evidence Metadata Reservation" "memory_evidence_metadata_reserved_needs_review" `
   (Join-Path $appRoot "output\capability_blackbox\memory_evidence\memory_evidence_metadata_reservation_matrix.json") `
   (Join-Path $repoRoot "docs\audits\current\memory_evidence_metadata_reservation_report.md")
+Add-AcceptanceRow $rows "P0-10 Assistant Bound-KB Integration" "assistant_bound_kb_integration_completed_needs_owner_review" `
+  (Join-Path $appRoot "output\capability_blackbox\assistant_bound_kb_integration_matrix.json") `
+  (Join-Path $repoRoot "docs\audits\current\assistant_bound_kb_integration_report.md")
 
 $blocked = @($rows | Where-Object { $_.conclusion -eq "blocked" })
 $status = if ($blocked.Count -eq 0) {
@@ -155,7 +158,7 @@ $report = @(
   "## 边界",
   "",
   "- 本报告是 P0 backfill 后的 Core Lifecycle rerun，不是阶段出门声明。",
-  "- P0-4B OKF、P0-4C Agent Memory、P0-5B Knowledge Reliability 已纳入本次聚合检查。",
+  "- P0-4B OKF、P0-4C Agent Memory、P0-5B Knowledge Reliability 和 P0-10 Assistant Bound-KB 已纳入本次聚合检查。",
   "- P0 主链路进入 Owner Review，不代表对外发布或最终完成。",
   "- P1 / P2 队列仍未执行，能力链总目标继续保持未完成。",
   "- A2A、工作小组、多模型调度、远程控制和发布均未进入本 Gate。",

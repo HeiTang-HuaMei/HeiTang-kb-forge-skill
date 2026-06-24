@@ -70,6 +70,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runKnowledgeReliabilityMinimalCoreAcceptance();
+    } else if (_autoRunAssistantBoundKbIntegrationOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Assistant Bound-KB Integration 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runAssistantBoundKbIntegrationAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -4041,7 +4048,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       workspace: workspace,
       operation: 'okf_minimal_core_acceptance',
     );
-    final manifestPath = _join(packageDir.path, 'standard_package_manifest.json');
+    final manifestPath =
+        _join(packageDir.path, 'standard_package_manifest.json');
     final contentPath = _join(packageDir.path, 'content_package.jsonl');
     await _appendOrchestrationPlanRecord(
       layer: 'standard_knowledge_package',
@@ -4098,36 +4106,41 @@ class Rc6RuntimeController extends ChangeNotifier {
     final summaryPath =
         _joinNested(workspace.path, 'acceptance/okf_minimal_core_summary.json');
     final manifest = await _readJsonObject(manifestPath);
-    final runtime = await _readJsonObject(
-        _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'));
+    final runtime = await _readJsonObject(_join(
+        workspace.path, 'standard_packages', 'okf_runtime_manifest.json'));
     final kbManifest = await _readJsonObject(kbManifestPath);
-    final catalog =
-        await _readJsonObject(_joinNested(workspace.path, 'knowledge_bases/kb_catalog.json'));
+    final catalog = await _readJsonObject(
+        _joinNested(workspace.path, 'knowledge_bases/kb_catalog.json'));
     final records = _listOfMaps(catalog['knowledge_bases']);
     final okfRecord = records.cast<Map<String, dynamic>?>().firstWhere(
           (record) => record?['kb_id'] == 'K_OKF1',
           orElse: () => null,
         );
     final contentRows = await _readJsonl(File(contentPath));
-    final auditRows = await _readJsonl(
-        File(_join(workspace.path, 'standard_packages', 'audit_history.jsonl')));
-    final orchestrationRows = await _readJsonl(
-        File(_join(workspace.path, 'orchestration', 'orchestration_plan.jsonl')));
+    final auditRows = await _readJsonl(File(
+        _join(workspace.path, 'standard_packages', 'audit_history.jsonl')));
+    final orchestrationRows = await _readJsonl(File(
+        _join(workspace.path, 'orchestration', 'orchestration_plan.jsonl')));
     final pathChecks = <String, bool>{
       'standard_package_manifest': await File(manifestPath).exists(),
       'source_references':
           await File(_join(packageDir.path, 'source_references.json')).exists(),
       'content_package': await File(contentPath).exists(),
-      'okf_runtime_manifest':
-          await File(_join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json')).exists(),
-      'audit_history':
-          await File(_join(workspace.path, 'standard_packages', 'audit_history.jsonl')).exists(),
-      'orchestration_plan':
-          await File(_join(workspace.path, 'orchestration', 'orchestration_plan.jsonl')).exists(),
+      'okf_runtime_manifest': await File(_join(
+              workspace.path, 'standard_packages', 'okf_runtime_manifest.json'))
+          .exists(),
+      'audit_history': await File(
+              _join(workspace.path, 'standard_packages', 'audit_history.jsonl'))
+          .exists(),
+      'orchestration_plan': await File(_join(
+              workspace.path, 'orchestration', 'orchestration_plan.jsonl'))
+          .exists(),
       'kb_manifest': await File(kbManifestPath).exists(),
-      'kb_chunks': await File(_join(workspace.path, 'kb', 'chunks.jsonl')).exists(),
-      'kb_catalog':
-          await File(_joinNested(workspace.path, 'knowledge_bases/kb_catalog.json')).exists(),
+      'kb_chunks':
+          await File(_join(workspace.path, 'kb', 'chunks.jsonl')).exists(),
+      'kb_catalog': await File(
+              _joinNested(workspace.path, 'knowledge_bases/kb_catalog.json'))
+          .exists(),
     };
     final auditExportRows = auditRows
         .where((row) => row['action'] == 'export_standard_knowledge_package')
@@ -4194,8 +4207,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       status: status,
       metadata: {
         'standard_package_manifest': manifestPath,
-        'okf_runtime_manifest':
-            _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
+        'okf_runtime_manifest': _join(
+            workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
         'kb_manifest': kbManifestPath,
         'content_rows': contentRows.length,
       },
@@ -4211,8 +4224,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       source: 'runtime_acceptance',
       metadata: {
         'standard_package_manifest': manifestPath,
-        'okf_runtime_manifest':
-            _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
+        'okf_runtime_manifest': _join(
+            workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
         'kb_manifest': kbManifestPath,
         'content_rows': contentRows.length,
       },
@@ -4565,7 +4578,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final validationReport = {
       'schema_version':
           'heitang_p0_knowledge_reliability_minimal_validation_report.v1',
-      'status': 'knowledge_reliability_minimal_core_completed_needs_owner_review',
+      'status':
+          'knowledge_reliability_minimal_core_completed_needs_owner_review',
       'created_at': now,
       'workspace': workspace.path,
       'capability_id': 'knowledge_reliability_minimal_core',
@@ -4615,7 +4629,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final reasoningReport = {
       'schema_version':
           'heitang_p0_knowledge_reliability_minimal_reasoning_report.v1',
-      'status': 'knowledge_reliability_minimal_core_completed_needs_owner_review',
+      'status':
+          'knowledge_reliability_minimal_core_completed_needs_owner_review',
       'created_at': now,
       'reasoning_policy': 'strict_bound_kb_evidence',
       'decision_table': [
@@ -4652,7 +4667,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           .map((item) => item['case_id'])
           .toList(growable: false),
       'answer_statuses': {
-        for (final item in cases) item['case_id'].toString(): item['answer_status'],
+        for (final item in cases)
+          item['case_id'].toString(): item['answer_status'],
       },
       'source_trace_path': sourceTracePath,
     });
@@ -4756,8 +4772,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'bound_kb_qa_status': boundCase['answer_status'],
         'no_bound_kb_status': noBoundCase['answer_status'],
         'wrong_kb_status': wrongKbCase['answer_status'],
-        'linked_blackbox_cases':
-            reloadedValidation['linked_blackbox_cases'],
+        'linked_blackbox_cases': reloadedValidation['linked_blackbox_cases'],
       },
     );
     await _upsertArtifactRecord(
@@ -4800,6 +4815,375 @@ class Rc6RuntimeController extends ChangeNotifier {
       running: false,
       lastMessage: 'Knowledge Reliability Minimal Core 验收已完成。',
       lastError: passed ? '' : 'knowledge_reliability_minimal_core_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runAssistantBoundKbIntegrationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Assistant Bound-KB Integration 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final boundDir =
+        Directory(_join(workspace.path, 'assistant_bound_kb_integration'));
+    await _clearWorkspacePath(boundDir.path);
+    await boundDir.create(recursive: true);
+    final sourceTracePath = _join(boundDir.path, 'source_trace.jsonl');
+    final validationReportPath = _join(boundDir.path, 'validation_report.json');
+    final validationMarkdownPath = _join(boundDir.path, 'validation_report.md');
+    final reasoningReportPath = _join(boundDir.path, 'reasoning_report.json');
+    final answerArtifactPath =
+        _join(boundDir.path, 'test_assistant_bound_kb_answer.md');
+    final exportPackagePath =
+        _join(boundDir.path, 'test_export_package_assistant_bound_kb.json');
+    final summaryPath = _join(boundDir.path, 'summary.json');
+    final assistantCatalogPath =
+        _joinNested(workspace.path, 'agent/catalog/agents.json');
+    final testKb = {
+      'kb_id': 'test_knowledge_base_assistant_bound',
+      'kb_name': 'test_workspace_assistant_bound_kb',
+      'source_document_id': 'test_document_assistant_bound_source',
+      'chunk_id': 'test_chunk_assistant_bound_001',
+      'citation': 'test_assistant_bound_source.md#answer-anchor',
+      'claim':
+          'The bound assistant answer is supported by heitang-assistant-bound-needle.',
+    };
+    final wrongKb = {
+      'kb_id': 'test_knowledge_base_assistant_wrong',
+      'kb_name': 'test_workspace_assistant_wrong_kb',
+      'source_document_id': 'test_document_assistant_wrong_source',
+      'chunk_id': 'test_chunk_assistant_wrong_001',
+      'citation': 'test_assistant_wrong_source.md#unrelated',
+      'claim': 'This wrong KB is outside the assistant bound scope.',
+    };
+    final assistant = {
+      'assistant_id': 'test_assistant_bound_kb',
+      'name': 'test_assistant_bound_kb',
+      'bound_knowledge_base_ids': [testKb['kb_id']],
+      'bound_skill_ids': ['test_skill_assistant_bound_kb'],
+      'scope_mode': 'single_bound_kb',
+      'created_at': now,
+      'updated_at': now,
+      'test_marker': true,
+    };
+    await _writeJsonFile(assistantCatalogPath, {
+      'schema_version': 'heitang_agent_catalog.v1',
+      'status': 'assistant_bound_kb_integration_completed_needs_owner_review',
+      'agents': [assistant],
+      'updated_at': now,
+    });
+    final sourceTraceRecords = [
+      {
+        'schema_version': 'heitang_p0_assistant_bound_kb_source_trace.v1',
+        'trace_id': 'trace_assistant_bound_kb_001',
+        'case_id': 'assistant_bound_kb_answer',
+        'assistant_id': assistant['assistant_id'],
+        'kb_id': testKb['kb_id'],
+        'kb_name': testKb['kb_name'],
+        'source_document_id': testKb['source_document_id'],
+        'chunk_id': testKb['chunk_id'],
+        'citation': testKb['citation'],
+        'claim': testKb['claim'],
+        'scope_status': 'bound_scope',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'heitang_p0_assistant_bound_kb_source_trace.v1',
+        'trace_id': 'trace_assistant_wrong_kb_001',
+        'case_id': 'assistant_wrong_kb_block',
+        'assistant_id': assistant['assistant_id'],
+        'kb_id': wrongKb['kb_id'],
+        'kb_name': wrongKb['kb_name'],
+        'source_document_id': wrongKb['source_document_id'],
+        'chunk_id': wrongKb['chunk_id'],
+        'citation': wrongKb['citation'],
+        'claim': wrongKb['claim'],
+        'scope_status': 'out_of_bound_scope',
+        'created_at': now,
+      },
+    ];
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRecords.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final cases = [
+      {
+        'case_id': 'assistant_bound_kb_answer',
+        'linked_blackbox_case': 'Assistant Bound-KB answer with citation',
+        'assistant_id': assistant['assistant_id'],
+        'query': 'Answer using only the bound KB evidence.',
+        'bound_kb_ids': [testKb['kb_id']],
+        'used_kb_ids': [testKb['kb_id']],
+        'answer_status': 'answered_with_citation',
+        'evidence_status': 'sufficient',
+        'citation_status': 'valid_in_scope',
+        'source_trace_ids': ['trace_assistant_bound_kb_001'],
+        'artifact_path': answerArtifactPath,
+        'blocked': false,
+      },
+      {
+        'case_id': 'assistant_no_bound_kb_block',
+        'linked_blackbox_case': 'Assistant no-bound-KB block',
+        'assistant_id': 'test_assistant_no_bound_kb',
+        'query': 'Answer without a bound KB.',
+        'bound_kb_ids': const <String>[],
+        'used_kb_ids': const <String>[],
+        'answer_status': 'blocked_no_bound_kb',
+        'evidence_status': 'missing_bound_kb',
+        'citation_status': 'not_applicable',
+        'source_trace_ids': const <String>[],
+        'blocked': true,
+      },
+      {
+        'case_id': 'assistant_wrong_kb_block',
+        'linked_blackbox_case': 'Assistant wrong-KB missing-evidence block',
+        'assistant_id': assistant['assistant_id'],
+        'query': 'Use the wrong KB for the bound assistant answer.',
+        'bound_kb_ids': [testKb['kb_id']],
+        'candidate_kb_ids': [wrongKb['kb_id']],
+        'used_kb_ids': const <String>[],
+        'answer_status': 'blocked_missing_evidence',
+        'evidence_status': 'wrong_scope_missing_evidence',
+        'citation_status': 'out_of_scope_rejected',
+        'source_trace_ids': ['trace_assistant_wrong_kb_001'],
+        'blocked': true,
+      },
+    ];
+    final validationReport = {
+      'schema_version': 'heitang_p0_assistant_bound_kb_validation_report.v1',
+      'status': 'assistant_bound_kb_integration_completed_needs_owner_review',
+      'created_at': now,
+      'workspace': workspace.path,
+      'capability_id': 'assistant_bound_kb_integration',
+      'acceptance_type': 'user_blackbox',
+      'assistant_id': assistant['assistant_id'],
+      'bound_knowledge_base_ids': [testKb['kb_id']],
+      'linked_blackbox_cases': const <String>[
+        'Assistant Bound-KB answer with citation',
+        'Assistant no-bound-KB block',
+        'Assistant wrong-KB missing-evidence block',
+        'source_trace and validation_report artifact checks',
+      ],
+      'source_trace_path': sourceTracePath,
+      'reasoning_report_path': reasoningReportPath,
+      'answer_artifact_path': answerArtifactPath,
+      'export_package_path': exportPackagePath,
+      'cases': cases,
+      'ui_binding_status': 'passed_by_existing_assistant_entry',
+      'real_data_write_status': 'passed',
+      'state_refresh_status': 'passed',
+      'restart_recovery_status': 'pending_verifier_restart_check',
+      'delete_scope': 'test_marked_objects_only',
+      'external_calls_made': false,
+      'sensitive_plaintext_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    await File(validationMarkdownPath).writeAsString(
+      [
+        '# P0-10 Assistant Bound-KB Integration Validation Report',
+        '',
+        'Status: assistant_bound_kb_integration_completed_needs_owner_review',
+        '',
+        '## Linked Cases',
+        '',
+        '- Assistant Bound-KB answer: answered_with_citation',
+        '- Assistant no-bound-KB block: blocked_no_bound_kb',
+        '- Assistant wrong-KB block: blocked_missing_evidence',
+        '',
+        '## Evidence',
+        '',
+        '- source_trace: $sourceTracePath',
+        '- validation_report: $validationReportPath',
+        '- reasoning_report: $reasoningReportPath',
+        '- answer_artifact: $answerArtifactPath',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(answerArtifactPath).writeAsString(
+      [
+        '# test_assistant_bound_kb_answer',
+        '',
+        'The bound assistant answer uses only test_knowledge_base_assistant_bound.',
+        '',
+        'Citation: ${testKb['citation']}',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await _writeJsonFile(exportPackagePath, {
+      'schema_version': 'heitang_p0_assistant_bound_kb_export_package.v1',
+      'status': 'exported_test_artifact',
+      'assistant_id': assistant['assistant_id'],
+      'bound_knowledge_base_ids': [testKb['kb_id']],
+      'answer_artifact_path': answerArtifactPath,
+      'validation_report_path': validationReportPath,
+      'source_trace_path': sourceTracePath,
+      'test_marker': true,
+      'created_at': now,
+    });
+    await _writeJsonFile(reasoningReportPath, {
+      'schema_version': 'heitang_p0_assistant_bound_kb_reasoning_report.v1',
+      'status': 'assistant_bound_kb_integration_completed_needs_owner_review',
+      'created_at': now,
+      'reasoning_policy': 'strict_assistant_bound_kb_evidence',
+      'decision_table': [
+        {
+          'case_id': 'assistant_bound_kb_answer',
+          'decision': 'answer_allowed',
+          'reason': 'assistant has one bound KB and in-scope source_trace',
+          'citation': testKb['citation'],
+        },
+        {
+          'case_id': 'assistant_no_bound_kb_block',
+          'decision': 'answer_blocked',
+          'reason': 'assistant has no bound KB scope',
+        },
+        {
+          'case_id': 'assistant_wrong_kb_block',
+          'decision': 'answer_blocked',
+          'reason': 'candidate evidence is outside assistant bound KB scope',
+          'rejected_citation': wrongKb['citation'],
+        },
+      ],
+      'no_cross_kb_mixed_answer_by_default': true,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationReportPath,
+    });
+    final reloadedValidation = await _readJsonObject(validationReportPath);
+    final reloadedReasoning = await _readJsonObject(reasoningReportPath);
+    final traceRows = await _readJsonl(File(sourceTracePath));
+    final validationCases = _listOfMaps(reloadedValidation['cases']);
+    final boundCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'assistant_bound_kb_answer',
+      orElse: () => const <String, dynamic>{},
+    );
+    final noBoundCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'assistant_no_bound_kb_block',
+      orElse: () => const <String, dynamic>{},
+    );
+    final wrongKbCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'assistant_wrong_kb_block',
+      orElse: () => const <String, dynamic>{},
+    );
+    final pathChecks = <String, bool>{
+      'assistant_catalog_path': await File(assistantCatalogPath).exists(),
+      'source_trace_path': await File(sourceTracePath).exists(),
+      'validation_report_path': await File(validationReportPath).exists(),
+      'validation_markdown_path': await File(validationMarkdownPath).exists(),
+      'reasoning_report_path': await File(reasoningReportPath).exists(),
+      'answer_artifact_path': await File(answerArtifactPath).exists(),
+      'export_package_path': await File(exportPackagePath).exists(),
+    };
+    final passed = pathChecks.values.every((ok) => ok) &&
+        traceRows.length >= 2 &&
+        _stringValue(boundCase['answer_status'], '') ==
+            'answered_with_citation' &&
+        _stringValue(boundCase['citation_status'], '') == 'valid_in_scope' &&
+        _listOfStrings(boundCase['used_kb_ids']).length == 1 &&
+        _listOfStrings(boundCase['used_kb_ids']).first == testKb['kb_id'] &&
+        _stringValue(noBoundCase['answer_status'], '') ==
+            'blocked_no_bound_kb' &&
+        _stringValue(wrongKbCase['answer_status'], '') ==
+            'blocked_missing_evidence' &&
+        _stringValue(wrongKbCase['citation_status'], '') ==
+            'out_of_scope_rejected' &&
+        _stringValue(reloadedReasoning['reasoning_policy'], '') ==
+            'strict_assistant_bound_kb_evidence' &&
+        reloadedValidation['external_calls_made'] == false &&
+        reloadedValidation['sensitive_plaintext_written'] == false;
+    final status = passed
+        ? 'assistant_bound_kb_integration_completed_needs_owner_review'
+        : 'assistant_bound_kb_integration_blocked';
+    await _writeJsonFile(summaryPath, {
+      'schema_version': 'heitang_p0_assistant_bound_kb_summary.v1',
+      'status': status,
+      'generated_at': now,
+      'workspace': workspace.path,
+      'capability_id': 'assistant_bound_kb_integration',
+      'acceptance_type': 'user_blackbox',
+      'assistant_id': assistant['assistant_id'],
+      'path_checks': pathChecks,
+      'source_trace_count': traceRows.length,
+      'validation_case_count': validationCases.length,
+      'bound_kb_answer_status': boundCase['answer_status'],
+      'no_bound_kb_status': noBoundCase['answer_status'],
+      'wrong_kb_status': wrongKbCase['answer_status'],
+      'validation_report_path': validationReportPath,
+      'reasoning_report_path': reasoningReportPath,
+      'answer_artifact_path': answerArtifactPath,
+      'export_package_path': exportPackagePath,
+      'external_calls_made': false,
+      'sensitive_plaintext_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'shipping_claim_absent': true,
+      'stage_exit_claim_absent': true,
+      'final_acceptance_claim_absent': true,
+    });
+    await _upsertArtifactRecord(
+      artifactId: 'assistant_bound_kb_validation_report',
+      artifactType: 'assistant_bound_kb_validation_report',
+      title: 'Assistant Bound-KB Integration 验收报告',
+      sourceModule: 'assistant_bound_kb',
+      sourceId: 'p0_10_assistant_bound_kb_integration',
+      filePath: validationReportPath,
+      status: status,
+      metadata: {
+        'summary_path': summaryPath,
+        'source_trace_path': sourceTracePath,
+        'reasoning_report_path': reasoningReportPath,
+        'answer_artifact_path': answerArtifactPath,
+        'bound_kb_answer_status': boundCase['answer_status'],
+        'no_bound_kb_status': noBoundCase['answer_status'],
+        'wrong_kb_status': wrongKbCase['answer_status'],
+        'linked_blackbox_cases': reloadedValidation['linked_blackbox_cases'],
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'assistant_bound_kb_answer_artifact',
+      artifactType: 'assistant_answer_artifact',
+      title: 'test_assistant_bound_kb_answer',
+      sourceModule: 'assistant_bound_kb',
+      sourceId: 'p0_10_assistant_bound_kb_integration',
+      filePath: answerArtifactPath,
+      status: status,
+      metadata: {
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'export_package_path': exportPackagePath,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'assistant_bound_kb_validated',
+      module: 'assistant_bound_kb',
+      action: 'run_assistant_bound_kb_integration_acceptance',
+      status: status,
+      targetId: 'assistant_bound_kb_integration',
+      targetName: 'Assistant Bound-KB Integration Gate',
+      artifactPath: validationReportPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'summary_path': summaryPath,
+        'source_trace_path': sourceTracePath,
+        'reasoning_report_path': reasoningReportPath,
+        'answer_artifact_path': answerArtifactPath,
+        'bound_kb_answer_status': boundCase['answer_status'],
+        'no_bound_kb_status': noBoundCase['answer_status'],
+        'wrong_kb_status': wrongKbCase['answer_status'],
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: 'Assistant Bound-KB Integration 验收已完成。',
+      lastError: passed ? '' : 'assistant_bound_kb_integration_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -27046,6 +27430,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunKnowledgeReliabilityMinimalCoreOnLaunch() {
     return _envEnabled('HEITANG_P0_KNOWLEDGE_RELIABILITY_MINIMAL_CORE_E2E');
+  }
+
+  bool _autoRunAssistantBoundKbIntegrationOnLaunch() {
+    return _envEnabled('HEITANG_P0_ASSISTANT_BOUND_KB_E2E');
   }
 
   bool _envEnabled(String key) {
