@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P0",
-  "current_gate": "P0 Core Lifecycle Acceptance Gate",
+  "current_gate": "P0-4B OKF Minimal Core Gate",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -13,11 +13,16 @@
     "P0-5 Knowledge Base Validation Gate",
     "P0-6 Document Generation Gate",
     "P0-7 Skill Generation Gate",
-    "P0-8 Basic Settings / Path / Export Gate"
+    "P0-8 Basic Settings / Path / Export Gate",
+    "P0-9 Memory and Evidence Metadata Reservation",
+    "P0 Core Lifecycle Acceptance Gate (pre-backfill snapshot)",
+    "Capability Inventory and Routing Gate - Landed or Backfill"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P0 Core Lifecycle Acceptance Gate",
+    "P0-4B OKF Minimal Core Gate",
+    "P0-5B Knowledge Reliability Minimal Core Gate",
+    "P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)",
     "P1-1 Full Route Responsive Review",
     "P1-2 External Skill Import Basic",
     "P1-3 Connection Configuration Blackbox Verification",
@@ -58,6 +63,12 @@
     "P1-39 Conflict and Exception Detection Basic",
     "P1-40 Evidence Verifier Basic",
     "P1-41 AI Config Governance Basic",
+    "P1-42 Memory Layer Separation Basic",
+    "P1-43 Evidence Graph Basic",
+    "P1-44 Gap Analysis Basic",
+    "P1-45 Citation Verification Basic",
+    "P1-46 Knowledge Reliability Eval Suite Basic",
+    "P1-47 Retrieval Regression Basic",
     "P2-1 Workgroup Basic Runtime",
     "P2-2 Office Collaboration Workgroup",
     "P2-3 Research Analysis Workgroup",
@@ -87,15 +98,23 @@
     "P2-27 Versioned Knowledge Governance",
     "P2-28 Jurisdiction / Domain Scope",
     "P2-29 Human Review Console",
-    "P2-30 Reliability Score Industrial"
+    "P2-30 Reliability Score Industrial",
+    "P2-31 Night Knowledge Maintenance Loop",
+    "P2-32 Citation Auto-Repair Industrial",
+    "P2-33 Memory Consolidation Industrial",
+    "P2-34 Permission-Scoped Company Brain",
+    "P2-35 Retrieval Regression Benchmark Industrial",
+    "P2-36 Self-Improving Knowledge Maintenance"
   ],
-  "last_commit": "1fb3979",
+  "last_commit": "cb48bf5",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-24T13:22:30Z",
+  "updated_at": "2026-06-24T13:45:44Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
-    "Do not enter P1 implementation before P0 Core Lifecycle Acceptance Gate."
+    "Do not enter P1 implementation before P0 backfill gates and rerun P0 Core Lifecycle Acceptance Gate.",
+    "GBrain supplement merged: P0-9 reserves memory/evidence metadata only; P1/P2 entries remain queued.",
+    "Capability Inventory routed P0 gaps into P0-4B OKF Minimal Core and P0-5B Knowledge Reliability Minimal Core."
   ]
 }

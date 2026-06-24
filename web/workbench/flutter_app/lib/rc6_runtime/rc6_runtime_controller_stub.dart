@@ -149,6 +149,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         detail: '真实 Qdrant 连接测试需要 Windows EXE 桌面端。',
       );
   Future<void> runStorageConnectionAcceptance() async => initialize();
+  Future<String> runMemoryEvidenceMetadataReservationAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<Map<String, dynamic>> loadStorageProviderSettings() async => {
         'schema_version': 'heitang_storage_provider_settings.v1',
         'workspace': '',

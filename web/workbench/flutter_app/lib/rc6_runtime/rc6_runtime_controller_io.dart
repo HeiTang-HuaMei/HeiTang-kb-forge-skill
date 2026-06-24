@@ -56,7 +56,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunSettingsExportBasicOnLaunch()) {
+    if (_autoRunMemoryEvidenceMetadataReservationOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Memory / Evidence 元数据预留验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runMemoryEvidenceMetadataReservationAcceptance();
+    } else if (_autoRunSettingsExportBasicOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行设置、路径与导出基础验收。',
         lastError: '',
@@ -1119,6 +1126,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       'evidence_status': missingEvidence ? 'missing_evidence' : 'sufficient',
       'risk_level': scope['risk_level'],
       'missing_evidence': missingEvidence,
+      'gap_analysis': {
+        'missing_claims': missingEvidence ? ['citation_support'] : const [],
+        'missing_rules': const [],
+        'missing_sources': missingEvidence ? ['source_citation'] : const [],
+      },
+      'citation_status': missingEvidence ? 'missing' : 'valid',
+      'retrieval_eval_status': reviewed ? 'passed' : 'partial',
       'exception_count': 0,
       'human_review_required': conflictCount > 0 ||
           _stringValue(scope['risk_level'], 'normal') == 'high',
@@ -3693,8 +3707,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         continue;
       }
       final value = entry.value.trim();
-      pathChecks[entry.key] =
-          value.isNotEmpty && await File(value).exists();
+      pathChecks[entry.key] = value.isNotEmpty && await File(value).exists();
     }
     final storageSettings =
         await _readJsonObject(_storageProviderSettingsPath(workspace));
@@ -3703,16 +3716,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _readJsonObject(_providerRuntimeSettingsPath(workspace));
     final exporterSettings =
         await _readJsonObject(_exporterSettingsPath(workspace));
-    final providerSecretOk =
-        providerSettings['secret_plaintext_written'] == false &&
-            _stringValue(
-                    _mapValue(providerSettings['llm'])['api_key_display'], '')
-                .contains('*');
-    final storageSecretOk =
-        _stringValue(_mapValue(storageSettings['redis'])['password_display'], '')
+    final providerSecretOk = providerSettings['secret_plaintext_written'] ==
+            false &&
+        _stringValue(_mapValue(providerSettings['llm'])['api_key_display'], '')
             .contains('*');
-    final exporterRoot =
-        _stringValue(exporterSettings['export_root'], '');
+    final storageSecretOk = _stringValue(
+            _mapValue(storageSettings['redis'])['password_display'], '')
+        .contains('*');
+    final exporterRoot = _stringValue(exporterSettings['export_root'], '');
     final passed = pathChecks.values.every((ok) => ok) &&
         providerSecretOk &&
         storageSecretOk &&
@@ -3762,6 +3773,188 @@ class Rc6RuntimeController extends ChangeNotifier {
       running: false,
       lastMessage: '设置、路径与导出基础验收已完成。',
       lastError: passed ? '' : 'settings_export_basic_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runMemoryEvidenceMetadataReservationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Memory / Evidence 元数据预留验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final scope = await _currentIndustrialScopeMetadata(workspace);
+    final reservationDir = Directory(_join(workspace.path, 'memory_evidence'));
+    await reservationDir.create(recursive: true);
+    final manifestPath =
+        _join(reservationDir.path, 'metadata_reservation_manifest.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/memory_evidence_metadata_reservation_summary.json');
+    final sourceTracePath =
+        _join(reservationDir.path, 'source_trace_reservation.json');
+    final validationReservationPath =
+        _join(reservationDir.path, 'validation_gap_reservation.json');
+    final evidenceGraphReferencePath =
+        _join(reservationDir.path, 'evidence_graph_reference.json');
+    final manifest = {
+      'schema_version': 'heitang_memory_evidence_metadata_reservation.v1',
+      'status': 'memory_evidence_metadata_reserved_needs_review',
+      'generated_at': now,
+      'workspace': workspace.path,
+      'scope': scope,
+      'memory_layer_type':
+          'brain | agent_memory | session_context | event | artifact',
+      'evidence_graph_refs': const <String>[],
+      'citation_status': 'not_checked',
+      'gap_analysis': {
+        'missing_claims': const <String>[],
+        'missing_rules': const <String>[],
+        'missing_sources': const <String>[],
+      },
+      'retrieval_eval_status': 'not_run',
+      'not_implemented_boundaries': {
+        'evidence_graph_status': 'evidence_graph_not_implemented',
+        'dream_cycle_status': 'dream_cycle_not_implemented',
+        'retrieval_eval_status': 'retrieval_eval_not_implemented',
+        'external_gbrain_integration': false,
+        'automatic_knowledge_base_modification': false,
+        'company_brain_permission_system': false,
+      },
+      'reservation_paths': {
+        'source_trace_path': sourceTracePath,
+        'validation_gap_reservation_path': validationReservationPath,
+        'evidence_graph_reference_path': evidenceGraphReferencePath,
+        'summary_path': summaryPath,
+      },
+    };
+    await _writeJsonFile(manifestPath, manifest);
+    await _writeJsonFile(sourceTracePath, {
+      'schema_version': 'heitang_source_trace_reservation.v1',
+      'status': 'memory_evidence_metadata_reserved_needs_review',
+      'memory_layer_type': 'brain',
+      'citation_status': 'not_checked',
+      'source_trace_reserved': true,
+      'source_document_ids': scope['source_document_ids'],
+      'source_chunk_ids': scope['source_chunk_ids'],
+      'evidence_graph_refs': const <String>[],
+      'created_at': now,
+    });
+    await _writeJsonFile(validationReservationPath, {
+      'schema_version': 'heitang_gap_analysis_reservation.v1',
+      'status': 'memory_evidence_metadata_reserved_needs_review',
+      'memory_layer_type': 'event',
+      'gap_analysis': {
+        'missing_claims': const <String>[],
+        'missing_rules': const <String>[],
+        'missing_sources': const <String>[],
+      },
+      'citation_status': 'not_checked',
+      'retrieval_eval_status': 'not_run',
+      'created_at': now,
+    });
+    await _writeJsonFile(evidenceGraphReferencePath, {
+      'schema_version': 'heitang_evidence_graph_reference_reservation.v1',
+      'status': 'evidence_graph_not_implemented',
+      'memory_layer_type': 'brain',
+      'evidence_graph_refs': const <String>[],
+      'typed_links_reserved': const <String>[
+        'belongs_to',
+        'defined_by',
+        'prohibits',
+        'allows',
+        'requires',
+        'except_when',
+        'supported_by',
+        'conflicts_with',
+        'derived_from',
+      ],
+      'graph_runtime_executed': false,
+      'created_at': now,
+    });
+    await _upsertArtifactRecord(
+      artifactId: 'memory_evidence_metadata_reservation',
+      artifactType: 'validation_report',
+      title: 'Memory / Evidence 元数据预留报告',
+      sourceModule: 'memory_evidence',
+      sourceId: 'p0_9_memory_evidence_metadata_reservation',
+      filePath: manifestPath,
+      status: 'memory_evidence_metadata_reserved_needs_review',
+      metadata: {
+        'memory_layer_type': 'artifact',
+        'evidence_graph_refs': const <String>[],
+        'citation_status': 'not_checked',
+        'gap_analysis': manifest['gap_analysis'],
+        'retrieval_eval_status': 'not_run',
+        'evidence_graph_status': 'evidence_graph_not_implemented',
+        'dream_cycle_status': 'dream_cycle_not_implemented',
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'memory_evidence_metadata_reserved',
+      module: 'memory_evidence',
+      action: 'run_memory_evidence_metadata_reservation_acceptance',
+      status: 'memory_evidence_metadata_reserved_needs_review',
+      targetId: 'p0_9_memory_evidence_metadata_reservation',
+      targetName: 'Memory and Evidence Metadata Reservation',
+      artifactPath: manifestPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'memory_layer_type': 'event',
+        'evidence_graph_refs': const <String>[],
+        'citation_status': 'not_checked',
+        'gap_analysis': manifest['gap_analysis'],
+        'retrieval_eval_status': 'not_run',
+        'evidence_graph_status': 'evidence_graph_not_implemented',
+        'dream_cycle_status': 'dream_cycle_not_implemented',
+      },
+    );
+    final requiredPaths = {
+      'manifest_path': manifestPath,
+      'source_trace_path': sourceTracePath,
+      'validation_gap_reservation_path': validationReservationPath,
+      'evidence_graph_reference_path': evidenceGraphReferencePath,
+    };
+    final pathChecks = <String, bool>{};
+    for (final entry in requiredPaths.entries) {
+      pathChecks[entry.key] = await File(entry.value).exists();
+    }
+    final passed = pathChecks.values.every((ok) => ok);
+    await _writeJsonFile(summaryPath, {
+      'schema_version':
+          'heitang_p0_memory_evidence_metadata_reservation_summary.v1',
+      'status': passed
+          ? 'memory_evidence_metadata_reserved_needs_review'
+          : 'memory_evidence_metadata_reservation_blocked',
+      'generated_at': now,
+      'workspace': workspace.path,
+      'required_paths': requiredPaths,
+      'path_checks': pathChecks,
+      'allowed_statuses': const <String>[
+        'memory_evidence_metadata_reserved_needs_review',
+        'evidence_graph_not_implemented',
+        'dream_cycle_not_implemented',
+        'retrieval_eval_not_implemented',
+      ],
+      'forbidden_runtime_executed': false,
+      'external_gbrain_integrated': false,
+      'night_dream_cycle_executed': false,
+      'automatic_kb_modification_executed': false,
+      'production_ready_claimed': false,
+      'release_ready_claimed': false,
+      'industrial_acceptance_passed_claimed': false,
+    });
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: 'Memory / Evidence 元数据预留验收已完成。',
+      lastError: passed ? '' : 'memory_evidence_metadata_reservation_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -8874,6 +9067,23 @@ class Rc6RuntimeController extends ChangeNotifier {
       'scope_metadata_reserved': true,
       'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
       'rule_engine_status': 'rule_engine_not_implemented',
+      'memory_layer_type': 'brain',
+      'evidence_graph_refs': _listOfStrings(record['evidence_graph_refs']),
+      'citation_status': _stringValue(
+        record['citation_status'],
+        'not_checked',
+      ),
+      'gap_analysis': _mapValue(record['gap_analysis']).isEmpty
+          ? {
+              'missing_claims': const <String>[],
+              'missing_rules': const <String>[],
+              'missing_sources': const <String>[],
+            }
+          : _mapValue(record['gap_analysis']),
+      'retrieval_eval_status': _stringValue(
+        record['retrieval_eval_status'],
+        'not_run',
+      ),
       'workspace_path': workspace.path,
     };
   }
@@ -12426,6 +12636,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'answer_status': scope['answer_status'],
       'evidence_status': scope['evidence_status'],
       'risk_level': scope['risk_level'],
+      'memory_layer_type': scope['memory_layer_type'],
+      'evidence_graph_refs': scope['evidence_graph_refs'],
+      'citation_status': scope['citation_status'],
+      'gap_analysis': scope['gap_analysis'],
+      'retrieval_eval_status': scope['retrieval_eval_status'],
       'created_artifact_ids': const <String>[],
       'status': status,
       'created_at': now,
@@ -12486,6 +12701,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'answer_status': scope['answer_status'],
       'evidence_status': scope['evidence_status'],
       'risk_level': scope['risk_level'],
+      'memory_layer_type': scope['memory_layer_type'],
+      'evidence_graph_refs': scope['evidence_graph_refs'],
+      'citation_status': scope['citation_status'],
+      'gap_analysis': scope['gap_analysis'],
+      'retrieval_eval_status': scope['retrieval_eval_status'],
       'validation_report_path': scope['validation_report_path'],
       'reasoning_report_path': scope['reasoning_report_path'],
       'citation_report_path': scope['citation_report_path'],
@@ -12576,6 +12796,17 @@ class Rc6RuntimeController extends ChangeNotifier {
           kbId.isEmpty ? 'blocked_no_bound_kb' : 'reasoning_not_implemented',
       'evidence_status': validationExists ? 'retrieval_validated' : 'reserved',
       'risk_level': _stringValue(primary['risk_level'], 'normal'),
+      'memory_layer_type': 'event',
+      'evidence_graph_refs': _listOfStrings(primary['evidence_graph_refs']),
+      'citation_status': citationExists ? 'valid' : 'not_checked',
+      'gap_analysis': _mapValue(primary['gap_analysis']).isEmpty
+          ? {
+              'missing_claims': const <String>[],
+              'missing_rules': const <String>[],
+              'missing_sources': const <String>[],
+            }
+          : _mapValue(primary['gap_analysis']),
+      'retrieval_eval_status': validationExists ? 'partial' : 'not_run',
       'validation_report_path': validationExists ? validationReportPath : '',
       'reasoning_report_path': '',
       'citation_report_path': citationExists ? citationReportPath : '',
@@ -12585,6 +12816,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'semantic_reasoning_status': 'semantic_reasoning_not_implemented',
       'rule_engine_status': 'rule_engine_not_implemented',
       'cross_kb_reasoning_status': 'cross_kb_reasoning_not_implemented',
+      'evidence_graph_status': 'evidence_graph_not_implemented',
+      'dream_cycle_status': 'dream_cycle_not_implemented',
+      'retrieval_eval_implementation_status': 'retrieval_eval_not_implemented',
     };
   }
 
@@ -25951,6 +26185,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunSettingsExportBasicOnLaunch() {
     return _envEnabled('HEITANG_P0_SETTINGS_EXPORT_E2E');
+  }
+
+  bool _autoRunMemoryEvidenceMetadataReservationOnLaunch() {
+    return _envEnabled('HEITANG_P0_MEMORY_EVIDENCE_E2E');
   }
 
   bool _envEnabled(String key) {
