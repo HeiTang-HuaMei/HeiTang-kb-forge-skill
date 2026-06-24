@@ -84,17 +84,82 @@ function Initialize-NativeVerifierTypes {
 using System;
 using System.Runtime.InteropServices;
 public class HtkwNativeVerifierCommon {
+  public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
   [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
   [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+  [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
-  [DllImport("user32.dll")] public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
+  [DllImport("user32.dll")] public static extern void mouse_event(uint dwFlags, uint dx, uint dy, int dwData, UIntPtr dwExtraInfo);
   [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
 }
 "@
   }
+}
+
+function Activate-NativeWindow($Hwnd) {
+  if (-not $Hwnd -or $Hwnd -eq 0) { return }
+  $hwndTopmost = [IntPtr]::new(-1)
+  $hwndNotTopmost = [IntPtr]::new(-2)
+  $noMoveNoSize = 0x0001 -bor 0x0002 -bor 0x0040
+  [void][HtkwNativeVerifierCommon]::ShowWindow($Hwnd, 9)
+  [void][HtkwNativeVerifierCommon]::SetWindowPos($Hwnd, $hwndTopmost, 0, 0, 0, 0, $noMoveNoSize)
+  Start-Sleep -Milliseconds 120
+  [void][HtkwNativeVerifierCommon]::SetForegroundWindow($Hwnd)
+  Start-Sleep -Milliseconds 120
+  [void][HtkwNativeVerifierCommon]::SetWindowPos($Hwnd, $hwndNotTopmost, 0, 0, 0, 0, $noMoveNoSize)
+  Start-Sleep -Milliseconds 180
+}
+
+function Set-NativeWindowSize($Hwnd, [int]$Width, [int]$Height) {
+  if (-not $Hwnd -or $Hwnd -eq 0) { return }
+  Activate-NativeWindow $Hwnd
+  $noMoveNoZOrderShow = 0x0002 -bor 0x0004 -bor 0x0040
+  [void][HtkwNativeVerifierCommon]::SetWindowPos($Hwnd, [IntPtr]::Zero, 0, 0, $Width, $Height, $noMoveNoZOrderShow)
+  Start-Sleep -Milliseconds 700
+}
+
+function Resolve-WorkbenchMainWindowHandle($Process) {
+  if ($null -eq $Process) { return [IntPtr]::Zero }
+  $candidates = New-Object System.Collections.Generic.List[object]
+  $callback = [HtkwNativeVerifierCommon+EnumWindowsProc]{
+    param([IntPtr]$hWnd, [IntPtr]$lParam)
+    $windowProcessId = 0
+    [void][HtkwNativeVerifierCommon]::GetWindowThreadProcessId($hWnd, [ref]$windowProcessId)
+    if ($windowProcessId -eq $Process.Id -and [HtkwNativeVerifierCommon]::IsWindowVisible($hWnd)) {
+      $rect = Get-NativeRect $hWnd
+      $width = $rect.Right - $rect.Left
+      $height = $rect.Bottom - $rect.Top
+      if ($width -gt 500 -and $height -gt 300) {
+        $candidates.Add([ordered]@{ hwnd = $hWnd; width = $width; height = $height; area = $width * $height }) | Out-Null
+      }
+    }
+    return $true
+  }
+  [void][HtkwNativeVerifierCommon]::EnumWindows($callback, [IntPtr]::Zero)
+  if ($candidates.Count -gt 0) {
+    return ($candidates | Sort-Object area -Descending | Select-Object -First 1).hwnd
+  }
+  return $Process.MainWindowHandle
+}
+
+function Wait-WorkbenchMainWindowHandle($Process, [int]$TimeoutSeconds = 30) {
+  if ($null -eq $Process) { return [IntPtr]::Zero }
+  $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+  while ((Get-Date) -lt $deadline) {
+    $Process.Refresh()
+    if ($Process.HasExited) { return [IntPtr]::Zero }
+    $hwnd = Resolve-WorkbenchMainWindowHandle $Process
+    if ($hwnd -and $hwnd -ne 0) { return $hwnd }
+    Start-Sleep -Milliseconds 500
+  }
+  $Process.Refresh()
+  return Resolve-WorkbenchMainWindowHandle $Process
 }
 
 function Get-NativeRect($Hwnd) {
@@ -104,6 +169,7 @@ function Get-NativeRect($Hwnd) {
 }
 
 function Save-NativeScreenshot($Hwnd, [string]$Path) {
+  Activate-NativeWindow $Hwnd
   $rect = Get-NativeRect $Hwnd
   $width = [Math]::Max(1, $rect.Right - $rect.Left)
   $height = [Math]::Max(1, $rect.Bottom - $rect.Top)
@@ -145,7 +211,85 @@ function Test-ScreenshotTone([string]$Path) {
   }
 }
 
+function Compare-ScreenshotDifference([string]$LeftPath, [string]$RightPath) {
+  $left = [System.Drawing.Bitmap]::FromFile($LeftPath)
+  $right = [System.Drawing.Bitmap]::FromFile($RightPath)
+  try {
+    $width = [Math]::Min($left.Width, $right.Width)
+    $height = [Math]::Min($left.Height, $right.Height)
+    $sampleCount = 0
+    $changed = 0
+    $stepX = [Math]::Max(1, [int]($width / 36))
+    $stepY = [Math]::Max(1, [int]($height / 24))
+    for ($x = 0; $x -lt $width; $x += $stepX) {
+      for ($y = 0; $y -lt $height; $y += $stepY) {
+        $lp = $left.GetPixel($x, $y)
+        $rp = $right.GetPixel($x, $y)
+        $delta = [Math]::Abs($lp.R - $rp.R) + [Math]::Abs($lp.G - $rp.G) + [Math]::Abs($lp.B - $rp.B)
+        $sampleCount += 1
+        if ($delta -gt 35) { $changed += 1 }
+      }
+    }
+    return [ordered]@{
+      sample_count = $sampleCount
+      changed_count = $changed
+      changed_ratio = if ($sampleCount) { $changed / $sampleCount } else { 0 }
+      changed = if ($sampleCount) { ($changed / $sampleCount) -gt 0.015 } else { $false }
+    }
+  } finally {
+    $left.Dispose()
+    $right.Dispose()
+  }
+}
+
+function Save-ScreenshotRegion(
+  [string]$SourcePath,
+  [string]$TargetPath,
+  [double]$Rx,
+  [double]$Ry,
+  [double]$Rw,
+  [double]$Rh
+) {
+  $source = [System.Drawing.Bitmap]::FromFile($SourcePath)
+  try {
+    $x = [Math]::Max(0, [int]($source.Width * $Rx))
+    $y = [Math]::Max(0, [int]($source.Height * $Ry))
+    $w = [Math]::Min($source.Width - $x, [Math]::Max(1, [int]($source.Width * $Rw)))
+    $h = [Math]::Min($source.Height - $y, [Math]::Max(1, [int]($source.Height * $Rh)))
+    $target = New-Object System.Drawing.Bitmap $w, $h
+    $graphics = [System.Drawing.Graphics]::FromImage($target)
+    try {
+      $graphics.DrawImage(
+        $source,
+        [System.Drawing.Rectangle]::new(0, 0, $w, $h),
+        [System.Drawing.Rectangle]::new($x, $y, $w, $h),
+        [System.Drawing.GraphicsUnit]::Pixel
+      )
+      $parent = Split-Path -Parent $TargetPath
+      if ($parent) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
+      $target.Save($TargetPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+      $graphics.Dispose()
+      $target.Dispose()
+    }
+    $file = Get-Item -LiteralPath $TargetPath
+    return [ordered]@{
+      path = $TargetPath
+      width = $w
+      height = $h
+      size_bytes = $file.Length
+      source_path = $SourcePath
+      source_width = $source.Width
+      source_height = $source.Height
+      rect = [ordered]@{ rx = $Rx; ry = $Ry; rw = $Rw; rh = $Rh; x = $x; y = $y; width = $w; height = $h }
+    }
+  } finally {
+    $source.Dispose()
+  }
+}
+
 function Invoke-RelativeClick($Hwnd, [double]$Rx, [double]$Ry) {
+  Activate-NativeWindow $Hwnd
   $rect = Get-NativeRect $Hwnd
   $x = [int]($rect.Left + (($rect.Right - $rect.Left) * $Rx))
   $y = [int]($rect.Top + (($rect.Bottom - $rect.Top) * $Ry))
@@ -155,6 +299,18 @@ function Invoke-RelativeClick($Hwnd, [double]$Rx, [double]$Ry) {
   Start-Sleep -Milliseconds 80
   [HtkwNativeVerifierCommon]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
   return [ordered]@{ x = $x; y = $y; rx = $Rx; ry = $Ry }
+}
+
+function Invoke-RelativeWheel($Hwnd, [double]$Rx, [double]$Ry, [int]$Clicks) {
+  Activate-NativeWindow $Hwnd
+  $rect = Get-NativeRect $Hwnd
+  $x = [int]($rect.Left + (($rect.Right - $rect.Left) * $Rx))
+  $y = [int]($rect.Top + (($rect.Bottom - $rect.Top) * $Ry))
+  [void][HtkwNativeVerifierCommon]::SetCursorPos($x, $y)
+  Start-Sleep -Milliseconds 100
+  [HtkwNativeVerifierCommon]::mouse_event(0x0800, 0, 0, ($Clicks * 120), [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 500
+  return [ordered]@{ x = $x; y = $y; rx = $Rx; ry = $Ry; clicks = $Clicks }
 }
 
 function Send-ControlAlt([string]$Key) {
@@ -210,14 +366,11 @@ function Start-WorkbenchExe([string]$ExePath) {
   Initialize-NativeVerifierTypes
   if (-not (Test-Path -LiteralPath $ExePath)) { throw "EXE not found: $ExePath" }
   $process = Start-Process -FilePath $ExePath -PassThru
-  Start-Sleep -Seconds 5
-  $process.Refresh()
-  $hwnd = $process.MainWindowHandle
+  $hwnd = Wait-WorkbenchMainWindowHandle $process 45
   if ($process.HasExited -or $hwnd -eq 0) {
     throw "EXE launch failed or MainWindowHandle is 0."
   }
-  [void][HtkwNativeVerifierCommon]::ShowWindow($hwnd, 9)
-  [void][HtkwNativeVerifierCommon]::SetForegroundWindow($hwnd)
+  Activate-NativeWindow $hwnd
   Start-Sleep -Seconds 1
   return [ordered]@{ process = $process; hwnd = $hwnd; title = $process.MainWindowTitle }
 }
@@ -232,14 +385,11 @@ function Start-WorkbenchExeWithEnv([string]$ExePath, [hashtable]$Environment) {
     $startInfo.Environment[$key] = [string]$Environment[$key]
   }
   $process = [System.Diagnostics.Process]::Start($startInfo)
-  Start-Sleep -Seconds 5
-  $process.Refresh()
-  $hwnd = $process.MainWindowHandle
+  $hwnd = Wait-WorkbenchMainWindowHandle $process 45
   if ($process.HasExited -or $hwnd -eq 0) {
     throw "EXE launch failed or MainWindowHandle is 0."
   }
-  [void][HtkwNativeVerifierCommon]::ShowWindow($hwnd, 9)
-  [void][HtkwNativeVerifierCommon]::SetForegroundWindow($hwnd)
+  Activate-NativeWindow $hwnd
   Start-Sleep -Seconds 1
   return [ordered]@{ process = $process; hwnd = $hwnd; title = $process.MainWindowTitle }
 }

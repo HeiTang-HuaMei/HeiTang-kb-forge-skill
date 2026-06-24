@@ -5,7 +5,7 @@ param(
 
   [string]$OutputRoot = "",
 
-  [ValidateSet("smoke", "full", "single_instance", "button_matrix", "edge_input", "hotplug", "usage_mapping", "workspace_isolation", "memory_isolation")]
+  [ValidateSet("smoke", "full", "single_instance", "button_matrix", "edge_input", "hotplug", "usage_mapping", "workspace_isolation", "memory_isolation", "home_layout", "agent_console", "a2a_10_agents", "external_skill_import", "redis_connection", "vector_db_connection")]
   [string]$Mode = "smoke"
 )
 
@@ -33,7 +33,13 @@ if ($Mode -ne "smoke") {
       @{ mode = "hotplug"; script = Join-Path $PSScriptRoot "run_hotplug_config_matrix.ps1" },
       @{ mode = "usage_mapping"; script = Join-Path $PSScriptRoot "run_usage_mapping_matrix.ps1" },
       @{ mode = "workspace_isolation"; script = Join-Path $PSScriptRoot "run_workspace_isolation_matrix.ps1" },
-      @{ mode = "memory_isolation"; script = Join-Path $PSScriptRoot "run_agent_memory_isolation_matrix.ps1" }
+      @{ mode = "memory_isolation"; script = Join-Path $PSScriptRoot "run_agent_memory_isolation_matrix.ps1" },
+      @{ mode = "home_layout"; script = Join-Path $PSScriptRoot "run_home_layout_matrix.ps1" },
+      @{ mode = "agent_console"; script = Join-Path $PSScriptRoot "run_agent_console_matrix.ps1" },
+      @{ mode = "a2a_10_agents"; script = Join-Path $PSScriptRoot "run_a2a_10_agents_matrix.ps1" },
+      @{ mode = "external_skill_import"; script = Join-Path $PSScriptRoot "run_external_skill_import_matrix.ps1" },
+      @{ mode = "redis_connection"; script = Join-Path $PSScriptRoot "run_redis_connection_matrix.ps1" },
+      @{ mode = "vector_db_connection"; script = Join-Path $PSScriptRoot "run_vector_db_connection_matrix.ps1" }
     )
   } else {
     $scriptName = switch ($Mode) {
@@ -44,6 +50,12 @@ if ($Mode -ne "smoke") {
       "workspace_isolation" { "run_workspace_isolation_matrix.ps1" }
       "memory_isolation" { "run_agent_memory_isolation_matrix.ps1" }
       "single_instance" { "run_single_instance_check.ps1" }
+      "home_layout" { "run_home_layout_matrix.ps1" }
+      "agent_console" { "run_agent_console_matrix.ps1" }
+      "a2a_10_agents" { "run_a2a_10_agents_matrix.ps1" }
+      "external_skill_import" { "run_external_skill_import_matrix.ps1" }
+      "redis_connection" { "run_redis_connection_matrix.ps1" }
+      "vector_db_connection" { "run_vector_db_connection_matrix.ps1" }
     }
     @(@{ mode = $Mode; script = Join-Path $PSScriptRoot $scriptName })
   }
@@ -66,7 +78,7 @@ if ($Mode -ne "smoke") {
     }
   }
   $blocked = @($results | Where-Object {
-    ($_.status -and $_.status -notin @("passed", "passed_with_gated_optional_capabilities")) -or
+    ($_.status -and $_.status -notin @("passed", "passed_with_gated_optional_capabilities", "external_service_gate")) -or
     ($_.final_status -and $_.final_status -notin @("windows_exe_smoke_passed"))
   })
   $final = [ordered]@{
