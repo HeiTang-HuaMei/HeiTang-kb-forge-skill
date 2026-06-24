@@ -1,0 +1,59 @@
+﻿{
+    "schema_version":  "heitang_memory_layer_contract.v1",
+    "status":  "memory_layer_separation_completed_needs_owner_review",
+    "capability_id":  "memory_layer_separation",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "layers":  [
+                   {
+                       "id":  "brain",
+                       "role":  "knowledge scope metadata and KB context",
+                       "primary_paths":  [
+                                             "memory_evidence"
+                                         ]
+                   },
+                   {
+                       "id":  "agent_memory",
+                       "role":  "task memory snapshot and resume state",
+                       "primary_paths":  [
+                                             "task_memory"
+                                         ]
+                   },
+                   {
+                       "id":  "session_context",
+                       "role":  "current task/session state and handoff pointers",
+                       "primary_paths":  [
+                                             "task_memory"
+                                         ]
+                   },
+                   {
+                       "id":  "event",
+                       "role":  "event ledger records",
+                       "primary_paths":  [
+                                             "audit/event_ledger.jsonl"
+                                         ]
+                   },
+                   {
+                       "id":  "artifact",
+                       "role":  "artifact lifecycle catalog records",
+                       "primary_paths":  [
+                                             "artifacts/catalog.json"
+                                         ]
+                   }
+               ],
+    "separation_rules":  [
+                             "memory_layer_type is mandatory in durable memory/evidence scope records.",
+                             "task_memory_snapshot and resume state stay under task_memory.",
+                             "Event Ledger writes use event records and do not replace artifact catalog records.",
+                             "Artifact Lifecycle writes use artifact records and do not replace Event Ledger rows.",
+                             "Evidence Graph remains a later gate; this gate verifies the boundary only."
+                         ],
+    "source_evidence":  [
+                            "web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart",
+                            "web/workbench/flutter_app/output/capability_blackbox/memory_evidence/memory_evidence_metadata_reservation_matrix.json",
+                            "web/workbench/flutter_app/output/capability_blackbox/agent_memory_minimal_core_matrix.json"
+                        ],
+    "next_gate":  "P1-4 Evidence Graph Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:18:53.1980793Z"
+}

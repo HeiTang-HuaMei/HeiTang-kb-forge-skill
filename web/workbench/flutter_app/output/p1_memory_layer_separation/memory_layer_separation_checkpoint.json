@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_memory_layer_separation_checkpoint.v1",
+    "status":  "memory_layer_separation_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-4 Evidence Graph Basic",
+    "next_gate":  "P1-4 Evidence Graph Basic",
+    "remaining_gates_count":  88,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T18:18:53.2992289Z"
+}
