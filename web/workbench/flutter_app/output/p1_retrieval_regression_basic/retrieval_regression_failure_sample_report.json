@@ -1,0 +1,19 @@
+{
+  "retrieval_regression_version": "1.0.0",
+  "status": "regression_found",
+  "query_match": true,
+  "top_record_match": false,
+  "top_citation_match": false,
+  "citation_trace_count_match": false,
+  "baseline_top_record_id": "chunk-1",
+  "current_top_record_id": "chunk-2",
+  "baseline_top_citation": "source-a.md#chunk=chunk-1",
+  "current_top_citation": "source-b.md#chunk=chunk-2",
+  "regression_count": 3,
+  "regressions": [
+    "top_record_changed",
+    "top_citation_changed",
+    "citation_trace_count_changed"
+  ],
+  "summary": "3 retrieval regression(s) found."
+}

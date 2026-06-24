@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_retrieval_regression_basic_checkpoint.v1",
+    "status":  "retrieval_regression_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-9 Scope Resolver Basic",
+    "next_gate":  "P1-9 Scope Resolver Basic",
+    "remaining_gates_count":  83,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T18:57:53.6910898Z"
+}

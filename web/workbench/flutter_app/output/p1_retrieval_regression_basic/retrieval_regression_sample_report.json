@@ -1,0 +1,15 @@
+{
+  "retrieval_regression_version": "1.0.0",
+  "status": "pass",
+  "query_match": true,
+  "top_record_match": true,
+  "top_citation_match": true,
+  "citation_trace_count_match": true,
+  "baseline_top_record_id": "chunk-1",
+  "current_top_record_id": "chunk-1",
+  "baseline_top_citation": "source-a.md#chunk=chunk-1",
+  "current_top_citation": "source-a.md#chunk=chunk-1",
+  "regression_count": 0,
+  "regressions": [],
+  "summary": "0 retrieval regression(s) found."
+}

@@ -1,0 +1,22 @@
+﻿{
+    "baseline":  {
+                     "query":  "knowledge reliability",
+                     "records":  [
+                                     {
+                                         "record_id":  "chunk-1",
+                                         "citation":  "source-a.md#chunk=chunk-1"
+                                     }
+                                 ],
+                     "citation_trace_count":  1
+                 },
+    "current":  {
+                    "query":  "knowledge reliability",
+                    "records":  [
+                                    {
+                                        "record_id":  "chunk-1",
+                                        "citation":  "source-a.md#chunk=chunk-1"
+                                    }
+                                ],
+                    "citation_trace_count":  1
+                }
+}

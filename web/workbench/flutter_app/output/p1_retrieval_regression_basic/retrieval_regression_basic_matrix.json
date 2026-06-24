@@ -1,0 +1,91 @@
+﻿{
+    "schema_version":  "heitang_p1_retrieval_regression_basic_matrix.v1",
+    "status":  "retrieval_regression_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T18:57:53.7126631Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-9 Scope Resolver Basic",
+    "next_gate":  "P1-9 Scope Resolver Basic",
+    "remaining_gates_count":  83,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_basic_contract.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_sample_report.json",
+    "failure_sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_failure_sample_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required retrieval regression source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-8 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-9 Scope Resolver Basic; first_remaining=P1-9 Scope Resolver Basic; remaining=83; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-6 through P1-7 precede retrieval regression",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_citation=True; p1_reliability=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-9 Scope Resolver Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "retrieval_regression registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference retrieval regression",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_8=True; queue_p1_9=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured retrieval regression input and report schema",
+                     "status":  "passed",
+                     "actual":  "regression=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "retrieval regression detects top record, citation and trace drift",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; pass_status=pass; pass_regressions=0; failure_status=regression_found; failure_regressions=3",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow retrieval regression and RAG retrieval tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=.....                                                                    [100%]\r\n5 passed in 1.38s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 reliability eval suite contract is available",
+                     "status":  "passed",
+                     "actual":  "reliability_status=knowledge_reliability_eval_suite_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "retrieval regression basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_basic_contract.json; sample_status=pass; failure_status=regression_found; next_gate=P1-9 Scope Resolver Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-8 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,sample_report,failure_sample_report; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

@@ -1,0 +1,27 @@
+﻿{
+    "schema_version":  "heitang_retrieval_regression_basic_contract.v1",
+    "status":  "retrieval_regression_completed_needs_owner_review",
+    "capability_id":  "retrieval_regression",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "baseline",
+                            "current"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "query_match",
+                             "top_record_match",
+                             "top_citation_match",
+                             "citation_trace_count_match",
+                             "regressions"
+                         ],
+    "sample_input_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_sample_input.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_sample_report.json",
+    "failure_sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_retrieval_regression_basic\\retrieval_regression_failure_sample_report.json",
+    "sample_status":  "pass",
+    "failure_sample_status":  "regression_found",
+    "next_gate":  "P1-9 Scope Resolver Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:57:53.6422205Z"
+}
