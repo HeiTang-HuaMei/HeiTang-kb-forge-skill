@@ -1,0 +1,33 @@
+﻿{
+    "schema_version":  "heitang_classification_reasoning_basic_contract.v1",
+    "status":  "classification_reasoning_completed_needs_owner_review",
+    "capability_id":  "classification_reasoning_basic",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "candidates",
+                            "allowed_categories"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "decision_count",
+                             "decisions",
+                             "unresolved_item_ids",
+                             "category_counts"
+                         ],
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_sample_report.json",
+    "allowed_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_allowed_report.json",
+    "unknown_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_unknown_report.json",
+    "sample_decision_count":  4,
+    "sample_categories":  [
+                              "policy",
+                              "evidence",
+                              "claim",
+                              "task"
+                          ],
+    "allowed_unresolved_count":  1,
+    "unknown_status":  "classification_gaps_found",
+    "next_gate":  "P1-12 Conflict and Exception Detection Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:25:13.8764703Z"
+}

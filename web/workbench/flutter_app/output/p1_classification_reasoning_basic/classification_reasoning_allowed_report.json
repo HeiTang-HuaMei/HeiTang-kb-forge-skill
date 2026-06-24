@@ -1,0 +1,40 @@
+{
+  "classification_reasoning_version": "1.0.0",
+  "status": "classification_gaps_found",
+  "decision_count": 2,
+  "decisions": [
+    {
+      "item_id": "policy-1",
+      "category": "unknown",
+      "confidence": 0.0,
+      "reason_codes": [
+        "no_classification_terms_matched"
+      ],
+      "matched_terms": [],
+      "source_id": ""
+    },
+    {
+      "item_id": "evidence-1",
+      "category": "evidence",
+      "confidence": 0.85,
+      "reason_codes": [
+        "matched_evidence_terms",
+        "matched_count_3"
+      ],
+      "matched_terms": [
+        "source_path",
+        "citation",
+        "chunk"
+      ],
+      "source_id": ""
+    }
+  ],
+  "unresolved_item_ids": [
+    "policy-1"
+  ],
+  "category_counts": {
+    "unknown": 1,
+    "evidence": 1
+  },
+  "summary": "2 item(s) classified; 1 unresolved."
+}

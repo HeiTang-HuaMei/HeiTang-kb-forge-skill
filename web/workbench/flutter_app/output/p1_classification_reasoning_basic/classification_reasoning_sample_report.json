@@ -1,0 +1,73 @@
+{
+  "classification_reasoning_version": "1.0.0",
+  "status": "classified",
+  "decision_count": 4,
+  "decisions": [
+    {
+      "item_id": "policy-1",
+      "category": "policy",
+      "confidence": 0.85,
+      "reason_codes": [
+        "matched_policy_terms",
+        "matched_count_2"
+      ],
+      "matched_terms": [
+        "must",
+        "policy"
+      ],
+      "source_id": ""
+    },
+    {
+      "item_id": "evidence-1",
+      "category": "evidence",
+      "confidence": 0.85,
+      "reason_codes": [
+        "matched_evidence_terms",
+        "matched_count_3"
+      ],
+      "matched_terms": [
+        "source_path",
+        "citation",
+        "chunk"
+      ],
+      "source_id": ""
+    },
+    {
+      "item_id": "claim-1",
+      "category": "claim",
+      "confidence": 0.75,
+      "reason_codes": [
+        "matched_claim_terms",
+        "matched_count_2"
+      ],
+      "matched_terms": [
+        "states",
+        "fact"
+      ],
+      "source_id": ""
+    },
+    {
+      "item_id": "task-1",
+      "category": "task",
+      "confidence": 0.85,
+      "reason_codes": [
+        "matched_task_terms",
+        "matched_count_3"
+      ],
+      "matched_terms": [
+        "next step",
+        "blocked",
+        "owner review"
+      ],
+      "source_id": ""
+    }
+  ],
+  "unresolved_item_ids": [],
+  "category_counts": {
+    "policy": 1,
+    "evidence": 1,
+    "claim": 1,
+    "task": 1
+  },
+  "summary": "4 item(s) classified; 0 unresolved."
+}

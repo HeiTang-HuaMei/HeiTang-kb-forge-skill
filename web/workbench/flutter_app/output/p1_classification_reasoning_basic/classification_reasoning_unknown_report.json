@@ -1,0 +1,24 @@
+{
+  "classification_reasoning_version": "1.0.0",
+  "status": "classification_gaps_found",
+  "decision_count": 1,
+  "decisions": [
+    {
+      "item_id": "plain",
+      "category": "unknown",
+      "confidence": 0.0,
+      "reason_codes": [
+        "no_classification_terms_matched"
+      ],
+      "matched_terms": [],
+      "source_id": ""
+    }
+  ],
+  "unresolved_item_ids": [
+    "plain"
+  ],
+  "category_counts": {
+    "unknown": 1
+  },
+  "summary": "1 item(s) classified; 1 unresolved."
+}

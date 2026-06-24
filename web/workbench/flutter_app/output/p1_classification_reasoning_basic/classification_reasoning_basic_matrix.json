@@ -1,0 +1,92 @@
+﻿{
+    "schema_version":  "heitang_p1_classification_reasoning_basic_matrix.v1",
+    "status":  "classification_reasoning_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T19:25:13.9589384Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-12 Conflict and Exception Detection Basic",
+    "next_gate":  "P1-12 Conflict and Exception Detection Basic",
+    "remaining_gates_count":  80,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_basic_contract.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_sample_report.json",
+    "allowed_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_allowed_report.json",
+    "unknown_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_unknown_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required classification reasoning source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-11 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-12 Conflict and Exception Detection Basic; first_remaining=P1-12 Conflict and Exception Detection Basic; remaining=80; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-10 precede classification reasoning",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_rule=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-12 Conflict and Exception Detection Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "classification_reasoning_basic registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference classification reasoning",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_11=True; queue_p1_12=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured classification input, decision and report schema",
+                     "status":  "passed",
+                     "actual":  "reasoner=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "classification reasoning handles categories, allowed filter and unknown path",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; sample_status=classified; sample_categories=policy,evidence,claim,task; allowed_categories=unknown,evidence; unknown_status=classification_gaps_found",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow classification reasoning and related core tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=.......                                                                  [100%]\r\n7 passed in 0.52s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 rule extraction contract is available",
+                     "status":  "passed",
+                     "actual":  "rule_extraction_status=rule_extraction_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "classification reasoning basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_classification_reasoning_basic\\classification_reasoning_basic_contract.json; decisions=4; categories=policy,evidence,claim,task; next_gate=P1-12 Conflict and Exception Detection Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-11 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,sample,allowed,unknown; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_classification_reasoning_basic_checkpoint.v1",
+    "status":  "classification_reasoning_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-12 Conflict and Exception Detection Basic",
+    "next_gate":  "P1-12 Conflict and Exception Detection Basic",
+    "remaining_gates_count":  80,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T19:25:13.9549226Z"
+}
