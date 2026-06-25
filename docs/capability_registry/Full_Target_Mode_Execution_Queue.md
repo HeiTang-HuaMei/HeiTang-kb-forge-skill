@@ -64,7 +64,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 55. P2-4 A2A >= 10 Agents, including common assistant templates as creation seeds and a real ten-test-agent workgroup run
 56. P2-5 Multi-Agent RAG Deepening
 57. P2-6 Hot-Pluggable Project Config Industrial Isolation
-58. P2-7 Connector Industrialization
+58. P2-7 Connector Industrialization, including ordinary UI external source verification connector binding
 59. P2-8 Full Blackbox Automation Matrix
 60. P2-9 EXE Packaging and Installation Experience
 61. P2-10 Role-based Workgroup
@@ -92,7 +92,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 83. P2-32 Citation Auto-Repair Industrial
 84. P2-33 Memory Consolidation Industrial
 85. P2-34 Permission-Scoped Company Brain
-86. P2-35 Retrieval Regression Benchmark Industrial
+86. P2-35 Retrieval Regression Benchmark Industrial, including external source verification reliability regression
 87. P2-36 Self-Improving Knowledge Maintenance
 88. P2-37 Agent Memory Industrial
 89. P2-38 Mermaid Symbolic Memory Industrial
@@ -100,7 +100,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 91. P2-40 Night Memory Consolidation Loop
 92. P2-41 Memory Observability Panel
 93. P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration
-94. P2 Release Gate
+94. P2 Release Gate, including ordinary UI external source verification black/grey/white evidence
 95. Final Owner Review Gate
 
 ## Capability Rows By Registry Order
@@ -177,7 +177,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 | 68 | P2 | research_analysis_workgroup | user_blackbox | false | true | core=not_started; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-3 Research Analysis Workgroup` |
 | 69 | P2 | multi_agent_rag_deepening | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-5 Multi-Agent RAG Deepening` |
 | 70 | P2 | project_config_industrial_isolation | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-6 Hot-Pluggable Project Config Industrial Isolation` |
-| 71 | P2 | connector_industrialization | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-7 Connector Industrialization` |
+| 71 | P2 | connector_industrialization | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-7 Connector Industrialization`; ordinary UI external source verification connector binding |
 | 72 | P2 | full_blackbox_automation_matrix | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-8 Full Blackbox Automation Matrix` |
 | 73 | Release | exe_packaging_release | user_blackbox | false | true | core=partial; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-9 EXE Packaging and Installation Experience`; Release Gate |
 | 74 | P2 | role_based_workgroup | user_blackbox | false | true | core=not_started; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-10 Role-based Workgroup` |
@@ -205,7 +205,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 | 96 | P2 | citation_auto_repair | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-32 Citation Auto-Repair Industrial` |
 | 97 | P2 | memory_consolidation_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-33 Memory Consolidation Industrial` |
 | 98 | P2 | permission_scoped_company_brain | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-34 Permission-Scoped Company Brain` |
-| 99 | P2 | retrieval_regression_benchmark_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-35 Retrieval Regression Benchmark Industrial` |
+| 99 | P2 | retrieval_regression_benchmark_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-35 Retrieval Regression Benchmark Industrial`; external source verification reliability regression |
 | 100 | P2 | self_improving_knowledge_maintenance | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-36 Self-Improving Knowledge Maintenance` |
 | 101 | P2 | agent_memory_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-37 Agent Memory Industrial` |
 | 102 | P2 | mermaid_symbolic_memory_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-38 Mermaid Symbolic Memory Industrial` |
@@ -213,12 +213,12 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 | 104 | P2 | night_memory_consolidation_loop | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-40 Night Memory Consolidation Loop` |
 | 105 | P2 | memory_observability_panel | user_blackbox | false | true | core=not_started; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-41 Memory Observability Panel` |
 | 106 | P2 | tencentdb_agent_memory_adapter_evaluation | governance | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_started; restart=partial; close_allowed=false; release_blocker=true | `P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration` |
-| 107 | P2 | p2_release_gate | governance | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_started; restart=not_started; close_allowed=false; release_blocker=true | P2 Release Gate |
+| 107 | P2 | p2_release_gate | governance | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_started; restart=not_started; close_allowed=false; release_blocker=true | P2 Release Gate; ordinary UI external source verification evidence |
 | 108 | Release | final_owner_review_gate | governance | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_started; restart=not_started; close_allowed=false; release_blocker=true | Final Owner Review |
 
 ## Phase Gates
 
 - P0 Release Gate runs after all P0 rows are close_allowed=true and P0 regression passes.
 - P1 Release Gate runs after all P1 rows are close_allowed=true and P0 regression passes.
-- P2 Release Gate runs after all P2 rows are close_allowed=true and P0+P1+P2 regression plus package/install/config/permission/rollback checks pass.
+- P2 Release Gate runs after all P2 rows are close_allowed=true and P0+P1+P2 regression plus package/install/config/permission/rollback checks pass, including ordinary UI external source verification evidence with source trace, evidence map and validation report.
 - Final Owner Review is the only final human stop after staged gates pass.

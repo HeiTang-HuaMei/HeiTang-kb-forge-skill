@@ -111,11 +111,20 @@ Deferred P2 landing points:
 | Memory references such as MeMo / MEMO, LLM Wiki v2, and TencentDB Agent Memory | `P2-33 Memory Consolidation Industrial`; `P2-37 Agent Memory Industrial`; `P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration` | memory cards, consolidation report, migration/observability evidence, or optional-adapter evaluation with no local model training and no bundled external memory service |
 | Agent orchestration and governance references such as Fugu, Omnigent, ECC, and Autoresearch / evo | `P2-18 Fugu-style Multi-Model Orchestration`; `P2-19 Loop Orchestrator Industrial`; `P2-20 Human Brake and Judgment Gate`; `P2-23 CLI Agent Hub Evaluation` | role protocol, loop governance, checkpoint/failure/resume, human-brake, or harness evidence proving a HeiTang-native improvement |
 | Workgroup product-shape references such as WorkBuddy / DeerFlow and gstack | `P2-10 Role-based Workgroup`; `P2-14 Polly-style Lead Orchestrator` | role template, workgroup task, conflict/consensus, Event Ledger, Artifact Catalog, restart, and test-only delete evidence |
-| Connector and external-service references such as connect-apps, Redis Connector, Vector DB Connector, and n8n | `P2-7 Connector Industrialization`; `P2-15 Sandbox and Tool Permission Industrialization` | connector health, permission boundary, masked-secret, fallback, audit, rollback, and user-owned service boundary evidence |
-| Skill, template, and engineering-method references such as Composio / awesome-codex-skills, brooks-lint, codebase-recon, MMSkills, RAG-Anything, and skill-prompt-generator | `P2-8 Full Blackbox Automation Matrix`; `P2-22 Workbench Native Skills Library`; `P2-23 CLI Agent Hub Evaluation` | native Skill/template/harness/test-matrix evidence showing the idea improved HeiTang without exposing the project name |
+| Product workflow and UI-quality references such as AionUi and taste-skill | `P2-8 Full Blackbox Automation Matrix`; `P2-13 Official Sample Project Library`; `P2-22 Workbench Native Skills Library`; `P2-25 Office Agent Industrialization`; `P2 Release Gate` | route-level blackbox, responsive/taste regression, template/workflow evidence, generated artifact evidence, and no external project name in ordinary UI |
+| Local-first knowledge workspace references such as Obsidian-Skills | `P2-22 Workbench Native Skills Library`; `P2-26 Multi-KB Governance Industrial`; `P2-27 Versioned Knowledge Governance`; `P2-34 Permission-Scoped Company Brain` | native open-format knowledge/Skill workflow, backlinks/source trace, multi-KB/version/scope evidence, and no cloned external workspace module |
+| Connector and external-service references such as connect-apps, Redis Connector, Vector DB Connector, n8n, and OpenCLI Source Connector | `P2-7 Connector Industrialization`; `P2-15 Sandbox and Tool Permission Industrialization`; `P2-24 Remote Task Control`; `P2-35 Retrieval Regression Benchmark Industrial`; `P2 Release Gate` | connector health, permission boundary, masked-secret, fallback, audit, rollback, user-owned service boundary, source_trace/evidence_map/validation_report, and ordinary UI path evidence where applicable |
+| Skill, template, and engineering-method references such as Composio / awesome-codex-skills, brooks-lint, codebase-recon, MMSkills, Jellyfish, story-flicks, seedance2-skill, RAG-Anything, and skill-prompt-generator | `P2-8 Full Blackbox Automation Matrix`; `P2-13 Official Sample Project Library`; `P2-22 Workbench Native Skills Library`; `P2-23 CLI Agent Hub Evaluation`; `P2-25 Office Agent Industrialization` | native Skill/template/harness/test-matrix evidence showing the idea improved HeiTang without exposing the project name; story/video references may only contribute document/Skill structure and must not introduce GPU video generation |
 | Advanced parsing candidates such as OpenDataLoader PDF, PaddleOCR, MinerU, Docling, Unstructured, Marker, and Surya | `P2-9 EXE Packaging and Installation Experience`; `P2-35 Retrieval Regression Benchmark Industrial` | optional advanced parsing install/test/fallback evidence, document parsing quality evidence, and no default parser-runtime dependency |
 
 Absorption cannot close a P2 capability by itself. It only supports the owning capability after that capability also passes its required core, blackbox or linked scenario, artifact, event, lifecycle, regression, and boundary checks.
+
+P2 landing completeness rule:
+
+1. Every non-rejected external project row must name at least one P2 landing point, even when it also has P0/P1 historical or closed-reference context.
+2. `reject` rows intentionally have no P2 landing point and must keep the rejection reason.
+3. If a project has only P0/P1 ownership and no P2 landing point, the registry is incomplete until it is either mapped to an existing P2 capability or explicitly rejected/deferred with Owner review.
+4. A P2 landing point is not evidence. It only identifies which P2 capability must later prove real HeiTang-native improvement.
 
 ## P2 Module-Level Token Mode Landing Requirement
 
@@ -165,6 +174,144 @@ Required black-box evidence:
 4. External information source verification runs only when the task asks for latest information, internal evidence is stale/conflicting/insufficient, or the claim is high risk; otherwise it records a no-external-check reason.
 5. Regression confirms no mode treats full documents, full histories, full search results or full web pages as default prompt input.
 
+## P2 Model Gateway Broad API Adaptation Landing Requirement
+
+All P2 capabilities are held to the P2 industrial acceptance bar. This Model Gateway requirement does not downgrade earlier P2 gates and must not be retroactively mixed into `P2-6 Hot-Pluggable Project Config Industrial Isolation` after that gate has run. It is a deferred cross-cutting P2 acceptance requirement for broad external model API adaptation across domestic and international hosted model services.
+
+The requirement covers multi-provider onboarding, capability probing, availability smoke, model selection policy, module-level model binding, fallback, cost/token policy, error degradation, audit records, and white-box/grey-box/black-box acceptance. This is not local model training, not GPU inference, not bundled model weights and not packaging a model runtime into the EXE.
+
+Scope:
+
+1. Multi-provider onboarding for domestic, international and custom OpenAI-compatible API families.
+2. Model capability probing for chat, document generation, Skill generation, Agent reasoning, Agent review, retrieval verification, citation verification, OCR repair, embedding and rerank roles.
+3. Model availability smoke with harmless prompts, embedding dimension checks, auth failure, timeout, rate-limit and invalid-model handling.
+4. Model selection policy that can choose by module, task role, token mode, cost class, latency class, context window, capability role and fallback priority.
+5. Module-level model binding so different product modules can use different providers or roles without changing the global default.
+6. Fallback and error degradation that disables only the affected role or module and gives the user a clear next action.
+7. Cost/token strategy integration with Economy, Standard and Deep modes.
+8. Audit records for provider family, model alias, role, selected mode, smoke status, latency class, cost class, fallback reason and masked secret state.
+
+Deferred P2 landing points:
+
+| P2 Gate | Responsibility |
+| --- | --- |
+| `P2-7 Connector Industrialization` | External model API connector health, timeout/rate-limit/auth failure handling, fallback and audit, without revising completed P2-6 evidence. |
+| `P2-18 Fugu-style Multi-Model Orchestration` | Multi-provider role routing, verifier/reviewer model roles, fallback strategy, deterministic selection policy and no fake provider selection. |
+| `P2 Release Gate` | Regression that provider configuration, token modes, model roles, masked secrets and external-service boundaries remain consistent across P2. |
+
+Required provider coverage:
+
+1. International hosted model API families such as OpenAI-compatible, Claude-compatible, Gemini-compatible, Mistral-compatible and Cohere-compatible services.
+2. Domestic hosted model API families such as DeepSeek-compatible, Qwen-compatible, Zhipu-compatible, Baidu-compatible, Tencent-compatible, Moonshot-compatible, MiniMax-compatible, Baichuan-compatible and iFlytek-compatible services.
+3. OpenAI-compatible custom endpoints for enterprise gateways or self-hosted API gateways.
+4. Separate embedding provider support with dimension check and sample embedding smoke.
+5. Optional rerank or verification provider support with bounded input and validation_report evidence.
+
+Required role model:
+
+- `chat_answer`
+- `document_generation`
+- `skill_generation`
+- `agent_reasoning`
+- `agent_review`
+- `retrieval_verification`
+- `citation_verification`
+- `ocr_repair`
+- `embedding`
+- `rerank`
+
+Required white-box evidence:
+
+1. Provider configuration schema supports endpoint, model alias, provider family, role list, API key reference, timeout, rate limit and fallback policy without storing plaintext secrets.
+2. Role routing rejects missing capabilities instead of silently routing to an arbitrary model.
+3. Minimal harmless request smoke exists for chat-like models, embedding smoke includes dimension checks, and failure paths cover auth, timeout and rate limits.
+4. Token mode policy can bind different model roles per module without bypassing token budgets.
+5. Capability probing records supported roles, context-window class, cost class, latency class, streaming support where applicable, structured-output support where applicable and fallback priority.
+6. Selection policy is deterministic for the same task, module and mode input, and records why the selected model was chosen.
+
+Required grey-box evidence:
+
+1. Settings or equivalent product configuration exposes ordinary language such as AI model service, embedding service, verification model and test connection.
+2. Ordinary UI must not expose provider, adapter, parser, matrix, token internals or external project names as product modules.
+3. A user can configure at least two model families or a model family plus custom endpoint, test them, and see masked status without revealing credentials.
+4. Module-level binding can show that different modules use different allowed roles, such as Knowledge Base verification and Agent reasoning.
+5. Changing a module binding affects only that module and does not silently change other modules.
+6. Fallback state is visible as a product action such as "test connection", "choose another model service", or "use local evidence only", not as a provider matrix.
+
+Required black-box evidence:
+
+1. A configured model provider can pass a minimal harmless request and write Event Ledger plus validation_report evidence with masked secrets.
+2. A configured embedding provider can create one sample vector, verify dimension, and reject incompatible vector configuration.
+3. A failing provider shows a clear user action and falls back or disables only the affected role.
+4. A module using an unsupported model role is blocked with a clear error and no silent downgrade.
+5. Reports prove no local model training, bundled weights, GPU runtime requirement, plaintext secret, cookie or authorization header leakage.
+6. Economy, Standard and Deep modes select different allowed budget/validation behavior without bypassing the configured model role.
+7. At least one domestic family path, one international family path, one custom endpoint path and one embedding path are represented by smoke or documented blocked evidence before P2 Release Gate.
+
+## P2 External Source Verification User-Path Landing Requirement
+
+P2 must prove that external source verification is not an internal-only capability. Ordinary product UI must provide a real user path for checking outside information, while still hiding implementation names from users. The user-facing path uses ordinary actions such as "search sources", "external check", "paste link", or "add manual evidence"; it must not show `OpenCLI`, provider, adapter, parser, router, matrix, or project names in ordinary UI.
+
+This requirement is a deferred cross-cutting P2 acceptance requirement after `P2-6 Hot-Pluggable Project Config Industrial Isolation`. It must not retroactively rewrite completed P2 evidence, but it is mandatory before P2 Release Gate because it is the product check against closed-loop, internal-only answers.
+
+Required product path:
+
+```text
+ordinary user action
+-> search sources / external check / paste link / manual evidence
+-> Source Searcher / Source Fetcher / Manual Evidence Importer
+-> source_trace
+-> evidence_map
+-> validation_report
+-> document library or knowledge-base verification path
+-> answer, document, Skill, Agent, or workgroup evidence where applicable
+```
+
+Internal role boundaries:
+
+| User-Facing Action | Internal Capability | Required Boundary |
+| --- | --- | --- |
+| Search sources / external check | OpenCLI Source Connector as a Source Searcher where configured and authorized | Candidate discovery only; not a URL body fetcher, crawler, browser automation tool, or UI label. |
+| Paste link | Generic URL Fetcher or current link-source import path | Public URL body extraction or link record creation with source trace; not OpenCLI. |
+| Manual evidence | Manual Evidence Importer | User-supplied evidence with secret, cookie, token and private-data guard. |
+| Use verified evidence | Unified Source Trace / Evidence Map | No outside result may enter answers, documents, Skills, Agents or reports without trace and evidence linkage. |
+
+Deferred P2 landing points:
+
+| P2 Gate | Responsibility |
+| --- | --- |
+| `P2-7 Connector Industrialization` | Wire the ordinary user source-check path to configured connectors, health states, unavailable/degraded states, masked configuration, audit records and fallback. |
+| `P2-35 Retrieval Regression Benchmark Industrial` | Prove external verification improves retrieval reliability, source freshness checks, conflict handling and citation validation without replacing local KB evidence. |
+| `P2 Release Gate` | Regress the ordinary UI path, source trace, evidence map, validation report, document/KB handoff, no-secret scan, bounded network use and UI naming boundary. |
+
+Required white-box evidence:
+
+1. The runtime has an inspectable source acquisition path that separates Source Searcher, Source Fetcher and Manual Evidence Importer responsibilities.
+2. The OpenCLI-backed Source Searcher path is invoked for external source candidate discovery when configured and authorized, and writes candidate, confidence, source trace, evidence map and validation report artifacts.
+3. URL body extraction is handled by the fetcher path, not by the OpenCLI-backed search path.
+4. Manual evidence is marked as manual evidence and cannot masquerade as public search or fetched web evidence.
+5. Unavailable, unauthorized, timeout, invalid-query and network-failure paths write clear degraded evidence without claiming success.
+6. Secret, cookie, token and authorization-header guards run before evidence is persisted.
+
+Required grey-box evidence:
+
+1. Ordinary UI exposes product actions such as "search sources", "external check", "paste link" or "add evidence", not `OpenCLI` or other implementation names.
+2. A user-triggered source check creates or updates source trace, evidence map and validation report artifacts visible through product results or reports.
+3. Accepted outside evidence can enter the document library or knowledge-base verification path with its trace preserved.
+4. If the connector is unavailable or unconfigured, the UI shows a clear next action such as "configure external check", "try again later", "use local evidence only", or "paste a link"; it must not show raw provider, adapter, parser, router or project errors.
+5. Economy, Standard and Deep token modes change when external checking is skipped, selective, or broader, while keeping bounded source packets.
+
+Required black-box evidence:
+
+1. From ordinary UI, a test-marked user can run an external check and produce a non-empty source trace, evidence map and validation report.
+2. The same test verifies that the UI never displays `OpenCLI`, provider, adapter, parser, router, matrix, dependency gate, or `0/x` implementation status.
+3. A pasted public link follows the URL fetch or link-source path and remains separate from OpenCLI candidate discovery.
+4. A manual evidence item is accepted only when it passes secret/private-data guards and is labeled as manual evidence in trace outputs.
+5. A retrieval, answer, document, Skill, Agent, or workgroup flow can use accepted external evidence with backlinks, or records why external evidence was not used.
+6. Regression proves the product does not crawl broadly, bypass paywalls or CAPTCHA, import cookies/tokens, fetch private sources, or send full pages/search results to the LLM by default.
+
+This requirement cannot close a P2 capability by itself. It supports the owning P2 capability only after that capability also passes its required core, user-path or linked scenario, artifact, event, lifecycle, regression and boundary checks.
+
 ## P2 Release Gate
 
 P2 Release Gate must:
@@ -173,8 +320,10 @@ P2 Release Gate must:
 2. Regress P0 + P1 + P2 acceptance.
 3. Confirm no P2 industrial feature broke core lifecycle, user blackbox, linked blackbox, Event Ledger, Artifact Lifecycle, capability queue or staged release states.
 4. Confirm module-level token modes have white-box, grey-box and black-box evidence for at least document parsing/OCR, knowledge retrieval, Agent/workgroup and external verification paths.
-5. Write only `p2_release_gate_passed_needs_owner_review`.
-6. Keep `global_goal_complete=false` until Final Owner Review remains.
+5. Confirm broad external model API adaptation has white-box, grey-box and black-box evidence for representative domestic, international, custom endpoint and embedding provider paths.
+6. Confirm ordinary UI external source verification has white-box, grey-box and black-box evidence, including source trace, evidence map, validation report, document/KB handoff, no-secret scan and no implementation-name leakage.
+7. Write only `p2_release_gate_passed_needs_owner_review`.
+8. Keep `global_goal_complete=false` until Final Owner Review remains.
 
 ## Not Allowed
 
