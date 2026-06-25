@@ -110,6 +110,97 @@ void main() {
       .map((line) => jsonDecode(line) as Map<String, dynamic>)
       .toList(growable: false);
 
+  void writeWorkgroupAgentSkillFixture(
+    Directory workspace, {
+    String agentId = 'test_workgroup_agent',
+    String agentName = '工作小组测试助手',
+    String description = '用于工作小组黑盒验收。',
+    String role = '处理当前工作区任务',
+  }) {
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\n');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final agentDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+      ..createSync(recursive: true);
+    File('${agentDir.path}${Platform.pathSeparator}agents.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_catalog.v1',
+      'status': 'saved',
+      'agents': [
+        {
+          'id': agentId,
+          'name': agentName,
+          'description': description,
+          'role': role,
+          'status': 'available',
+          'created_at': now,
+          'updated_at': now,
+          'workspace_id': '默认工作本',
+          'primary_knowledge_base_id': 'K1',
+          'allowed_reference_kb_ids': [],
+          'kb_scope_mode': 'single',
+          'answer_policy_id': 'strict_evidence',
+          'ai_profile_id': 'ai_profile_default_local',
+          'bound_knowledge_base_ids': ['K1'],
+          'bound_skill_ids': ['primary_skill'],
+          'settings': {'reply_mode': 'local_fallback_until_configured'},
+        }
+      ],
+      'updated_at': now,
+    }));
+    final conversationDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}$agentId')
+      ..createSync(recursive: true);
+    File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_conversation.v1',
+      'conversation_id': 'conv_$agentId',
+      'agent_id': agentId,
+      'messages': [],
+      'created_at': now,
+      'updated_at': now,
+    }));
+  }
+
+  void writeResearchAnalysisQueryFixture(Directory workspace) {
+    final queryDir =
+        Directory('${workspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
+    File('${queryDir.path}${Platform.pathSeparator}kb_query_result.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_kb_query_result.v1',
+      'query': '研究分析：跨文档比较证据、风险和行动建议',
+      'selected_count': 3,
+      'selected': [
+        {
+          'chunk_id': 'research_chunk_1',
+          'text': '第一份资料说明市场需求增长，但需要验证数据来源。',
+          'source_path': 'research/source_a.md',
+          'citation': 'research/source_a.md#chunk=1',
+          'score': 0.91,
+        },
+        {
+          'chunk_id': 'research_chunk_2',
+          'text': '第二份资料指出供应链风险，需要在结论中单独标注。',
+          'source_path': 'research/source_b.md',
+          'citation': 'research/source_b.md#chunk=2',
+          'score': 0.86,
+        },
+        {
+          'chunk_id': 'research_chunk_3',
+          'text': '第三份资料给出行动建议，但缺少成本假设。',
+          'source_path': 'research/source_c.md',
+          'citation': 'research/source_c.md#chunk=3',
+          'score': 0.79,
+        },
+      ],
+    }));
+  }
+
   void writeStage2PreflightFixture(Directory workspace) {
     final standardDir =
         Directory('${workspace.path}${Platform.pathSeparator}standard_packages')
@@ -1356,6 +1447,137 @@ void main() {
         eventRows.any((row) =>
             row['event_type'] == 'workgroup_basic_runtime_validated' &&
             row['artifact_path'] == summaryPath),
+        isTrue);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('p2 research analysis workgroup button creates research evidence',
+      (tester) async {
+    late Directory workspace;
+    await pumpWorkbench(
+      tester,
+      initialSelectedIndex: 7,
+      surfaceSize: const Size(1440, 900),
+      captureWorkspace: (dir) => workspace = dir,
+      setupWorkspace: (workspace) async {
+        writeWorkgroupAgentSkillFixture(
+          workspace,
+          agentId: 'test_research_workgroup_agent',
+          agentName: '研究分析测试助手',
+          description: '用于 P2-3 研究分析工作组黑盒验收。',
+          role: '处理当前研究分析任务',
+        );
+        writeResearchAnalysisQueryFixture(workspace);
+      },
+      waitForRuntimeReady: true,
+    );
+
+    expect(find.byKey(const Key('agent-primary-entry-switch')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('agent-primary-entry-工作小组')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    final input = find.byKey(const Key('a2a-topic-input'));
+    expect(input, findsOneWidget);
+    final editable = find.descendant(
+      of: input,
+      matching: find.byType(EditableText),
+    );
+    expect(editable, findsOneWidget);
+    final editableText = tester.widget<EditableText>(editable);
+    editableText.controller.text = 'P2-3 研究分析：比较资料证据、风险和建议。';
+    editableText.controller.selection = TextSelection.collapsed(
+      offset: editableText.controller.text.length,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(input).controller?.text,
+      contains('P2-3'),
+    );
+
+    final button =
+        find.byKey(const Key('workgroup-basic-runtime-evidence-button'));
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (button.evaluate().isNotEmpty &&
+          tester.widget<FilledButton>(button).onPressed != null) {
+        break;
+      }
+    }
+    expect(button, findsOneWidget);
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      tester.widget<FilledButton>(button).onPressed?.call();
+      await Future<void>.delayed(const Duration(seconds: 1));
+    });
+
+    final workgroupSummaryPath =
+        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (File(workgroupSummaryPath).existsSync()) {
+        break;
+      }
+    }
+    expect(File(workgroupSummaryPath).existsSync(), isTrue);
+    final workgroupSummary =
+        jsonDecode(File(workgroupSummaryPath).readAsStringSync()) as Map;
+    expect(workgroupSummary['topic'].toString(), contains('P2-3'));
+
+    final summaryPath =
+        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}research_analysis_workgroup_summary.json';
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (File(summaryPath).existsSync()) {
+        break;
+      }
+    }
+    expect(tester.takeException(), isNull);
+    expect(File(summaryPath).existsSync(), isTrue);
+    final summary = jsonDecode(File(summaryPath).readAsStringSync()) as Map;
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'research_analysis_workgroup');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['p2_4_status'], 'not_closed_by_p2_3');
+    expect(
+        summary['ui_blackbox_path'],
+        'Agent -> Work Group -> Collaboration task input -> Start Work Group');
+    expect(File(summary['source_trace_path'] as String).existsSync(), isTrue);
+    expect(
+        readJsonlFile(summary['source_trace_path'] as String).length, greaterThan(1));
+    expect(File(summary['validation_report_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['research_brief_path'] as String).existsSync(), isTrue);
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'research_analysis_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'research_analysis_workgroup_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
         isTrue);
     expect(find.textContaining('Provider'), findsNothing);
     expect(find.textContaining('Adapter'), findsNothing);
@@ -9272,6 +9494,113 @@ void main() {
         artifacts.any((row) =>
             row['artifact_id'] == 'office_collaboration_workgroup_summary' &&
             row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
+  test('p2 research analysis workgroup has source trace and validation evidence',
+      () async {
+    final workspace = await createWorkspace();
+    writeWorkgroupAgentSkillFixture(
+      workspace,
+      agentId: 'test_research_workgroup_agent',
+      agentName: '研究分析测试助手',
+      description: '用于 P2-3 研究分析工作组验收。',
+      role: '处理当前研究分析任务',
+    );
+    writeResearchAnalysisQueryFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runResearchAnalysisWorkgroupAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_research_analysis_workgroup_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'research_analysis_workgroup');
+    expect(summary['capability_gate'], 'P2-3 Research Analysis Workgroup');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['p2_4_status'], 'not_closed_by_p2_3');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'p2_4_ten_agent_gate_closed') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+    expect(File(summary['workgroup_summary_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['discussion_path'] as String).existsSync(), isTrue);
+    final sourceTracePath = summary['source_trace_path'] as String;
+    expect(File(sourceTracePath).existsSync(), isTrue);
+    expect(readJsonlFile(sourceTracePath).length, 3);
+    final validation = jsonDecode(File(summary['validation_report_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_research_analysis_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['evidence_map_path'] as String).existsSync(), isTrue);
+    expect(File(summary['research_brief_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'research_analysis_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'research_analysis_workgroup_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'research_analysis_brief' &&
             row['status'] == 'completed'),
         isTrue);
   });

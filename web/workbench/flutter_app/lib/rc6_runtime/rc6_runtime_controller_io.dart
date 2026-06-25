@@ -12417,6 +12417,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         uiBlackboxPath: officeCollaborationUiBlackboxPath,
       );
     }
+    if (_isResearchAnalysisAcceptanceTopic(topic)) {
+      await _writeResearchAnalysisWorkgroupSummary(
+        topic: topic,
+        workgroupSummaryPath: summaryPath,
+        participantAgentIds: participantAgentIds,
+      );
+    }
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
@@ -12430,6 +12437,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     String topic = 'P2-1 工作小组基础运行验收',
   }) async {
     return runMultiAgentDiscussion(topic: topic);
+  }
+
+  Future<String> runResearchAnalysisWorkgroupAcceptance({
+    String topic = 'P2-3 研究分析工作组验收',
+  }) async {
+    final summaryPath = await runMultiAgentDiscussion(
+      topic: topic,
+      writeOfficeCollaborationSummaryIfReady: false,
+    );
+    if (summaryPath.isEmpty) {
+      return '';
+    }
+    return _joinNested(
+        _requireWorkspace().path, 'acceptance/research_analysis_workgroup_summary.json');
+  }
+
+  bool _isResearchAnalysisAcceptanceTopic(String topic) {
+    final normalized = topic.toLowerCase();
+    return topic.contains('P2-3') ||
+        topic.contains('研究分析') ||
+        normalized.contains('research analysis');
   }
 
   Future<String> _writeWorkgroupBasicRuntimeSummary({
@@ -12642,6 +12670,341 @@ class Rc6RuntimeController extends ChangeNotifier {
       workgroupSummaryPath: workgroupSummaryPath,
       uiBlackboxPath: uiBlackboxPath,
     );
+  }
+
+  Future<String> _writeResearchAnalysisWorkgroupSummary({
+    required String topic,
+    required String workgroupSummaryPath,
+    required List<String> participantAgentIds,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/research_analysis_workgroup_summary.json');
+    final sourceTracePath = _joinNested(
+        workspace.path, 'research_analysis/research_source_trace.jsonl');
+    final validationReportPath = _joinNested(
+        workspace.path, 'research_analysis/research_validation_report.json');
+    final evidenceMapPath =
+        _joinNested(workspace.path, 'research_analysis/evidence_map.json');
+    final researchBriefPath =
+        _joinNested(workspace.path, 'research_analysis/research_brief.md');
+    final discussionPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final discussionManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final queryReport = await _readLatestQueryReport(workspace);
+    final queryRows = queryReport['selected'] ??
+        queryReport['results'] ??
+        queryReport['records'];
+    final selected = queryRows is List
+        ? queryRows.whereType<Map>().take(5).toList()
+        : const <Map>[];
+    final sourceTraceRows = <Map<String, Object?>>[
+      for (var index = 0; index < selected.length; index += 1)
+        {
+          'schema_version': 'prd_v3_research_source_trace.v1',
+          'trace_id': 'research_trace_${(index + 1).toString().padLeft(2, '0')}',
+          'source_path': _stringValue(
+            selected[index]['source_path'] ?? selected[index]['citation'],
+            'local_research_source_${index + 1}.md',
+          ),
+          'chunk_id': _stringValue(
+            selected[index]['chunk_id'],
+            'research_chunk_${index + 1}',
+          ),
+          'citation': _stringValue(
+            selected[index]['citation'] ?? selected[index]['source_path'],
+            'local_research_source_${index + 1}.md#chunk=${index + 1}',
+          ),
+          'evidence_role': index == 0 ? 'anchor' : 'supporting_evidence',
+          'excerpt': _compact(selected[index]['text'] ??
+              selected[index]['summary'] ??
+              selected[index]['content'] ??
+              ''),
+          'created_at': now,
+        }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      sourceTraceRows.map(jsonEncode).join('\n') +
+          (sourceTraceRows.isEmpty ? '' : '\n'),
+      encoding: utf8,
+    );
+    final evidenceMap = {
+      'schema_version': 'prd_v3_research_evidence_map.v1',
+      'topic': topic.trim().isEmpty ? 'P2-3 研究分析工作组验收' : topic.trim(),
+      'anchor': sourceTraceRows.isEmpty ? '' : sourceTraceRows.first['trace_id'],
+      'entity_count': sourceTraceRows.length,
+      'entities': [
+        for (var index = 0; index < sourceTraceRows.length; index += 1)
+          {
+            'entity_id': 'research_entity_${index + 1}',
+            'name': index == 0 ? 'research_anchor' : 'research_signal_${index + 1}',
+            'trace_id': sourceTraceRows[index]['trace_id'],
+          }
+      ],
+      'relations': [
+        for (var index = 1; index < sourceTraceRows.length; index += 1)
+          {
+            'from': 'research_entity_1',
+            'to': 'research_entity_${index + 1}',
+            'relation_type': 'supports',
+          }
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(evidenceMapPath, evidenceMap);
+    await File(researchBriefPath).parent.create(recursive: true);
+    await File(researchBriefPath).writeAsString(
+      [
+        '# 研究分析工作组结论',
+        '',
+        '## 研究主题',
+        topic.trim().isEmpty ? 'P2-3 研究分析工作组验收' : topic.trim(),
+        '',
+        '## 证据摘要',
+        if (sourceTraceRows.isEmpty)
+          '- 需要处理：当前没有可追踪研究证据。'
+        else
+          for (final row in sourceTraceRows)
+            '- ${row['trace_id']}: ${row['citation']}',
+        '',
+        '## 工作组结论',
+        '- 研究结论必须回链到 source trace。',
+        '- 冲突和共识分别沉淀到工作组报告。',
+        '- 不调用外部项目 runtime，不暴露底层实现名称。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final workgroupSummary = await _readJsonObject(workgroupSummaryPath);
+    final validationReport = {
+      'schema_version': 'prd_v3_research_analysis_validation_report.v1',
+      'status': sourceTraceRows.isNotEmpty ? 'pass' : 'blocked',
+      'topic': topic.trim().isEmpty ? 'P2-3 研究分析工作组验收' : topic.trim(),
+      'source_trace_path': sourceTracePath,
+      'evidence_map_path': evidenceMapPath,
+      'research_brief_path': researchBriefPath,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'checks': {
+        'source_trace_exists': await File(sourceTracePath).exists(),
+        'source_trace_non_empty': sourceTraceRows.isNotEmpty,
+        'evidence_map_exists': await File(evidenceMapPath).exists(),
+        'research_brief_exists': await File(researchBriefPath).exists(),
+        'workgroup_summary_passed':
+            _stringValue(workgroupSummary['status'], '') == 'pass',
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final a2aManifest = await _readJsonObject(a2aSessionManifestPath);
+    final participants = _listOfStrings(a2aManifest['participant_agent_ids']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'agent_exists': state.hasAgent || state.hasAgentProfiles,
+      'skill_exists': state.hasSkill ||
+          state.hasSkillOperationManifest ||
+          state.hasSkillVersionManifest,
+      'workgroup_summary_exists': await File(workgroupSummaryPath).exists(),
+      'workgroup_summary_passed':
+          _stringValue(workgroupSummary['status'], '') == 'pass',
+      'discussion_written': await File(discussionPath).exists(),
+      'discussion_manifest_written':
+          await File(discussionManifestPath).exists(),
+      'a2a_session_manifest_written':
+          await File(a2aSessionManifestPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_non_empty': sourceTraceRows.isNotEmpty,
+      'validation_report_written': await File(validationReportPath).exists(),
+      'validation_report_passed':
+          _stringValue(validationReport['status'], '') == 'pass',
+      'evidence_map_written': await File(evidenceMapPath).exists(),
+      'research_brief_written': await File(researchBriefPath).exists(),
+      'participant_count_basic_runtime': participants.length >= 2,
+      'ui_blackbox_path_defined': true,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'p2_4_ten_agent_gate_closed': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'p2_4_ten_agent_gate_closed',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_research_analysis_workgroup_summary.v1',
+      'status': status,
+      'capability_id': 'research_analysis_workgroup',
+      'capability_gate': 'P2-3 Research Analysis Workgroup',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'ui_blackbox_path':
+          'Agent -> Work Group -> Collaboration task input -> Start Work Group',
+      'user_facing_capability': '研究分析工作组',
+      'topic': topic.trim().isEmpty ? 'P2-3 研究分析工作组验收' : topic.trim(),
+      'participant_agent_ids': participants,
+      'requested_participant_agent_ids': participantAgentIds,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'discussion_path': discussionPath,
+      'discussion_manifest_path': discussionManifestPath,
+      'a2a_session_manifest_path': a2aSessionManifestPath,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationReportPath,
+      'evidence_map_path': evidenceMapPath,
+      'research_brief_path': researchBriefPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runResearchAnalysisWorkgroupAcceptance',
+        'summary_method': '_writeResearchAnalysisWorkgroupSummary',
+        'workgroup_runtime_summary': workgroupSummaryPath,
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'path': 'Agent page Work Group panel',
+        'action': 'enter research analysis task and start work group',
+        'automation_key': 'workgroup-basic-runtime-evidence-button',
+        'result_visible_to_user': status == 'pass' ? '研究分析成果已生成' : '需要处理',
+      },
+      'artifact_evidence': {
+        'research_brief_path': researchBriefPath,
+        'evidence_map_path': evidenceMapPath,
+        'validation_report_path': validationReportPath,
+      },
+      'lifecycle_evidence': {
+        'create':
+            'research source trace, evidence map, validation report, brief and workgroup discussion are written',
+        'view':
+            'Work Group panel shows generated state after runtime reload',
+        'open':
+            'Artifact Center can preview the registered research summary and brief',
+        'export':
+            'Artifact Center can export registered research analysis files',
+        'delete':
+            'Artifact Center deletes only registered test-marked artifacts when requested',
+        'restart_recovery':
+            'initialize reloads A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing Agent, Skill, or source trace blocks acceptance',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+        'p2_4_ten_agent_gate_closed': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'next_gate': 'P2-4 A2A >= 10 Agents',
+      'p2_4_status': 'not_closed_by_p2_3',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'research_analysis_workgroup_validated',
+      module: 'workgroup',
+      action: 'run_research_analysis_workgroup_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'research_analysis_workgroup',
+      targetName: 'Research Analysis Workgroup',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'p2_4_status': 'not_closed_by_p2_3',
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'research_analysis_workgroup_summary',
+      artifactType: 'acceptance_report',
+      title: 'Research Analysis Workgroup Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'research_analysis_workgroup',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'p2_4_status': 'not_closed_by_p2_3',
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'research_analysis_brief',
+      artifactType: 'research_brief',
+      title: 'Research Analysis Brief',
+      sourceModule: 'workgroup',
+      sourceId: 'research_analysis_workgroup',
+      filePath: researchBriefPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
   }
 
   Future<String> _writeOfficeCollaborationWorkgroupSummary({

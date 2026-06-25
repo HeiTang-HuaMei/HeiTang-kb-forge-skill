@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-3 Research Analysis Workgroup",
+  "current_gate": "P2-4 A2A >= 10 Agents",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -74,11 +74,11 @@
     "P1-52 OpenClaw / Hermes Memory Adapter Research",
     "P1 Release Gate",
     "P2-1 Workgroup Basic Runtime",
-    "P2-2 Office Collaboration Workgroup"
+    "P2-2 Office Collaboration Workgroup",
+    "P2-3 Research Analysis Workgroup"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-3 Research Analysis Workgroup",
     "P2-4 A2A >= 10 Agents",
     "P2-5 Multi-Agent RAG Deepening",
     "P2-6 Hot-Pluggable Project Config Industrial Isolation",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T13:50:26.821050Z",
+  "updated_at": "2026-06-25T14:25:00Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -242,7 +242,9 @@
     "P2-1 Workgroup Basic Runtime has user-blackbox runtime, UI binding, Event Ledger and Artifact Catalog evidence and remains subject to P2 Release Gate.",
     "P2-4 A2A >= 10 Agents was not executed or closed by P2-1 and remains queued.",
     "UI second-knife dirty files remain partitioned; only the P2-1 Work Group button binding was absorbed into the P2-1 slice.",
-    "P2-2 Office Collaboration Workgroup has capability-level DOCX plus Work Group evidence and remains subject to P2 Release Gate; P2-4 and P2-25 remain queued."
+    "P2-2 Office Collaboration Workgroup has capability-level DOCX plus Work Group evidence and remains subject to P2 Release Gate; P2-4 and P2-25 remain queued.",
+    "P2-3 Research Analysis Workgroup has capability-level closure evidence and remains subject to P2 Release Gate.",
+    "P2-4 A2A >= 10 Agents was not executed or closed by P2-3 and remains queued."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
