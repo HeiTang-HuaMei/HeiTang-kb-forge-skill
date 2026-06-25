@@ -61,7 +61,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 52. P2-1 Workgroup Basic Runtime
 53. P2-2 Office Collaboration Workgroup
 54. P2-3 Research Analysis Workgroup
-55. P2-4 A2A >= 10 Agents
+55. P2-4 A2A >= 10 Agents, including common assistant templates as creation seeds and a real ten-test-agent workgroup run
 56. P2-5 Multi-Agent RAG Deepening
 57. P2-6 Hot-Pluggable Project Config Industrial Isolation
 58. P2-7 Connector Industrialization
@@ -70,7 +70,7 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 61. P2-10 Role-based Workgroup
 62. P2-11 ReAct Tool Runtime Industrialization
 63. P2-12 Long Context Evaluation
-64. P2-13 Official Sample Project Library
+64. P2-13 Official Sample Project Library, including common knowledge base and document template sample packs
 65. P2-14 Polly-style Lead Orchestrator
 66. P2-15 Sandbox and Tool Permission Industrialization
 67. P2-16 Session Share / Fork / Replay
@@ -79,10 +79,10 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 70. P2-19 Loop Orchestrator Industrial
 71. P2-20 Human Brake and Judgment Gate
 72. P2-21 DataAgent Foundation Industrial
-73. P2-22 Workbench Native Skills Library
+73. P2-22 Workbench Native Skills Library, including common Skill templates as creation seeds
 74. P2-23 CLI Agent Hub Evaluation
 75. P2-24 Remote Task Control
-76. P2-25 Office Agent Industrialization
+76. P2-25 Office Agent Industrialization, including document generation template use in Office workflows
 77. P2-26 Multi-KB Governance Industrial
 78. P2-27 Versioned Knowledge Governance
 79. P2-28 Jurisdiction / Domain Scope
