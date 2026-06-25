@@ -121,8 +121,8 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "pending_current_gate_commit",
-  "workspace_clean": false,
+  "last_commit": "ad5f8cd",
+  "workspace_clean": true,
   "global_goal_complete": false,
   "updated_at": "2026-06-25T02:55:08.0514786Z",
   "notes": [
