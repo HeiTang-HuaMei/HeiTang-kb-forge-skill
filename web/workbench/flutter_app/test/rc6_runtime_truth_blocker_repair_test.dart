@@ -11932,6 +11932,195 @@ void main() {
         isTrue);
   });
 
+  test('blackbox automation baseline writes core evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runBlackboxAutomationBaselineAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('Authorization')));
+    expect(summaryText, isNot(contains('Cookie:')));
+    expect(summaryText, isNot(contains('super-secret-password')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_blackbox_automation_baseline_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'blackbox_automation_baseline');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'ui_blackbox_required',
+        'fake_ui_blackbox_created',
+        'final_full_matrix_claimed',
+        'final_packaging_claimed',
+        'release_gate_bypassed',
+        'secret_plaintext_written',
+        'authorization_header_written',
+        'redis_vector_service_packaged_into_exe',
+        'local_model_training',
+        'gpu_video_generation',
+        'external_runtime_executed',
+        'real_user_data_deleted',
+        'ordinary_ui_project_names_visible',
+        'provider_adapter_parser_names_visible_in_product_ui',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final counts = (summary['coverage_counts'] as Map).cast<String, dynamic>();
+    expect(counts['p0_closed_gate_count'], greaterThan(10));
+    expect(counts['p1_closed_gate_count'], greaterThan(40));
+    expect(counts['p2_closed_gate_count'], 7);
+    expect(counts['baseline_case_count'], 9);
+    expect(counts['runner_hook_count'], 4);
+
+    final evidencePaths =
+        (summary['evidence_paths'] as Map).cast<String, dynamic>();
+    for (final path in evidencePaths.values) {
+      expect(File(path.toString()).existsSync(), isTrue, reason: path);
+    }
+
+    final matrix = jsonDecode(File(evidencePaths['baseline_matrix'].toString())
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(matrix['schema_version'],
+        'prd_v3_blackbox_automation_baseline_matrix.v1');
+    expect(matrix['baseline_only'], isTrue);
+    expect(matrix['final_full_matrix_claimed'], isFalse);
+    expect(matrix['p2_release_gate_owns_final_full_matrix'], isTrue);
+    expect(matrix['covered_until_gate'], 'P2-7 Connector Industrialization');
+    expect(matrix['future_append_starts_at'], 'P2-10 Role-based Workgroup');
+    final caseInventory =
+        (matrix['case_inventory'] as List).cast<Map<String, dynamic>>();
+    expect(caseInventory.length, 9);
+    expect(
+        caseInventory.any((entry) =>
+            entry['phase'] == 'P0' &&
+            (entry['covered_gate_ids'] as List).contains('P0 Release Gate')),
+        isTrue);
+    expect(
+        caseInventory.any((entry) =>
+            entry['phase'] == 'P1' &&
+            (entry['covered_gate_ids'] as List).contains('P1 Release Gate')),
+        isTrue);
+    for (final gate in [
+      'P2-1 Workgroup Basic Runtime',
+      'P2-2 Office Collaboration Workgroup',
+      'P2-3 Research Analysis Workgroup',
+      'P2-4 A2A >= 10 Agents',
+      'P2-5 Multi-Agent RAG Deepening',
+      'P2-6 Hot-Pluggable Project Config Industrial Isolation',
+      'P2-7 Connector Industrialization',
+    ]) {
+      expect(
+          caseInventory.any(
+              (entry) => (entry['covered_gate_ids'] as List).contains(gate)),
+          isTrue,
+          reason: gate);
+    }
+    final appendContract =
+        (matrix['append_contract'] as Map).cast<String, dynamic>();
+    expect(appendContract['future_p2_gate_policy'],
+        contains('P2-10 through P2-42'));
+    expect(appendContract['release_gate_policy'], contains('P2 Release Gate'));
+    expect(appendContract['allowed_delete_scope'],
+        contains('test-marked temporary objects only'));
+
+    final gapMatrix = jsonDecode(
+            File(evidencePaths['gap_matrix'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(gapMatrix['schema_version'],
+        'prd_v3_blackbox_automation_gap_matrix.v1');
+    expect(gapMatrix['baseline_status'], 'built');
+    expect(gapMatrix['missing_current_baseline_cases'], isEmpty);
+    expect(gapMatrix['soft_blockers'], isEmpty);
+    expect(gapMatrix['hard_blockers'], isEmpty);
+    expect(
+        (gapMatrix['known_gaps'] as List)
+            .every((entry) => (entry as Map)['blocking_current_gate'] == false),
+        isTrue);
+
+    final regressionPlan = jsonDecode(
+        File(evidencePaths['regression_plan'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(regressionPlan['schema_version'],
+        'prd_v3_blackbox_automation_regression_plan.v1');
+    expect(regressionPlan['release_gate_rerun_required'], isTrue);
+    expect(
+        regressionPlan['release_gate_scope'], contains('P2-1 through P2-42'));
+
+    final boundaryReport = jsonDecode(
+        File(evidencePaths['boundary_report'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_blackbox_automation_boundary_report.v1');
+    expect(boundaryReport['acceptance_type'], 'core_only');
+    expect(boundaryReport['ui_blackbox_required'], isFalse);
+    expect(boundaryReport['fake_ui_blackbox_created'], isFalse);
+    expect(boundaryReport['final_full_matrix_claimed'], isFalse);
+    expect(boundaryReport['final_packaging_claimed'], isFalse);
+    expect(boundaryReport['release_gate_bypassed'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training'], isFalse);
+    expect(boundaryReport['gpu_video_generation'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'blackbox_automation_baseline_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'blackbox_automation_baseline_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'blackbox_automation_baseline_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'blackbox_automation_baseline_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('audit report enhancement writes core evidence and reloads', () async {
     final workspace = await createWorkspace();
     Rc6RuntimeController buildController() => Rc6RuntimeController(

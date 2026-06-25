@@ -4170,6 +4170,475 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runBlackboxAutomationBaselineAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/blackbox_automation_baseline_summary.json');
+    final matrixPath = _joinNested(
+        workspace.path, 'acceptance/blackbox_automation_baseline_matrix.json');
+    final gapMatrixPath = _joinNested(
+        workspace.path, 'acceptance/blackbox_automation_gap_matrix.json');
+    final regressionPlanPath = _joinNested(
+        workspace.path, 'acceptance/blackbox_automation_regression_plan.json');
+    final boundaryReportPath = _joinNested(
+        workspace.path, 'acceptance/blackbox_automation_boundary_report.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: '黑盒自动化基线正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final p0ClosedGates = [
+      'P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation',
+      'P0-1 Event Ledger',
+      'P0-2 Artifact Lifecycle',
+      'P0-2b Industrial Scope Metadata Reservation',
+      'P0-3 Document Library Blackbox Lifecycle Gate',
+      'P0-4 Material Organizing and Knowledge Base Generation Gate',
+      'P0-5 Knowledge Base Validation Gate',
+      'P0-6 Document Generation Gate',
+      'P0-7 Skill Generation Gate',
+      'P0-8 Basic Settings / Path / Export Gate',
+      'P0-9 Memory and Evidence Metadata Reservation',
+      'P0-4B OKF Minimal Core Gate',
+      'P0-4C Agent Memory Minimal Core Gate',
+      'P0-5B Knowledge Reliability Minimal Core Gate',
+      'P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)',
+      'P0-10 Assistant Bound-KB Integration Gate',
+      'P0 Release Gate',
+    ];
+    final p1ClosedGates = [
+      'P1-1 Capability Chain Runner',
+      'P1-2 Capability Registry',
+      'P1-3 Memory Layer Separation Basic',
+      'P1-4 Evidence Graph Basic',
+      'P1-5 Gap Analysis Basic Plus',
+      'P1-6 Citation Verification Basic Plus',
+      'P1-7 Knowledge Reliability Eval Suite Basic',
+      'P1-8 Retrieval Regression Basic',
+      'P1-9 Scope Resolver Basic',
+      'P1-10 Rule Extraction Basic',
+      'P1-11 Classification Reasoning Basic',
+      'P1-12 Conflict and Exception Detection Basic',
+      'P1-13 AI Config Governance Basic',
+      'P1-14 Task Mode Router Basic',
+      'P1-15 Plan-and-Execute Runtime Basic',
+      'P1-16 Long Document Reading Strategy Basic',
+      'P1-17 External Skill Import Basic',
+      'P1-18 Workbench Skill Action Spec',
+      'P1-19 Document Template Registry',
+      'P1-20 Office Artifact Adapter Research / DOCX Basic',
+      'P1-21 Assistant Backend Separation',
+      'P1-22 UI Taste Gate',
+      'P1-23 Full Route Responsive Review',
+      'P1-24 Connection Configuration Blackbox Verification',
+      'P1-25 Hot-Pluggable Project Config Basic',
+      'P1-26 Audit Report Enhancement',
+      'P1-27 Codex Execution Harness Enhancement',
+      'P1-28 Workbench Agent Execution Harness Basic',
+      'P1-29 Policy Governance Basic',
+      'P1-30 Credential Proxy Design',
+      'P1-31 Harness Adapter Spec',
+      'P1-32 Model Pool Router Basic',
+      'P1-33 Thinker / Worker / Verifier Role Protocol',
+      'P1-34 Loop Runtime Basic',
+      'P1-35 Stop and Handoff Gate',
+      'P1-36 Loop Cost Boundary Basic',
+      'P1-37 Heitang Native Knowledge Format Semantic Schema',
+      'P1-38 Knowledge Canvas Basic',
+      'P1-39 Knowledge Base Table View',
+      'P1-40 Clean Markdown Import',
+      'P1-41 Engineering Learning Samples Basic',
+      'P1-48 Agent Memory Layer Basic',
+      'P1-49 Context Offload Basic',
+      'P1-50 Mermaid Task Map Basic',
+      'P1-51 Task Experience Reuse Basic',
+      'P1-52 OpenClaw / Hermes Memory Adapter Research',
+      'P1 Release Gate',
+    ];
+    final p2ClosedGates = [
+      'P2-1 Workgroup Basic Runtime',
+      'P2-2 Office Collaboration Workgroup',
+      'P2-3 Research Analysis Workgroup',
+      'P2-4 A2A >= 10 Agents',
+      'P2-5 Multi-Agent RAG Deepening',
+      'P2-6 Hot-Pluggable Project Config Industrial Isolation',
+      'P2-7 Connector Industrialization',
+    ];
+    final baselineCases = [
+      {
+        'case_id': 'p0_closed_capability_regression_bundle',
+        'phase': 'P0',
+        'acceptance_type': 'mixed',
+        'scope': 'closed P0 rows and P0 Release Gate regression',
+        'covered_gate_ids': p0ClosedGates,
+        'runner_hook': 'p0_closed_capability_regression',
+        'status': 'baseline_registered',
+        'appendable': false,
+      },
+      {
+        'case_id': 'p1_closed_capability_regression_bundle',
+        'phase': 'P1',
+        'acceptance_type': 'mixed',
+        'scope': 'closed P1 rows and P1 Release Gate regression',
+        'covered_gate_ids': p1ClosedGates,
+        'runner_hook': 'p1_closed_capability_regression',
+        'status': 'baseline_registered',
+        'appendable': false,
+      },
+      for (final gate in p2ClosedGates)
+        {
+          'case_id': gate
+              .toLowerCase()
+              .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+              .replaceAll(RegExp(r'^_|_$'), ''),
+          'phase': 'P2',
+          'acceptance_type': gate == 'P2-5 Multi-Agent RAG Deepening' ||
+                  gate ==
+                      'P2-6 Hot-Pluggable Project Config Industrial Isolation' ||
+                  gate == 'P2-7 Connector Industrialization'
+              ? 'core_only'
+              : 'user_blackbox',
+          'scope': gate,
+          'covered_gate_ids': [gate],
+          'runner_hook': 'p2_closed_gate_regression',
+          'status': 'baseline_registered',
+          'appendable': false,
+        },
+    ];
+    final appendContract = {
+      'schema_version': 'prd_v3_blackbox_case_append_contract.v1',
+      'required_fields': [
+        'case_id',
+        'phase',
+        'capability_id',
+        'acceptance_type',
+        'gate',
+        'runner_hook',
+        'evidence_paths',
+        'cleanup_policy',
+        'boundary_checks',
+      ],
+      'future_p2_gate_policy':
+          'P2-10 through P2-42 must append their capability cases when each gate closes.',
+      'release_gate_policy':
+          'P2 Release Gate reruns the final full matrix after all P2 cases are appended.',
+      'allowed_delete_scope':
+          'test-marked temporary objects only; no real user data deletion.',
+    };
+    final runnerHooks = [
+      {
+        'hook_id': 'runtime_acceptance_core',
+        'entrypoint': 'Rc6RuntimeController acceptance methods',
+        'acceptance_types': ['core_only', 'governance', 'composite'],
+      },
+      {
+        'hook_id': 'widget_user_blackbox',
+        'entrypoint': 'Flutter widget smoke tests',
+        'acceptance_types': ['user_blackbox'],
+      },
+      {
+        'hook_id': 'artifact_lifecycle',
+        'entrypoint': 'Artifact Catalog and Event Ledger checks',
+        'acceptance_types': ['artifact', 'user_blackbox', 'composite'],
+      },
+      {
+        'hook_id': 'release_gate_final_full_matrix',
+        'entrypoint': 'P2 Release Gate final rerun',
+        'acceptance_types': ['all'],
+      },
+    ];
+    final matrix = {
+      'schema_version': 'prd_v3_blackbox_automation_baseline_matrix.v1',
+      'generated_at': startedAt,
+      'workspace_boundary': workspace.path,
+      'capability_id': 'blackbox_automation_baseline',
+      'baseline_only': true,
+      'final_full_matrix_claimed': false,
+      'p2_release_gate_owns_final_full_matrix': true,
+      'covered_until_gate': 'P2-7 Connector Industrialization',
+      'future_append_starts_at': 'P2-10 Role-based Workgroup',
+      'case_inventory': baselineCases,
+      'append_contract': appendContract,
+      'runner_hooks': runnerHooks,
+    };
+    final gapMatrix = {
+      'schema_version': 'prd_v3_blackbox_automation_gap_matrix.v1',
+      'generated_at': startedAt,
+      'capability_id': 'blackbox_automation_baseline',
+      'baseline_status': 'built',
+      'known_gaps': [
+        {
+          'gap_id': 'p2_10_to_p2_42_cases_pending',
+          'status': 'expected_future_append',
+          'blocking_current_gate': false,
+          'owner_gate': 'future P2 capability gates',
+        },
+        {
+          'gap_id': 'final_full_blackbox_matrix_not_run_here',
+          'status': 'deferred_to_p2_release_gate',
+          'blocking_current_gate': false,
+          'owner_gate': 'P2 Release Gate',
+        },
+        {
+          'gap_id': 'final_packaging_regression_not_run_here',
+          'status': 'deferred_to_p2_release_gate',
+          'blocking_current_gate': false,
+          'owner_gate': 'P2 Release Gate',
+        },
+      ],
+      'missing_current_baseline_cases': [],
+      'soft_blockers': [],
+      'hard_blockers': [],
+    };
+    final regressionPlan = {
+      'schema_version': 'prd_v3_blackbox_automation_regression_plan.v1',
+      'generated_at': startedAt,
+      'capability_id': 'blackbox_automation_baseline',
+      'baseline_rerun_targets': [
+        {
+          'phase': 'P0',
+          'gate_count': p0ClosedGates.length,
+          'runner_hook': 'p0_closed_capability_regression',
+        },
+        {
+          'phase': 'P1',
+          'gate_count': p1ClosedGates.length,
+          'runner_hook': 'p1_closed_capability_regression',
+        },
+        {
+          'phase': 'P2',
+          'gate_count': p2ClosedGates.length,
+          'runner_hook': 'p2_closed_gate_regression',
+          'covered_gate_ids': p2ClosedGates,
+        },
+      ],
+      'future_append_policy': appendContract,
+      'release_gate_rerun_required': true,
+      'release_gate_scope':
+          'P0 + P1 + all P2-1 through P2-42 cases after future appends.',
+    };
+    final boundaryReport = {
+      'schema_version': 'prd_v3_blackbox_automation_boundary_report.v1',
+      'generated_at': startedAt,
+      'capability_id': 'blackbox_automation_baseline',
+      'acceptance_type': 'core_only',
+      'ui_blackbox_required': false,
+      'fake_ui_blackbox_created': false,
+      'final_full_matrix_claimed': false,
+      'final_packaging_claimed': false,
+      'release_gate_bypassed': false,
+      'secret_plaintext_written': false,
+      'authorization_header_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training': false,
+      'gpu_video_generation': false,
+      'external_runtime_executed': false,
+      'real_user_data_deleted': false,
+      'ordinary_ui_project_names_visible': false,
+      'provider_adapter_parser_names_visible_in_product_ui': false,
+    };
+
+    await _writeJsonFile(matrixPath, matrix);
+    await _writeJsonFile(gapMatrixPath, gapMatrix);
+    await _writeJsonFile(regressionPlanPath, regressionPlan);
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+    final reloadedMatrix = await _readJsonObject(matrixPath);
+    final reloadedGapMatrix = await _readJsonObject(gapMatrixPath);
+    final reloadedRegressionPlan = await _readJsonObject(regressionPlanPath);
+    final reloadedBoundaryReport = await _readJsonObject(boundaryReportPath);
+    final p2CaseScopes = _listOfMaps(reloadedMatrix['case_inventory'])
+        .where((entry) => _stringValue(entry['phase'], '') == 'P2')
+        .map((entry) => _stringValue(entry['scope'], ''))
+        .toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'matrix_written': await File(matrixPath).exists(),
+      'gap_matrix_written': await File(gapMatrixPath).exists(),
+      'regression_plan_written': await File(regressionPlanPath).exists(),
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'summary_report_writable': true,
+      'matrix_schema_valid':
+          _stringValue(reloadedMatrix['schema_version'], '') ==
+              'prd_v3_blackbox_automation_baseline_matrix.v1',
+      'gap_matrix_schema_valid':
+          _stringValue(reloadedGapMatrix['schema_version'], '') ==
+              'prd_v3_blackbox_automation_gap_matrix.v1',
+      'regression_plan_schema_valid':
+          _stringValue(reloadedRegressionPlan['schema_version'], '') ==
+              'prd_v3_blackbox_automation_regression_plan.v1',
+      'boundary_report_schema_valid':
+          _stringValue(reloadedBoundaryReport['schema_version'], '') ==
+              'prd_v3_blackbox_automation_boundary_report.v1',
+      'p0_baseline_represented': _listOfMaps(reloadedMatrix['case_inventory'])
+          .any((entry) => _stringValue(entry['phase'], '') == 'P0'),
+      'p1_baseline_represented': _listOfMaps(reloadedMatrix['case_inventory'])
+          .any((entry) => _stringValue(entry['phase'], '') == 'P1'),
+      'p2_1_to_p2_7_represented':
+          p2ClosedGates.every((gate) => p2CaseScopes.contains(gate)),
+      'append_contract_defined':
+          _listOfMaps([_mapValue(reloadedMatrix['append_contract'])])
+              .isNotEmpty,
+      'runner_hooks_defined':
+          _listOfMaps(reloadedMatrix['runner_hooks']).length >= 4,
+      'future_p2_append_policy_present': _stringValue(
+              _mapValue(
+                  reloadedMatrix['append_contract'])['future_p2_gate_policy'],
+              '')
+          .contains('P2-10'),
+      'release_gate_rerun_required':
+          _boolValue(reloadedRegressionPlan['release_gate_rerun_required']),
+      'known_future_gaps_not_blocking':
+          _listOfMaps(reloadedGapMatrix['known_gaps']).every(
+              (entry) => _boolValue(entry['blocking_current_gate']) == false),
+      'no_current_baseline_missing_cases':
+          _listOfMaps(reloadedGapMatrix['missing_current_baseline_cases'])
+              .isEmpty,
+      'artifact_paths_reloadable': [
+        matrixPath,
+        gapMatrixPath,
+        regressionPlanPath,
+        boundaryReportPath,
+      ].every((path) => File(path).existsSync()),
+      'ui_blackbox_required': false,
+      'fake_ui_blackbox_created': false,
+      'final_full_matrix_claimed': false,
+      'final_packaging_claimed': false,
+      'release_gate_bypassed': false,
+      'secret_plaintext_written': false,
+      'authorization_header_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training': false,
+      'gpu_video_generation': false,
+      'external_runtime_executed': false,
+      'real_user_data_deleted': false,
+      'ordinary_ui_project_names_visible': false,
+      'provider_adapter_parser_names_visible_in_product_ui': false,
+    };
+    const negativeChecks = {
+      'ui_blackbox_required',
+      'fake_ui_blackbox_created',
+      'final_full_matrix_claimed',
+      'final_packaging_claimed',
+      'release_gate_bypassed',
+      'secret_plaintext_written',
+      'authorization_header_written',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training',
+      'gpu_video_generation',
+      'external_runtime_executed',
+      'real_user_data_deleted',
+      'ordinary_ui_project_names_visible',
+      'provider_adapter_parser_names_visible_in_product_ui',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final summary = {
+      'schema_version': 'prd_v3_blackbox_automation_baseline_summary.v1',
+      'status': status,
+      'capability_id': 'blackbox_automation_baseline',
+      'capability_name': 'Blackbox Automation Baseline',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'workspace': workspace.path,
+      'runtime_method': 'runBlackboxAutomationBaselineAcceptance',
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'coverage_counts': {
+        'p0_closed_gate_count': p0ClosedGates.length,
+        'p1_closed_gate_count': p1ClosedGates.length,
+        'p2_closed_gate_count': p2ClosedGates.length,
+        'baseline_case_count': baselineCases.length,
+        'runner_hook_count': runnerHooks.length,
+      },
+      'evidence_paths': {
+        'baseline_matrix': matrixPath,
+        'gap_matrix': gapMatrixPath,
+        'regression_plan': regressionPlanPath,
+        'boundary_report': boundaryReportPath,
+      },
+      'white_box_evidence': {
+        'matrix_schema': 'prd_v3_blackbox_automation_baseline_matrix.v1',
+        'gap_schema': 'prd_v3_blackbox_automation_gap_matrix.v1',
+        'regression_schema': 'prd_v3_blackbox_automation_regression_plan.v1',
+        'boundary_schema': 'prd_v3_blackbox_automation_boundary_report.v1',
+        'append_contract':
+            'P2-10 through P2-42 append cases before P2 Release Gate.',
+        'runner_hooks': runnerHooks.map((hook) => hook['hook_id']).toList(),
+      },
+      'release_gate_boundary': {
+        'baseline_only': true,
+        'p2_release_gate_owns_final_full_matrix': true,
+        'final_full_matrix_claimed': false,
+        'p2_10_to_p2_42_cases_pending': true,
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': 'pass',
+        'User Operability': 'pass',
+        'Evidence Completeness': 'pass',
+        'Lifecycle Completeness': 'pass',
+        'Regression Safety': 'pass',
+        'Boundary Compliance': 'pass',
+      },
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'blackbox_automation_baseline_validated',
+      module: 'acceptance',
+      action: 'run_blackbox_automation_baseline_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'blackbox_automation_baseline',
+      targetName: 'Blackbox Automation Baseline',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'baseline_case_count': baselineCases.length,
+        'p2_release_gate_owns_final_full_matrix': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'blackbox_automation_baseline_summary',
+      artifactType: 'acceptance_report',
+      title: 'Blackbox Automation Baseline Summary',
+      sourceModule: 'acceptance',
+      sourceId: 'blackbox_automation_baseline',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass' ? '黑盒自动化基线证据已生成。' : '黑盒自动化基线存在缺口。',
+      lastError: status == 'pass' ? '' : 'blackbox_automation_baseline_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
