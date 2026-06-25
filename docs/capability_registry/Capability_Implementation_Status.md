@@ -148,3 +148,17 @@ External project routing is governed by `docs/governance/EXTERNAL_PROJECT_REGIST
 - P1 queue must keep memory/evidence, task routing, Office adapter, AI governance, Loop and harness gates, but none should run before P0 dual-track acceptance.
 - P2 queue must keep workgroup/A2A, night maintenance, company brain and release-adjacent industrial gates, but none should run during P0.
 - `global_goal_complete` must remain `false` while any P0/P1/P2/Release gate remains.
+
+## External Project P1/P2 Queue Bindings
+
+These rows update queue mapping status only. They do not mark any P1/P2 gate complete and do not change the P0/P1/P2 staged chain. Closed P1 gates are listed only as future regression/reference context and must not receive retrospective evidence.
+
+| project | category | active_or_future_gates | closed_p1_reference_no_retroactive_evidence | runtime_dependency | advanced_plugin | user_visible | status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| WeKnora | `reference` | `P2-35 Retrieval Regression Benchmark Industrial`; `P2-36 Self-Improving Knowledge Maintenance` | `P1-7 Knowledge Reliability Eval Suite Basic`; `P1-8 Retrieval Regression Basic` | no | no | no | `queued_future_gate_needs_owner_review` |
+| OpenDataLoader PDF | `real_integration_candidate` | `P1-40 Clean Markdown Import`; `P2-9 EXE Packaging and Installation Experience`; `P2-35 Retrieval Regression Benchmark Industrial` | `P1-16 Long Document Reading Strategy Basic` | no, candidate only | yes | no | `queued_current_and_future_gate_needs_owner_review` |
+| Composio / awesome-codex-skills | `learn` | `P2-22 Workbench Native Skills Library` | `P1-18 Workbench Skill Action Spec`; `P1-27 Codex Execution Harness Enhancement` | no | yes | no | `queued_future_gate_needs_owner_review` |
+| brooks-lint | `absorb` | `P2-8 Full Blackbox Automation Matrix` | `P1-26 Audit Report Enhancement`; `P1-27 Codex Execution Harness Enhancement`; `P1-29 Policy Governance Basic` | no | no | no | `rerouted_to_p2_backlog_needs_owner_review` |
+| codebase-recon | `absorb` | `P2-8 Full Blackbox Automation Matrix`; `P2-23 CLI Agent Hub Evaluation` | `P1-25 Hot-Pluggable Project Config Basic`; `P1-26 Audit Report Enhancement`; `P1-27 Codex Execution Harness Enhancement` | no | no | no | `rerouted_to_p2_backlog_needs_owner_review` |
+| connect-apps | `reference` | `P2-7 Connector Industrialization`; `P2-15 Sandbox and Tool Permission Industrialization` | `P1-30 Credential Proxy Design` | no | yes | no | `queued_future_gate_needs_owner_review` |
+| MeMo / MEMO | `absorb` | `P1-48 Agent Memory Layer Basic`; `P2-33 Memory Consolidation Industrial`; `P2-36 Self-Improving Knowledge Maintenance` | none | no | no | no | `queued_future_gate_needs_owner_review` |
