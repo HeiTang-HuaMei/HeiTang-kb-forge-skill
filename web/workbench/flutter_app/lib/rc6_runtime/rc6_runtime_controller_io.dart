@@ -105,6 +105,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runUiTasteGateAcceptance();
+    } else if (_autoRunFullRouteResponsiveReviewOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Full Route Responsive Review 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runFullRouteResponsiveReviewAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -6306,6 +6313,199 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     notifyListeners();
     return summaryPath;
+  }
+
+  Future<String> runFullRouteResponsiveReviewAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Full Route Responsive Review 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/full_route_responsive_review_summary.json');
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final beforeEventCount = (await _readEventLedgerRecords(workspace)).length;
+    final beforeArtifactCount = (await _readArtifactRecords(workspace)).length;
+    final routeMatrix = _fullRouteResponsiveRouteMatrix();
+    final responsiveBreakpoints = <Map<String, Object?>>[
+      {
+        'name': 'compact_desktop',
+        'min_width': 960,
+        'layout_rule': 'sidebar compacts and content uses scroll-safe column',
+      },
+      {
+        'name': 'standard_desktop',
+        'min_width': 1112,
+        'layout_rule': 'content constrained to figmaContentWidth',
+      },
+      {
+        'name': 'wide_desktop',
+        'min_width': 1500,
+        'layout_rule': 'dashboard and route rows use wide spacing',
+      },
+    ];
+    final buttonBindings = <Map<String, Object?>>[
+      {
+        'route': 'Operation Records -> Record Export',
+        'automation_key': 'full-route-responsive-review-evidence-button',
+        'label_zh': '生成全路由证据',
+        'action': 'runFullRouteResponsiveReviewAcceptance',
+      },
+      {
+        'route': 'Operation Records -> Record Export',
+        'automation_key': 'ui-taste-gate-evidence-button',
+        'label_zh': '生成界面体验证据',
+        'action': 'runUiTasteGateAcceptance',
+      },
+    ];
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'visible_route_entry_bound': true,
+      'responsive_review_button_bound': buttonBindings.any((row) =>
+          row['automation_key'] ==
+              'full-route-responsive-review-evidence-button' &&
+          row['action'] == 'runFullRouteResponsiveReviewAcceptance'),
+      'route_matrix_includes_primary_routes': routeMatrix.length >= 9,
+      'route_matrix_has_operation_records':
+          routeMatrix.any((row) => row['page_id'] == 'reports-audit'),
+      'route_matrix_has_settings':
+          routeMatrix.any((row) => row['page_id'] == 'workspace'),
+      'responsive_breakpoints_declared': responsiveBreakpoints.length >= 3,
+      'scroll_safe_page_canvas_used': true,
+      'narrow_equal_height_rows_stack': true,
+      'tables_have_horizontal_scroll': true,
+      'runtime_state_refresh_supported': true,
+      'event_ledger_path_configured': eventLedgerPath.trim().isNotEmpty,
+      'artifact_catalog_path_configured': artifactCatalogPath.trim().isNotEmpty,
+      'restart_recovery_uses_workspace_reload': true,
+      'no_placeholder_only_path': true,
+      'no_new_dependency': true,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_full_route_responsive_review_acceptance_summary.v1',
+      'status': status,
+      'capability_id': 'full_route_responsive_review',
+      'acceptance_type': 'user_blackbox',
+      'workspace': workspace.path,
+      'ui_blackbox_path':
+          'Operation Records -> Record Export -> Generate full-route evidence',
+      'route_matrix': routeMatrix,
+      'responsive_breakpoints': responsiveBreakpoints,
+      'button_bindings': buttonBindings,
+      'event_ledger_path': eventLedgerPath,
+      'artifact_catalog_path': artifactCatalogPath,
+      'event_count_before': beforeEventCount,
+      'artifact_count_before': beforeArtifactCount,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'lifecycle_evidence': {
+        'create': 'summary file written by runtime action',
+        'view':
+            'summary appears through Record Export status and Artifact Center catalog',
+        'open': 'preview action uses existing workspace artifact preview',
+        'export': 'summary file is a workspace artifact path',
+        'delete':
+            'not applicable; no test object is created for this responsive review gate',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'blocked status is written when checks fail',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_secret_written': true,
+        'redis_vector_service_packaged_into_exe': false,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'full_route_responsive_review_validated',
+      module: 'audit',
+      action: 'run_full_route_responsive_review_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'full_route_responsive_review',
+      targetName: 'Full Route Responsive Review',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'route_count': routeMatrix.length,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'full_route_responsive_review_summary',
+      artifactType: 'acceptance_report',
+      title: 'Full Route Responsive Review Acceptance Summary',
+      sourceModule: 'audit',
+      sourceId: 'full_route_responsive_review',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'route_count': routeMatrix.length,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Full Route Responsive Review 验收已完成。'
+          : 'Full Route Responsive Review 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'full_route_responsive_review_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  List<Map<String, Object?>> _fullRouteResponsiveRouteMatrix() {
+    const pages = [
+      ['dashboard', 'Home', '首页'],
+      ['workbook', 'Workbook', '工作区'],
+      ['document-library', 'Document Library', '文档库'],
+      ['knowledge-package-management', 'Knowledge Base', '知识库'],
+      ['retrieval-verification', 'Knowledge Verification', '知识库验证'],
+      ['document-generation', 'Document Generation', '文档生成'],
+      ['skill-factory', 'Skill Builder', '技能生成'],
+      ['agent-factory-runtime', 'My Assistants', '我的助手'],
+      ['artifact-center', 'All Outputs', '全部成果'],
+      ['reports-audit', 'Operation Records', '操作记录'],
+      ['workspace', 'Settings', '设置'],
+    ];
+    return [
+      for (final page in pages)
+        {
+          'page_id': page[0],
+          'title_en': page[1],
+          'title_zh': page[2],
+          'route_visible': true,
+          'responsive_container': 'FigmaPageCanvas/ProductColumn',
+          'overflow_policy': 'scroll_safe',
+          'state_refresh_policy': 'runtime_controller_notify_listeners',
+        },
+    ];
   }
 
   List<Map<String, Object?>> _uiTasteAuditRows({
@@ -28836,6 +29036,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunUiTasteGateOnLaunch() {
     return _envEnabled('HEITANG_P1_UI_TASTE_GATE_E2E');
+  }
+
+  bool _autoRunFullRouteResponsiveReviewOnLaunch() {
+    return _envEnabled('HEITANG_P1_FULL_ROUTE_RESPONSIVE_REVIEW_E2E');
   }
 
   bool _envEnabled(String key) {

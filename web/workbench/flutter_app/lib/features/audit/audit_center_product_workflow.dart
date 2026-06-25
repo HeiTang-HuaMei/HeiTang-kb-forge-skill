@@ -317,9 +317,11 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
   String auditReportPath = '';
   String parallelReportPath = '';
   String uiTasteReportPath = '';
+  String responsiveReviewPath = '';
   bool exporting = false;
   bool validatingParallelTasks = false;
   bool validatingUiTaste = false;
+  bool validatingResponsiveReview = false;
 
   bool get zh => widget.zh;
 
@@ -356,6 +358,18 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
     setState(() {
       uiTasteReportPath = path;
       validatingUiTaste = false;
+    });
+  }
+
+  Future<void> _runFullRouteResponsiveReview() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null || rc6.state.running || validatingResponsiveReview) return;
+    setState(() => validatingResponsiveReview = true);
+    final path = await rc6.runFullRouteResponsiveReviewAcceptance();
+    if (!mounted) return;
+    setState(() {
+      responsiveReviewPath = path;
+      validatingResponsiveReview = false;
     });
   }
 
@@ -412,6 +426,13 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                         ? '验证入口、按钮、状态刷新'
                         : _displayNameForPath(uiTasteReportPath)
                   ],
+                  [
+                    '全路由响应式证据',
+                    responsiveReviewPath.isEmpty ? '未运行' : '已生成',
+                    responsiveReviewPath.isEmpty
+                        ? '验证路由、布局、窗口缩放'
+                        : _displayNameForPath(responsiveReviewPath)
+                  ],
                 ]
               : [
                   [
@@ -454,6 +475,13 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                     uiTasteReportPath.isEmpty
                         ? 'Validate entry, buttons, refresh'
                         : _displayNameForPath(uiTasteReportPath)
+                  ],
+                  [
+                    'Full-route responsive evidence',
+                    responsiveReviewPath.isEmpty ? 'Not run' : 'Generated',
+                    responsiveReviewPath.isEmpty
+                        ? 'Validate routes, layout, resize'
+                        : _displayNameForPath(responsiveReviewPath)
                   ],
                 ],
         ),
@@ -512,6 +540,37 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                       path: uiTasteReportPath,
                       unavailableMessage:
                           zh ? '尚未生成界面体验报告。' : 'No UI taste report generated.',
+                      closeLabel: zh ? '关闭' : 'Close',
+                    ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            automationKey: 'full-route-responsive-review-evidence-button',
+            label: validatingResponsiveReview
+                ? (zh ? '正在生成全路由证据' : 'Generating route evidence')
+                : (zh ? '生成全路由证据' : 'Generate route evidence'),
+            icon: Icons.devices_outlined,
+            onPressed:
+                widget.runtimeController == null || validatingResponsiveReview
+                    ? null
+                    : _runFullRouteResponsiveReview,
+          ),
+          _DisplayAction(
+            label: responsiveReviewPath.isEmpty
+                ? (zh ? '等待全路由报告' : 'Waiting for route report')
+                : (zh ? '预览全路由报告' : 'Preview route report'),
+            icon: Icons.visibility_outlined,
+            onPressed: responsiveReviewPath.isEmpty
+                ? null
+                : () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: widget.runtimeController,
+                      title: zh ? '全路由响应式报告预览' : 'Responsive route report',
+                      path: responsiveReviewPath,
+                      unavailableMessage:
+                          zh ? '尚未生成全路由报告。' : 'No route report generated.',
                       closeLabel: zh ? '关闭' : 'Close',
                     ),
           ),
