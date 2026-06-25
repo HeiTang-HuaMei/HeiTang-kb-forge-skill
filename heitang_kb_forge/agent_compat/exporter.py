@@ -2,7 +2,11 @@ from pathlib import Path
 
 from heitang_kb_forge.agent_compat.checker import check_agent_compat
 from heitang_kb_forge.agent_compat.claude_code import render_claude_code
-from heitang_kb_forge.agent_compat.codex import render_codex_instructions
+from heitang_kb_forge.agent_compat.codex import (
+    check_codex_harness,
+    render_codex_harness_contract,
+    render_codex_instructions,
+)
 from heitang_kb_forge.agent_compat.generic import render_generic
 from heitang_kb_forge.agent_compat.mcp import render_mcp
 from heitang_kb_forge.agent_compat.openclaw import render_openclaw
@@ -18,6 +22,8 @@ def export_agent_compat(agent_package: Path, agent_name: str) -> dict:
     codex_instructions, codex_plan = render_codex_instructions(agent_name)
     (compat / "codex_instructions.md").write_text(codex_instructions, encoding="utf-8")
     (compat / "codex_task_plan.md").write_text(codex_plan, encoding="utf-8")
+    write_json(compat / "codex_harness_contract.json", render_codex_harness_contract(agent_name))
+    write_json(compat / "codex_harness_check_result.json", check_codex_harness(compat))
     resources, tools, manifest = render_mcp()
     write_json(compat / "mcp_resources.json", resources)
     write_json(compat / "mcp_tools_stub.json", tools)
