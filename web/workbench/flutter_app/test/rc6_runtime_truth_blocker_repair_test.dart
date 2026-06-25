@@ -10274,6 +10274,133 @@ void main() {
         isTrue);
   });
 
+  test('memory adapter research writes core evidence and reloads', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath = await controller.runMemoryAdapterResearchAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('Authorization')));
+    expect(summaryText, isNot(contains('Bearer ')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(
+        summary['schema_version'], 'prd_v3_memory_adapter_research_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'memory_adapter_research');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['candidate_count'], 2);
+
+    final candidates = readJsonlFile(summary['candidates_path'].toString());
+    expect(candidates.map((row) => row['project_key']),
+        containsAll(['openclaw', 'hermes']));
+    expect(candidates.every((row) => row['runtime_now'] == false), isTrue);
+    expect(
+        candidates.every((row) => row['dependencies_added'] == false), isTrue);
+    expect(candidates.every((row) => row['user_visible_project_name'] == false),
+        isTrue);
+
+    final boundary = jsonDecode(
+            File(summary['boundary_matrix_path'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['status'], 'pass');
+    expect(boundary['p1_decision'], 'research_only_no_runtime_integration');
+    final rules = (boundary['rules'] as List).cast<Map<String, dynamic>>();
+    expect(rules.every((rule) => rule['passed'] == true), isTrue);
+
+    final contract = jsonDecode(
+            File(summary['native_contract_path'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(contract['status'], 'research_contract_only');
+    final userFacingPolicy =
+        (contract['user_facing_policy'] as Map).cast<String, dynamic>();
+    expect(userFacingPolicy['show_external_project_names'], isFalse);
+    expect(userFacingPolicy['show_adapter_or_provider_names'], isFalse);
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['status'], 'pass');
+    final validationChecks =
+        (validation['checks'] as Map).cast<String, dynamic>();
+    expect(validationChecks['all_candidates_classified'], isTrue);
+    expect(validationChecks['missing_classification_rejected'], isTrue);
+    expect(validationChecks['p1_runtime_integration_rejected'], isTrue);
+    expect(validationChecks['user_visible_project_name_rejected'], isTrue);
+
+    final recommendations =
+        File(summary['recommendation_report_path'].toString())
+            .readAsStringSync();
+    expect(
+        recommendations, contains('Memory Adapter Research Recommendations'));
+    expect(recommendations, contains('research_only_no_runtime_integration'));
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'runtime_integration_done',
+        'dependencies_added',
+        'external_project_runtime_loaded',
+        'project_names_added_to_user_ui',
+        'external_llm_used_for_research',
+        'vector_db_used_for_research',
+        'redis_vector_service_packaged_into_exe',
+        'local_model_training_used',
+        'gpu_training_used',
+        'real_user_data_deleted',
+        'secret_plaintext_written',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'memory_adapter_research_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'memory_adapter_research_summary' &&
+            row['status'] == 'completed' &&
+            (row['metadata'] as Map)['test_marked_artifact'] == true),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'memory_adapter_research_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'memory_adapter_research_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   testWidgets('knowledge base table view button refreshes catalog rows',
       (tester) async {
     late Directory testWorkspace;

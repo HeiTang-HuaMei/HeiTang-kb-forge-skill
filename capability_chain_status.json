@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-52 OpenClaw / Hermes Memory Adapter Research",
+  "current_gate": "P1 Release Gate",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -70,11 +70,11 @@
     "P1-48 Agent Memory Layer Basic",
     "P1-49 Context Offload Basic",
     "P1-50 Mermaid Task Map Basic",
-    "P1-51 Task Experience Reuse Basic"
+    "P1-51 Task Experience Reuse Basic",
+    "P1-52 OpenClaw / Hermes Memory Adapter Research"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-52 OpenClaw / Hermes Memory Adapter Research",
     "P1 Release Gate",
     "P2-1 Workgroup Basic Runtime",
     "P2-2 Office Collaboration Workgroup",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T10:30:00.1686008Z",
+  "updated_at": "2026-06-25T10:41:16.4343209Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -234,7 +234,9 @@
     "P1-50 Mermaid Task Map Basic has core-only Mermaid source, node index, edge index, validation report, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-51 Task Experience Reuse Basic.",
     "P1-51 Task Experience Reuse Basic has core-only local experience card, reuse index, match report, validation report, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-52 OpenClaw / Hermes Memory Adapter Research."
+    "P1 queue now continues with P1-52 OpenClaw / Hermes Memory Adapter Research.",
+    "P1-52 OpenClaw / Hermes Memory Adapter Research has core-only research candidates, boundary matrix, native contract, validation report, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1 Release Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

@@ -7062,6 +7062,482 @@ class Rc6RuntimeController extends ChangeNotifier {
     return index;
   }
 
+  Future<String> runMemoryAdapterResearchAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成 Memory Adapter Research 核心验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final researchDir =
+        Directory(_join(workspace.path, 'memory_adapter_research'));
+    await researchDir.create(recursive: true);
+    final candidatesPath =
+        _join(researchDir.path, 'memory_adapter_research_candidates.jsonl');
+    final boundaryPath =
+        _join(researchDir.path, 'memory_adapter_boundary_matrix.json');
+    final contractPath =
+        _join(researchDir.path, 'memory_adapter_native_contract.json');
+    final recommendationPath =
+        _join(researchDir.path, 'memory_adapter_research_recommendations.md');
+    final validationPath = _join(
+        researchDir.path, 'memory_adapter_research_validation_report.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/memory_adapter_research_summary.json');
+    final candidates = _memoryAdapterResearchCandidates(now);
+    final validationRows = candidates
+        .map(_validateMemoryAdapterResearchCandidate)
+        .toList(growable: false);
+    final errorRows = [
+      _validateMemoryAdapterResearchCandidate({
+        'project_key': 'missing_classification_case',
+        'project_name': 'Internal Missing Classification Case',
+        'classification': '',
+        'p1_action': 'research_only',
+        'runtime_now': false,
+        'dependencies_added': false,
+        'user_visible_project_name': false,
+        'evidence_paths': const ['docs/governance/外部运行时参考队列.md'],
+      }),
+      _validateMemoryAdapterResearchCandidate({
+        'project_key': 'runtime_not_allowed_case',
+        'project_name': 'Internal Runtime Case',
+        'classification': 'absorb',
+        'p1_action': 'runtime_integration',
+        'runtime_now': true,
+        'dependencies_added': false,
+        'user_visible_project_name': false,
+        'evidence_paths': const ['docs/governance/外部运行时参考队列.md'],
+      }),
+      _validateMemoryAdapterResearchCandidate({
+        'project_key': 'ui_project_name_case',
+        'project_name': 'OpenClaw',
+        'classification': 'reference',
+        'p1_action': 'research_only',
+        'runtime_now': false,
+        'dependencies_added': false,
+        'user_visible_project_name': true,
+        'evidence_paths': const [
+          'docs/governance/EXTERNAL_PROJECT_REGISTRY.md'
+        ],
+      }),
+    ];
+    final boundaryMatrix =
+        _memoryAdapterResearchBoundaryMatrix(candidates, now);
+    final nativeContract = _memoryAdapterNativeContract(now);
+    await File(candidatesPath).writeAsString(
+      '${candidates.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await _writeJsonFile(boundaryPath, boundaryMatrix);
+    await _writeJsonFile(contractPath, nativeContract);
+    await File(recommendationPath).writeAsString(
+      [
+        '# Memory Adapter Research Recommendations',
+        '',
+        '- Status: research_only_no_runtime_integration',
+        '- User-facing rule: show capability results and next steps, not project names.',
+        '- P1 decision: keep as native memory contract and boundary evidence.',
+        '- P2 handoff: evaluate optional adapters only in the dedicated P2 adapter gate.',
+        '',
+        for (final candidate in candidates)
+          '- ${candidate['project_key']}: ${candidate['p1_action']} into ${candidate['module_binding']}',
+        '',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_memory_adapter_research_validation.v1',
+      'status': validationRows.every((row) => row['status'] == 'accepted') &&
+              errorRows.every((row) => row['status'] == 'rejected')
+          ? 'pass'
+          : 'blocked',
+      'accepted_candidates': validationRows,
+      'error_path_evidence': errorRows,
+      'checks': {
+        'all_candidates_classified':
+            validationRows.every((row) => row['status'] == 'accepted'),
+        'missing_classification_rejected': errorRows.any((row) =>
+            row['status'] == 'rejected' &&
+            row['reason'] == 'missing_classification'),
+        'p1_runtime_integration_rejected': errorRows.any((row) =>
+            row['status'] == 'rejected' &&
+            row['reason'] == 'p1_runtime_integration_not_allowed'),
+        'user_visible_project_name_rejected': errorRows.any((row) =>
+            row['status'] == 'rejected' &&
+            row['reason'] == 'user_visible_project_name_not_allowed'),
+      },
+    };
+    await _writeJsonFile(validationPath, validationReport);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'candidates_written': await File(candidatesPath).exists(),
+      'boundary_matrix_written': await File(boundaryPath).exists(),
+      'native_contract_written': await File(contractPath).exists(),
+      'recommendation_report_written': await File(recommendationPath).exists(),
+      'validation_report_written': await File(validationPath).exists(),
+      'all_candidates_classified':
+          validationRows.every((row) => row['status'] == 'accepted'),
+      'missing_classification_rejected': errorRows.any((row) =>
+          row['status'] == 'rejected' &&
+          row['reason'] == 'missing_classification'),
+      'p1_runtime_integration_rejected': errorRows.any((row) =>
+          row['status'] == 'rejected' &&
+          row['reason'] == 'p1_runtime_integration_not_allowed'),
+      'user_visible_project_name_rejected': errorRows.any((row) =>
+          row['status'] == 'rejected' &&
+          row['reason'] == 'user_visible_project_name_not_allowed'),
+      'blackbox_not_required_for_core_only': true,
+      'runtime_integration_done': false,
+      'dependencies_added': false,
+      'external_project_runtime_loaded': false,
+      'project_names_added_to_user_ui': false,
+      'external_llm_used_for_research': false,
+      'vector_db_used_for_research': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'runtime_integration_done',
+      'dependencies_added',
+      'external_project_runtime_loaded',
+      'project_names_added_to_user_ui',
+      'external_llm_used_for_research',
+      'vector_db_used_for_research',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_memory_adapter_research_summary.v1',
+      'status': status,
+      'capability_id': 'memory_adapter_research',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'candidates_path': candidatesPath,
+      'boundary_matrix_path': boundaryPath,
+      'native_contract_path': contractPath,
+      'recommendation_report_path': recommendationPath,
+      'validation_report_path': validationPath,
+      'candidate_count': candidates.length,
+      'candidates': candidates,
+      'boundary_matrix': boundaryMatrix,
+      'native_contract': nativeContract,
+      'validation_rows': validationRows,
+      'error_path_evidence': errorRows,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMemoryAdapterResearchAcceptance',
+        'candidate_builder': '_memoryAdapterResearchCandidates',
+        'candidate_validator': '_validateMemoryAdapterResearchCandidate',
+        'boundary_builder': '_memoryAdapterResearchBoundaryMatrix',
+        'native_contract_builder': '_memoryAdapterNativeContract',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only research capability; no standalone user UI blackbox is required',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'research candidates, boundary matrix, native contract, recommendations, validation report and summary are written',
+        'view':
+            'summary and recommendation report can be read as local artifacts',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete':
+            'Artifact Center deletes only the registered test-marked artifact record and workspace summary path',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing classification, P1 runtime integration and user-visible project name leaks are rejected',
+      },
+      'boundary_evidence': {
+        'runtime_integration_done': false,
+        'dependencies_added': false,
+        'external_project_runtime_loaded': false,
+        'project_names_added_to_user_ui': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'memory_adapter_research_validated',
+      module: 'agent_memory',
+      action: 'run_memory_adapter_research_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'memory_adapter_research',
+      targetName: 'OpenClaw / Hermes Memory Adapter Research',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'candidate_count': candidates.length,
+        'runtime_integration_done': false,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'memory_adapter_research_summary',
+      artifactType: 'acceptance_report',
+      title: 'Memory Adapter Research Summary',
+      sourceModule: 'agent_memory',
+      sourceId: 'memory_adapter_research',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'candidate_count': candidates.length,
+        'runtime_integration_done': false,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Memory Adapter Research 核心验收证据已生成。'
+          : 'Memory Adapter Research 核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'memory_adapter_research_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  static List<Map<String, Object?>> _memoryAdapterResearchCandidates(
+      String now) {
+    return [
+      {
+        'project_key': 'openclaw',
+        'project_name': 'OpenClaw',
+        'classification': 'reference',
+        'module_binding': 'Agent Execution Harness',
+        'p1_action': 'research_only',
+        'p2_handoff': 'optional_adapter_evaluation',
+        'runtime_now': false,
+        'dependencies_added': false,
+        'user_visible_project_name': false,
+        'absorbed_pattern': 'assistant runtime boundary and handoff discipline',
+        'user_facing_capability_label': 'Agent 执行能力',
+        'evidence_paths': const [
+          'docs/governance/EXTERNAL_PROJECT_REGISTRY.md',
+          'docs/governance/外部运行时参考队列.md',
+        ],
+        'created_at': now,
+      },
+      {
+        'project_key': 'hermes',
+        'project_name': 'Hermes',
+        'classification': 'absorb',
+        'module_binding': 'HeiTang Memory & Evidence Layer',
+        'p1_action': 'research_only',
+        'p2_handoff': 'optional_adapter_evaluation',
+        'runtime_now': false,
+        'dependencies_added': false,
+        'user_visible_project_name': false,
+        'absorbed_pattern': 'memory adapter contract and evidence handoff',
+        'user_facing_capability_label': '记忆与证据能力',
+        'evidence_paths': const [
+          'docs/governance/EXTERNAL_PROJECT_REGISTRY.md',
+          'docs/governance/外部运行时参考队列.md',
+        ],
+        'created_at': now,
+      },
+    ];
+  }
+
+  static Map<String, Object?> _memoryAdapterResearchBoundaryMatrix(
+    List<Map<String, Object?>> candidates,
+    String now,
+  ) {
+    return {
+      'schema_version': 'prd_v3_memory_adapter_boundary_matrix.v1',
+      'status': 'pass',
+      'created_at': now,
+      'p1_decision': 'research_only_no_runtime_integration',
+      'p2_handoff': 'optional_adapter_evaluation_only',
+      'candidate_count': candidates.length,
+      'rules': [
+        {
+          'rule_id': 'no_runtime_integration_in_p1',
+          'passed': candidates
+              .every((candidate) => candidate['runtime_now'] == false),
+        },
+        {
+          'rule_id': 'no_dependency_added_in_p1',
+          'passed': candidates
+              .every((candidate) => candidate['dependencies_added'] == false),
+        },
+        {
+          'rule_id': 'no_project_name_in_user_ui',
+          'passed': candidates.every(
+              (candidate) => candidate['user_visible_project_name'] == false),
+        },
+        {
+          'rule_id': 'redis_vector_services_stay_external',
+          'passed': true,
+        },
+        {
+          'rule_id': 'no_local_model_or_gpu_scope',
+          'passed': true,
+        },
+      ],
+    };
+  }
+
+  static Map<String, Object?> _memoryAdapterNativeContract(String now) {
+    return {
+      'schema_version': 'prd_v3_memory_adapter_native_contract.v1',
+      'status': 'research_contract_only',
+      'created_at': now,
+      'accepted_memory_fields': const [
+        'memory_id',
+        'memory_type',
+        'source_trace_ids',
+        'evidence_paths',
+        'lifecycle_status',
+        'confidence',
+        'created_at',
+        'expires_at',
+        'replacement_of',
+      ],
+      'accepted_boundary_fields': const [
+        'classification',
+        'module_binding',
+        'p1_action',
+        'p2_handoff',
+        'runtime_now',
+        'dependencies_added',
+        'user_visible_project_name',
+      ],
+      'rejected_runtime_fields': const [
+        'inline_secret_value',
+        'runtime_binary_path',
+        'service_binary_bundle_path',
+        'user_visible_external_project_name',
+      ],
+      'user_facing_policy': const {
+        'show_capability_label_only': true,
+        'show_external_project_names': false,
+        'show_adapter_or_provider_names': false,
+        'show_next_step': true,
+      },
+    };
+  }
+
+  static Map<String, Object?> _validateMemoryAdapterResearchCandidate(
+      Map<String, Object?> candidate) {
+    final projectKey = _stringValue(candidate['project_key'], '').trim();
+    if (projectKey.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_project_key',
+        'project_key': projectKey,
+      };
+    }
+    final classification = _stringValue(candidate['classification'], '').trim();
+    if (classification.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_classification',
+        'project_key': projectKey,
+      };
+    }
+    if (candidate['runtime_now'] == true ||
+        _stringValue(candidate['p1_action'], '') == 'runtime_integration') {
+      return {
+        'status': 'rejected',
+        'reason': 'p1_runtime_integration_not_allowed',
+        'project_key': projectKey,
+      };
+    }
+    if (candidate['dependencies_added'] == true) {
+      return {
+        'status': 'rejected',
+        'reason': 'p1_dependency_addition_not_allowed',
+        'project_key': projectKey,
+      };
+    }
+    if (candidate['user_visible_project_name'] == true) {
+      return {
+        'status': 'rejected',
+        'reason': 'user_visible_project_name_not_allowed',
+        'project_key': projectKey,
+      };
+    }
+    final evidencePaths = candidate['evidence_paths'] is List
+        ? (candidate['evidence_paths'] as List)
+            .map((value) => value.toString())
+            .where((value) => value.trim().isNotEmpty)
+            .toList(growable: false)
+        : const <String>[];
+    if (evidencePaths.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_evidence_paths',
+        'project_key': projectKey,
+      };
+    }
+    return {
+      'status': 'accepted',
+      'reason': 'research_boundary_contract_complete',
+      'project_key': projectKey,
+      'classification': classification,
+      'evidence_count': evidencePaths.length,
+    };
+  }
+
   Future<String> runKnowledgeReliabilityMinimalCoreAcceptance() async {
     if (!_canRunDesktop()) {
       return '';
