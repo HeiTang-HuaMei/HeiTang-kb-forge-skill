@@ -66,7 +66,7 @@ Forbidden deletion targets:
 
 ## Checkpoint Requirements
 
-When stopping after hard blocker or exhausted repair budget, write affected_capability_id, affected_phase, failed_acceptance_type, missing_evidence, recommended_fix, rollback_or_continue_advice, checkpoint, failure_report, and resume_prompt.
+When stopping after hard blocker or exhausted repair budget, write blocked_reason, affected_capability_id, affected_phase, failed_acceptance_type, missing_evidence, recommended_fix, rollback_or_continue_advice, checkpoint, failure_report, and resume_prompt.
 
 ## Worktree Partition Rule
 
