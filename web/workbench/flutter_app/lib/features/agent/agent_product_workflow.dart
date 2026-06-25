@@ -3254,6 +3254,13 @@ class _AgentDiscussionProductViewState
               ? '工作小组 / 多助手协作已降级，禁止假可用。'
               : 'Work group and multi-assistant collaboration are gated.',
         ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '常用助手模板' : 'Common assistant templates',
+          value: zh
+              ? '可用作创建工作小组的起点。'
+              : 'Available as a starting point for creating a work group.',
+        ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PrimaryProductAction(
           automationKey: 'workgroup-basic-runtime-evidence-button',
@@ -3263,6 +3270,26 @@ class _AgentDiscussionProductViewState
               ? () async {
                   await rc6.runMultiAgentDiscussion(
                     topic: _topicController.text.trim(),
+                  );
+                }
+              : null,
+        ),
+        const SizedBox(height: 8),
+        _PrimaryProductAction(
+          automationKey: 'a2a-ten-agent-template-evidence-button',
+          label: zh
+              ? '用常用助手模板创建工作小组'
+              : 'Create work group from templates',
+          icon: Icons.groups_3_outlined,
+          onPressed: canRun
+              ? () async {
+                  final topic = _topicController.text.trim();
+                  await rc6.runA2aTenAgentTemplateAcceptance(
+                    topic: topic.isEmpty
+                        ? (zh
+                            ? 'P2-4 常用助手模板十助手工作组验收'
+                            : 'P2-4 common assistant template work group')
+                        : topic,
                   );
                 }
               : null,

@@ -9605,6 +9605,263 @@ void main() {
         isTrue);
   });
 
+  testWidgets('p2 a2a ten-agent template button creates user-path evidence',
+      (tester) async {
+    late Directory workspace;
+    await pumpWorkbench(
+      tester,
+      initialSelectedIndex: 7,
+      surfaceSize: const Size(1440, 900),
+      captureWorkspace: (dir) => workspace = dir,
+      setupWorkspace: (workspace) async {
+        writeWorkgroupAgentSkillFixture(
+          workspace,
+          agentId: 'test_a2a_template_entry_agent',
+          agentName: '十助手模板入口测试助手',
+          description: '用于 P2-4 常用助手模板黑盒验收。',
+          role: '保留在工作区内的既有助手。',
+        );
+        writeResearchAnalysisQueryFixture(workspace);
+      },
+      waitForRuntimeReady: true,
+    );
+
+    await tester.tap(find.byKey(const Key('agent-primary-entry-工作小组')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('常用助手模板'), findsOneWidget);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(find.textContaining('0/'), findsNothing);
+
+    final button =
+        find.byKey(const Key('a2a-ten-agent-template-evidence-button'));
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (button.evaluate().isNotEmpty &&
+          tester.widget<FilledButton>(button).onPressed != null) {
+        break;
+      }
+    }
+    expect(button, findsOneWidget);
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      tester.widget<FilledButton>(button).onPressed?.call();
+      await Future<void>.delayed(const Duration(seconds: 1));
+    });
+
+    final summaryPath =
+        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}a2a_ten_agent_template_summary.json';
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (File(summaryPath).existsSync()) {
+        break;
+      }
+    }
+    expect(tester.takeException(), isNull);
+    expect(File(summaryPath).existsSync(), isTrue);
+    final summary = jsonDecode(File(summaryPath).readAsStringSync()) as Map;
+    expect(summary['status'], 'pass');
+    expect(summary['capability_gate'], 'P2-4 A2A >= 10 Agents');
+    expect(summary['product_facing_entry'], '常用助手模板');
+    expect(summary['participant_count'], 10);
+    expect(summary['black_box_status'], 'passed');
+  });
+
+  test('p2 a2a ten-agent templates create workgroup and tombstone test data',
+      () async {
+    final workspace = await createWorkspace();
+    writeWorkgroupAgentSkillFixture(
+      workspace,
+      agentId: 'test_existing_workgroup_agent',
+      agentName: '既有工作小组测试助手',
+      description: '用于确认 P2-4 只删除本次 test 标记助手。',
+      role: '保留在工作区内的既有助手。',
+    );
+    writeResearchAnalysisQueryFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runA2aTenAgentTemplateAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_a2a_ten_agent_template_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'a2a_workgroup');
+    expect(summary['capability_gate'], 'P2-4 A2A >= 10 Agents');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['participant_count'], 10);
+    expect(summary['product_facing_entry'], '常用助手模板');
+    expect(summary['create_action'], '创建工作小组');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'real_user_data_deleted' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final templateManifest = jsonDecode(
+            File(summary['template_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(templateManifest['schema_version'],
+        'prd_v3_common_assistant_templates_manifest.v1');
+    expect(templateManifest['template_count'], 10);
+    expect(templateManifest['product_facing_entry'], '常用助手模板');
+    final templates =
+        (templateManifest['templates'] as List).cast<Map<String, dynamic>>();
+    expect(
+        templates.map((row) => row['required_name']),
+        containsAll([
+          'Material organizing assistant',
+          'Knowledge base QA assistant',
+          'Evidence verification assistant',
+          'Document writing assistant',
+          'Quality review assistant',
+          'Risk review assistant',
+          'Skill generation assistant',
+          'Task coordination assistant',
+          'Planning assistant',
+          'Delivery check assistant',
+        ]));
+    expect(
+        templates.any((row) =>
+            row.values.join(' ').contains('Provider') ||
+            row.values.join(' ').contains('Adapter') ||
+            row.values.join(' ').contains('Parser') ||
+            row.values.join(' ').contains('0/')),
+        isFalse);
+
+    final creation = jsonDecode(
+            File(summary['creation_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(creation['assistant_count'], 10);
+    final createdAssistants =
+        (creation['assistants'] as List).cast<Map<String, dynamic>>();
+    expect(
+        createdAssistants.every((row) =>
+            (row['settings'] as Map)['test_marker'] ==
+            'p2_4_a2a_ten_agent_template'),
+        isTrue);
+
+    final workgroupSummary =
+        jsonDecode(File(summary['workgroup_summary_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(workgroupSummary['status'], 'pass');
+    expect(workgroupSummary['participant_count'], 10);
+    final a2aManifest =
+        jsonDecode(File(summary['a2a_session_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(a2aManifest['participant_count'], 10);
+    final taskRecords = readJsonlFile(summary['task_records_path'] as String);
+    expect(taskRecords, hasLength(10));
+    expect(
+        taskRecords.every((row) =>
+            row['status'] == 'completed' &&
+            row['output'].toString().trim().isNotEmpty),
+        isTrue);
+    expect(File(summary['conflict_report_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['consensus_report_path'] as String).existsSync(),
+        isTrue);
+
+    final tombstone =
+        jsonDecode(File(summary['tombstone_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(tombstone['schema_version'],
+        'prd_v3_p2_4_test_assistant_tombstone_report.v1');
+    expect(tombstone['status'], 'pass');
+    expect(tombstone['deleted_assistant_count'], 10);
+    expect(tombstone['only_test_marked_assistants_deleted'], isTrue);
+    expect(tombstone['real_user_data_deleted'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+    expect(
+        reloadedController.state.agentProfiles
+            .any((profile) => profile.id.startsWith('test_p2_4_')),
+        isFalse);
+    expect(
+        reloadedController.state.agentProfiles
+            .any((profile) => profile.id == 'test_existing_workgroup_agent'),
+        isTrue);
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'a2a_ten_agent_templates_created'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'a2a_ten_agent_templates_tombstoned'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'a2a_ten_agent_template_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'a2a_ten_agent_template_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'a2a_ten_agent_template_tombstones' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

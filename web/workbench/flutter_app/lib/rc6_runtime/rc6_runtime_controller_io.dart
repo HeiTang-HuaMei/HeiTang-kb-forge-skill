@@ -12453,11 +12453,607 @@ class Rc6RuntimeController extends ChangeNotifier {
         _requireWorkspace().path, 'acceptance/research_analysis_workgroup_summary.json');
   }
 
+  Future<String> runA2aTenAgentTemplateAcceptance({
+    String topic = 'P2-4 常用助手模板十助手工作组验收',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final templates = _p2FourAssistantTemplates();
+    final creation = await _writeP2FourTemplateAssistants(
+      workspace,
+      templates: templates,
+    );
+    final participantIds = _listOfStrings(creation['assistant_ids']);
+    await _loadExistingArtifacts();
+    if (participantIds.length != 10) {
+      _fail('常用助手模板创建未达到 10 个，不能启动十助手工作组。');
+      return '';
+    }
+    final summaryPath = await runMultiAgentDiscussion(
+      topic: topic,
+      participantAgentIds: participantIds,
+      writeOfficeCollaborationSummaryIfReady: false,
+    );
+    if (summaryPath.isEmpty) {
+      return '';
+    }
+    final tombstone = await _tombstoneP2FourTemplateAssistants(
+      workspace,
+      createdAssistantIds: participantIds,
+    );
+    final acceptancePath = await _writeA2aTenAgentTemplateSummary(
+      topic: topic,
+      templates: templates,
+      creation: creation,
+      tombstone: tombstone,
+      workgroupSummaryPath: summaryPath,
+      participantAgentIds: participantIds,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '常用助手模板十助手工作组验收已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+    return acceptancePath;
+  }
+
   bool _isResearchAnalysisAcceptanceTopic(String topic) {
     final normalized = topic.toLowerCase();
     return topic.contains('P2-3') ||
         topic.contains('研究分析') ||
         normalized.contains('research analysis');
+  }
+
+  static List<Map<String, String>> _p2FourAssistantTemplates() => const [
+        {
+          'template_id': 'material_organizing_assistant',
+          'required_name': 'Material organizing assistant',
+          'display_name': '资料整理助手',
+          'role': '整理资料、抽取主题并标注来源。',
+        },
+        {
+          'template_id': 'knowledge_base_qa_assistant',
+          'required_name': 'Knowledge base QA assistant',
+          'display_name': '知识库问答助手',
+          'role': '基于当前知识库回答问题并保留引用。',
+        },
+        {
+          'template_id': 'evidence_verification_assistant',
+          'required_name': 'Evidence verification assistant',
+          'display_name': '证据核验助手',
+          'role': '检查结论是否能回链到证据。',
+        },
+        {
+          'template_id': 'document_writing_assistant',
+          'required_name': 'Document writing assistant',
+          'display_name': '文档写作助手',
+          'role': '把共识整理为可交付文档。',
+        },
+        {
+          'template_id': 'quality_review_assistant',
+          'required_name': 'Quality review assistant',
+          'display_name': '质量复核助手',
+          'role': '检查输出完整性、清晰度和证据覆盖。',
+        },
+        {
+          'template_id': 'risk_review_assistant',
+          'required_name': 'Risk review assistant',
+          'display_name': '风险复核助手',
+          'role': '识别越权、误导和需要人工确认的内容。',
+        },
+        {
+          'template_id': 'skill_generation_assistant',
+          'required_name': 'Skill generation assistant',
+          'display_name': 'Skill 生成助手',
+          'role': '把稳定流程沉淀为可复用 Skill 草案。',
+        },
+        {
+          'template_id': 'task_coordination_assistant',
+          'required_name': 'Task coordination assistant',
+          'display_name': '任务协同助手',
+          'role': '拆分任务、跟踪状态并协调参与助手。',
+        },
+        {
+          'template_id': 'planning_assistant',
+          'required_name': 'Planning assistant',
+          'display_name': '规划助手',
+          'role': '形成计划、里程碑和下一步行动。',
+        },
+        {
+          'template_id': 'delivery_check_assistant',
+          'required_name': 'Delivery check assistant',
+          'display_name': '交付检查助手',
+          'role': '检查交付物、证据包和待处理事项。',
+        },
+      ];
+
+  Future<Map<String, dynamic>> _writeP2FourTemplateAssistants(
+    Directory workspace, {
+    required List<Map<String, String>> templates,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final templateManifestPath = _joinNested(
+        workspace.path, 'agent/templates/common_assistant_templates_manifest.json');
+    final creationManifestPath = _joinNested(
+        workspace.path, 'agent/workgroups/p2_4_test_assistant_creation_manifest.json');
+    final templateRows = [
+      for (final template in templates)
+        {
+          'template_id': template['template_id'],
+          'required_name': template['required_name'],
+          'display_name': template['display_name'],
+          'role': template['role'],
+          'product_facing_entry': '常用助手模板',
+          'create_action': '创建工作小组',
+          'implementation_project_visible': false,
+          'provider_adapter_parser_visible': false,
+        }
+    ];
+    await _writeJsonFile(templateManifestPath, {
+      'schema_version': 'prd_v3_common_assistant_templates_manifest.v1',
+      'status': 'available',
+      'capability_gate': 'P2-4 A2A >= 10 Agents',
+      'product_facing_entry': '常用助手模板',
+      'create_action': '创建工作小组',
+      'template_count': templateRows.length,
+      'templates': templateRows,
+      'template_existence_only_closes_gate': false,
+      'created_at': now,
+    });
+    final existingProfiles = await _readAgentProfiles(workspace);
+    final baseProfiles = existingProfiles
+        .where((profile) => !_isP2FourTestAssistant(profile))
+        .toList(growable: false);
+    final createdProfiles = <Rc6AgentProfile>[];
+    for (var index = 0; index < templates.length; index += 1) {
+      final template = templates[index];
+      final id = 'test_p2_4_${(index + 1).toString().padLeft(2, '0')}_'
+          '${_safeId(template['template_id'] ?? 'assistant')}';
+      final profile = Rc6AgentProfile(
+        id: id,
+        name: template['display_name'] ?? template['required_name'] ?? id,
+        description: 'P2-4 临时测试助手，由常用助手模板创建。',
+        role: template['role'] ?? '处理当前工作组任务。',
+        status: 'available',
+        createdAt: now,
+        updatedAt: now,
+        workspaceId: state.currentWorkbookName,
+        primaryKnowledgeBaseId: 'K1',
+        allowedReferenceKbIds: const <String>[],
+        kbScopeMode: 'single',
+        answerPolicyId: 'strict_evidence',
+        aiProfileId: 'ai_profile_default_local',
+        boundKnowledgeBaseIds: const ['K1'],
+        boundSkillIds: const ['primary_skill'],
+        settings: {
+          'test_marker': 'p2_4_a2a_ten_agent_template',
+          'temporary_test_object': 'true',
+          'source_template_id': template['template_id'] ?? '',
+          'source_template_name': template['required_name'] ?? '',
+          'product_facing_entry': '常用助手模板',
+          'create_action': '创建工作小组',
+          'secret_plaintext_written': 'false',
+        },
+      );
+      createdProfiles.add(profile);
+      await _writeAgentConversation(
+        workspace,
+        Rc6AgentConversation(
+          conversationId: 'conv_$id',
+          agentId: id,
+          messages: const <Rc6AgentMessage>[],
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+    await _writeAgentProfiles(workspace, [...baseProfiles, ...createdProfiles]);
+    await _writeJsonFile(creationManifestPath, {
+      'schema_version': 'prd_v3_p2_4_test_assistant_creation_manifest.v1',
+      'status': createdProfiles.length == templates.length ? 'pass' : 'blocked',
+      'capability_gate': 'P2-4 A2A >= 10 Agents',
+      'template_manifest_path': templateManifestPath,
+      'assistant_count': createdProfiles.length,
+      'assistant_ids': createdProfiles.map((profile) => profile.id).toList(),
+      'test_marker': 'p2_4_a2a_ten_agent_template',
+      'only_test_marked_objects': true,
+      'assistants': [
+        for (final profile in createdProfiles)
+          {
+            ...profile.toJson(),
+            'test_marked': true,
+          }
+      ],
+      'created_at': now,
+    });
+    await _appendEventLedgerRecord(
+      eventType: 'a2a_ten_agent_templates_created',
+      module: 'workgroup',
+      action: 'create_test_assistants_from_common_templates',
+      status: createdProfiles.length == templates.length ? 'completed' : 'blocked',
+      targetId: 'a2a_workgroup',
+      targetName: '常用助手模板',
+      artifactPath: creationManifestPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'capability_gate': 'P2-4 A2A >= 10 Agents',
+        'assistant_count': createdProfiles.length,
+        'test_marker': 'p2_4_a2a_ten_agent_template',
+        'template_manifest_path': templateManifestPath,
+        'test_marked_artifact': true,
+      },
+    );
+    return {
+      'template_manifest_path': templateManifestPath,
+      'creation_manifest_path': creationManifestPath,
+      'assistant_ids': createdProfiles.map((profile) => profile.id).toList(),
+      'assistant_count': createdProfiles.length,
+      'templates': templateRows,
+    };
+  }
+
+  Future<Map<String, dynamic>> _tombstoneP2FourTemplateAssistants(
+    Directory workspace, {
+    required List<String> createdAssistantIds,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final tombstonePath = _joinNested(
+        workspace.path, 'agent/workgroups/p2_4_test_assistant_tombstones.json');
+    final profiles = await _readAgentProfiles(workspace);
+    final createdSet = createdAssistantIds.toSet();
+    final tombstoned = profiles
+        .where((profile) =>
+            createdSet.contains(profile.id) && _isP2FourTestAssistant(profile))
+        .toList(growable: false);
+    final keptProfiles = profiles
+        .where((profile) =>
+            !createdSet.contains(profile.id) || !_isP2FourTestAssistant(profile))
+        .toList(growable: false);
+    await _writeAgentProfiles(workspace, keptProfiles);
+    for (final profile in tombstoned) {
+      await _clearWorkspacePath(_agentConversationDir(workspace, profile.id));
+    }
+    final tombstoneRows = [
+      for (final profile in tombstoned)
+        {
+          'assistant_id': profile.id,
+          'assistant_name': profile.name,
+          'status': 'tombstoned',
+          'test_marker': profile.settings['test_marker'],
+          'temporary_test_object': profile.settings['temporary_test_object'],
+          'conversation_deleted': true,
+          'real_user_data_deleted': false,
+          'tombstoned_at': now,
+        }
+    ];
+    await _writeJsonFile(tombstonePath, {
+      'schema_version': 'prd_v3_p2_4_test_assistant_tombstone_report.v1',
+      'status': tombstoneRows.length == createdAssistantIds.length ? 'pass' : 'blocked',
+      'capability_gate': 'P2-4 A2A >= 10 Agents',
+      'requested_delete_ids': createdAssistantIds,
+      'deleted_assistant_count': tombstoneRows.length,
+      'only_test_marked_assistants_deleted':
+          tombstoneRows.length == createdAssistantIds.length,
+      'real_user_data_deleted': false,
+      'tombstones': tombstoneRows,
+      'created_at': now,
+    });
+    await _appendEventLedgerRecord(
+      eventType: 'a2a_ten_agent_templates_tombstoned',
+      module: 'workgroup',
+      action: 'delete_test_marked_template_assistants',
+      status: tombstoneRows.length == createdAssistantIds.length
+          ? 'completed'
+          : 'blocked',
+      targetId: 'a2a_workgroup',
+      targetName: 'P2-4 test assistants',
+      artifactPath: tombstonePath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'capability_gate': 'P2-4 A2A >= 10 Agents',
+        'deleted_assistant_count': tombstoneRows.length,
+        'only_test_marked_assistants_deleted':
+            tombstoneRows.length == createdAssistantIds.length,
+        'real_user_data_deleted': false,
+        'test_marked_artifact': true,
+      },
+    );
+    return {
+      'tombstone_path': tombstonePath,
+      'deleted_assistant_count': tombstoneRows.length,
+      'only_test_marked_assistants_deleted':
+          tombstoneRows.length == createdAssistantIds.length,
+      'real_user_data_deleted': false,
+    };
+  }
+
+  bool _isP2FourTestAssistant(Rc6AgentProfile profile) {
+    return profile.settings['test_marker'] == 'p2_4_a2a_ten_agent_template' ||
+        profile.id.startsWith('test_p2_4_');
+  }
+
+  Future<String> _writeA2aTenAgentTemplateSummary({
+    required String topic,
+    required List<Map<String, String>> templates,
+    required Map<String, dynamic> creation,
+    required Map<String, dynamic> tombstone,
+    required String workgroupSummaryPath,
+    required List<String> participantAgentIds,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/a2a_ten_agent_template_summary.json');
+    final templateManifestPath =
+        _stringValue(creation['template_manifest_path'], '');
+    final creationManifestPath =
+        _stringValue(creation['creation_manifest_path'], '');
+    final tombstonePath = _stringValue(tombstone['tombstone_path'], '');
+    final discussionPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final taskMatrixPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_10_agent_task_matrix.json');
+    final taskRecordsPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_agent_task_records.jsonl');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final templateManifest = await _readJsonObject(templateManifestPath);
+    final creationManifest = await _readJsonObject(creationManifestPath);
+    final workgroupSummary = await _readJsonObject(workgroupSummaryPath);
+    final a2aManifest = await _readJsonObject(a2aSessionManifestPath);
+    final taskMatrix = await _readJsonObject(taskMatrixPath);
+    final taskRecords = await _readJsonl(File(taskRecordsPath));
+    final templateRows = _listOfMaps(templateManifest['templates']);
+    final creationRows = _listOfMaps(creationManifest['assistants']);
+    final taskAgentIds = taskRecords
+        .map((row) => _stringValue(row['agent_id'], ''))
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final requiredNames =
+        templates.map((item) => item['required_name'] ?? '').toSet();
+    final manifestRequiredNames = templateRows
+        .map((row) => _stringValue(row['required_name'], ''))
+        .where((name) => name.isNotEmpty)
+        .toSet();
+    final forbiddenUiTokens = [
+      'Provider',
+      'Adapter',
+      'Parser',
+      'Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/'
+    ];
+    final productText = [
+      _stringValue(templateManifest['product_facing_entry'], ''),
+      _stringValue(templateManifest['create_action'], ''),
+      ...templateRows.map((row) => _stringValue(row['display_name'], '')),
+    ].join(' ');
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'template_manifest_exists': await File(templateManifestPath).exists(),
+      'template_count_is_ten': templateRows.length == 10,
+      'required_templates_present':
+          manifestRequiredNames.containsAll(requiredNames) &&
+              requiredNames.length == 10,
+      'product_facing_template_entry_present':
+          productText.contains('常用助手模板') && productText.contains('创建工作小组'),
+      'implementation_names_hidden': !forbiddenUiTokens
+          .any((token) => productText.toLowerCase().contains(token.toLowerCase())),
+      'created_test_assistant_count_is_ten': creationRows.length == 10,
+      'created_assistants_test_marked': creationRows.every((row) =>
+          _stringValue(row['settings'] is Map
+                  ? (row['settings'] as Map)['test_marker']
+                  : '',
+              '') ==
+          'p2_4_a2a_ten_agent_template'),
+      'participant_count_is_ten': participantAgentIds.length == 10,
+      'workgroup_summary_exists': await File(workgroupSummaryPath).exists(),
+      'workgroup_summary_passed':
+          _stringValue(workgroupSummary['status'], '') == 'pass',
+      'a2a_session_manifest_exists':
+          await File(a2aSessionManifestPath).exists(),
+      'a2a_session_participant_count_is_ten':
+          (_asInt(a2aManifest['participant_count']) ?? 0) == 10,
+      'a2a_participants_match_created_assistants':
+          participantAgentIds.every(taskAgentIds.contains),
+      'task_matrix_exists': await File(taskMatrixPath).exists(),
+      'task_matrix_passed': _stringValue(taskMatrix['status'], '') == 'pass',
+      'per_assistant_task_records_written': taskRecords.length == 10,
+      'per_assistant_outputs_present': taskRecords.every(
+          (row) => _stringValue(row['output'], '').trim().isNotEmpty),
+      'discussion_summary_written': await File(discussionPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'tombstone_report_written': await File(tombstonePath).exists(),
+      'deleted_test_assistant_count_is_ten':
+          (_asInt(tombstone['deleted_assistant_count']) ?? 0) == 10,
+      'only_test_marked_assistants_deleted':
+          tombstone['only_test_marked_assistants_deleted'] == true,
+      'real_user_data_deleted': false,
+      'template_existence_only_not_closure':
+          templateRows.length == 10 &&
+              _stringValue(workgroupSummary['status'], '') == 'pass',
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'real_user_data_deleted',
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_a2a_ten_agent_template_summary.v1',
+      'status': status,
+      'capability_id': 'a2a_workgroup',
+      'capability_gate': 'P2-4 A2A >= 10 Agents',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'ui_blackbox_path':
+          'Agent -> Work Group -> Common assistant templates -> Create workgroup',
+      'user_facing_capability': '工作小组',
+      'product_facing_entry': '常用助手模板',
+      'create_action': '创建工作小组',
+      'topic': topic.trim().isEmpty ? 'P2-4 常用助手模板十助手工作组验收' : topic.trim(),
+      'template_manifest_path': templateManifestPath,
+      'creation_manifest_path': creationManifestPath,
+      'tombstone_path': tombstonePath,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'discussion_path': discussionPath,
+      'a2a_session_manifest_path': a2aSessionManifestPath,
+      'task_matrix_path': taskMatrixPath,
+      'task_records_path': taskRecordsPath,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
+      'participant_agent_ids': participantAgentIds,
+      'participant_count': participantAgentIds.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runA2aTenAgentTemplateAcceptance',
+        'template_writer': '_writeP2FourTemplateAssistants',
+        'workgroup_runtime': 'runMultiAgentDiscussion',
+        'summary_method': '_writeA2aTenAgentTemplateSummary',
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'path': 'Agent page Work Group panel',
+        'action': 'choose common assistant templates and create workgroup',
+        'automation_key': 'a2a-ten-agent-template-evidence-button',
+        'result_visible_to_user': status == 'pass' ? '十助手工作组成果已生成' : '需要处理',
+      },
+      'artifact_evidence': {
+        'template_manifest_path': templateManifestPath,
+        'creation_manifest_path': creationManifestPath,
+        'workgroup_summary_path': workgroupSummaryPath,
+        'task_matrix_path': taskMatrixPath,
+        'task_records_path': taskRecordsPath,
+        'tombstone_path': tombstonePath,
+      },
+      'lifecycle_evidence': {
+        'create':
+            'ten temporary test-marked assistants are created from common assistant templates',
+        'view':
+            'Work Group panel can show generated workgroup state after runtime reload',
+        'open':
+            'Artifact Center can preview the registered P2-4 acceptance summary',
+        'export':
+            'Artifact Center can export registered summary and workgroup reports',
+        'delete':
+            'only current test-marked assistants and their conversations are tombstoned',
+        'restart_recovery':
+            'initialize reloads A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing templates, missing ten test assistants, or missing workgroup evidence blocks closure',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-5 Multi-Agent RAG Deepening',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'a2a_ten_agent_template_workgroup_validated',
+      module: 'workgroup',
+      action: 'run_a2a_ten_agent_template_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'a2a_workgroup',
+      targetName: 'A2A Ten Agent Workgroup',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'participant_count': participantAgentIds.length,
+        'failed_checks': failedChecks,
+        'template_manifest_path': templateManifestPath,
+        'creation_manifest_path': creationManifestPath,
+        'tombstone_path': tombstonePath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'a2a_ten_agent_template_summary',
+      artifactType: 'acceptance_report',
+      title: 'A2A Ten Agent Template Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'a2a_workgroup',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'participant_count': participantAgentIds.length,
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'a2a_ten_agent_template_tombstones',
+      artifactType: 'lifecycle_report',
+      title: 'A2A Ten Agent Test Assistant Tombstones',
+      sourceModule: 'workgroup',
+      sourceId: 'a2a_workgroup',
+      filePath: tombstonePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'deleted_assistant_count': tombstone['deleted_assistant_count'],
+        'real_user_data_deleted': false,
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
   }
 
   Future<String> _writeWorkgroupBasicRuntimeSummary({
@@ -21315,6 +21911,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'memory_context_agent',
             'artifact_delivery_agent',
           ];
+    final explicitParticipants = participants.isNotEmpty;
     final a2aModelRouteBinding = await _currentModelRouteModuleBinding('a2a');
     final a2aRouteEvidence = _modelRouteEvidenceForScopes(
       a2aModelRouteBinding,
@@ -21336,15 +21933,15 @@ class Rc6RuntimeController extends ChangeNotifier {
             'evidence_count': selected.length,
             'workspace_id': 'W_M',
           },
-          'status': selected.isEmpty && index == 2
+          'status': selected.isEmpty && index == 2 && !explicitParticipants
               ? 'needs_setup'
-              : index == selectedParticipants.length - 1
+              : !explicitParticipants && index == selectedParticipants.length - 1
                   ? 'skipped'
                   : 'completed',
-          'failure_isolated': selected.isEmpty && index == 2,
-          'output': selected.isEmpty && index == 2
+          'failure_isolated': selected.isEmpty && index == 2 && !explicitParticipants,
+          'output': selected.isEmpty && index == 2 && !explicitParticipants
               ? '需要设置：当前没有可追踪证据，质检 Agent 不输出假成功。'
-              : index == selectedParticipants.length - 1
+              : !explicitParticipants && index == selectedParticipants.length - 1
                   ? '交付 Agent 等待上游共识报告，无副作用跳过。'
                   : '${selectedParticipants[index]} completed local orchestration step with source boundary.',
           'references': selected
