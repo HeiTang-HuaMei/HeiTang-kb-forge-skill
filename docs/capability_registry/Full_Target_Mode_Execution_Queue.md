@@ -65,8 +65,8 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 56. P2-5 Multi-Agent RAG Deepening
 57. P2-6 Hot-Pluggable Project Config Industrial Isolation
 58. P2-7 Connector Industrialization, including ordinary UI external source verification connector binding
-59. P2-8 Full Blackbox Automation Matrix
-60. P2-9 EXE Packaging and Installation Experience
+59. P2-8 Blackbox Automation Baseline
+60. P2-9 Windows Packaging Baseline Smoke
 61. P2-10 Role-based Workgroup
 62. P2-11 ReAct Tool Runtime Industrialization
 63. P2-12 Long Context Evaluation
@@ -178,8 +178,8 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 | 69 | P2 | multi_agent_rag_deepening | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-5 Multi-Agent RAG Deepening` |
 | 70 | P2 | project_config_industrial_isolation | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-6 Hot-Pluggable Project Config Industrial Isolation` |
 | 71 | P2 | connector_industrialization | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-7 Connector Industrialization`; ordinary UI external source verification connector binding |
-| 72 | P2 | full_blackbox_automation_matrix | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-8 Full Blackbox Automation Matrix` |
-| 73 | Release | exe_packaging_release | user_blackbox | false | true | core=partial; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-9 EXE Packaging and Installation Experience`; Release Gate |
+| 72 | P2 | blackbox_automation_baseline | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-8 Blackbox Automation Baseline`; framework baseline only; final full matrix reruns at P2 Release Gate |
+| 73 | P2 | windows_packaging_baseline_smoke | user_blackbox | false | true | core=not_started; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_started; close_allowed=false; release_blocker=true | `P2-9 Windows Packaging Baseline Smoke`; smoke baseline only; final packaging/install/config/permission/rollback reruns at P2 Release Gate |
 | 74 | P2 | role_based_workgroup | user_blackbox | false | true | core=not_started; ui=not_started; blackbox=not_started; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-10 Role-based Workgroup` |
 | 75 | P2 | react_tool_runtime_industrial | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-11 ReAct Tool Runtime Industrialization` |
 | 76 | P2 | long_context_evaluation | core_only | false | true | core=not_started; ui=not_required; blackbox=not_required; artifact=not_required; event=not_required; governance=not_required; restart=not_required; close_allowed=false; release_blocker=true | `P2-12 Long Context Evaluation` |
@@ -220,5 +220,5 @@ This queue is derived from `capability_chain_status.json` and `Capability_Implem
 
 - P0 Release Gate runs after all P0 rows are close_allowed=true and P0 regression passes.
 - P1 Release Gate runs after all P1 rows are close_allowed=true and P0 regression passes.
-- P2 Release Gate runs after all P2 rows are close_allowed=true and P0+P1+P2 regression plus package/install/config/permission/rollback checks pass, including ordinary UI external source verification evidence with source trace, evidence map and validation report.
+- P2 Release Gate runs after all P2 rows are close_allowed=true and P0+P1+P2 final regression passes, including the final full blackbox matrix, final package/install/config/permission/rollback checks, and ordinary UI external source verification evidence with source trace, evidence map and validation report.
 - Final Owner Review is the only final human stop after staged gates pass.

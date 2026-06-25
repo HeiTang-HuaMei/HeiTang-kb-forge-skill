@@ -73,5 +73,5 @@ Do not collapse these into a single pass/fail status.
 | --- | --- |
 | P0 Release Gate | P0 user blackbox, artifact lifecycle, composite linked cases, governance queue state, Event Ledger and restart evidence. |
 | P1 Release Gate | All P1 rows plus P0 regression. |
-| P2 Release Gate | All P2 rows plus P0 and P1 regression. |
+| P2 Release Gate | All P2 rows plus P0 and P1 regression, final full blackbox matrix, and final packaging/install/config/permission/rollback checks. |
 | Final Owner Review | P0, P1 and P2 release gate evidence package. |
