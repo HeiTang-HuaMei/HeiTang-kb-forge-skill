@@ -9325,6 +9325,109 @@ void main() {
         isTrue);
   });
 
+  test('audit report enhancement writes core evidence and reloads', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final artifactPath =
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}test_audit_report_input.json';
+    File(artifactPath)
+      ..createSync(recursive: true)
+      ..writeAsStringSync('{"status":"pass"}');
+    await controller.exportWorkspaceArtifact(
+      artifactPath: artifactPath,
+      artifactLabel: 'test audit report input',
+    );
+
+    final summaryPath = await controller.runAuditReportEnhancementAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('super-secret-password')));
+    expect(summaryText, isNot(contains('qdrant-secret-key')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_audit_report_enhancement_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'audit_report_enhancement');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'redis_vector_service_packaged_into_exe',
+        'secret_plaintext_written',
+        'real_user_data_deleted',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final auditReportPath = summary['audit_report_path'] as String;
+    final auditReport =
+        jsonDecode(File(auditReportPath).readAsStringSync()) as Map;
+    expect(auditReport['schema_version'], 'heitang_workbench_audit_report.v1');
+    expect(auditReport['enhancement_schema_version'],
+        'prd_v3_audit_report_enhancement.v1');
+    expect(auditReport['record_count'], greaterThanOrEqualTo(14));
+    expect((auditReport['module_summary'] as Map)['module_count'],
+        greaterThanOrEqualTo(6));
+    expect((auditReport['event_ledger_summary'] as Map)['path'],
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect((auditReport['artifact_catalog_summary'] as Map)['path'],
+        '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json');
+    expect((auditReport['boundary'] as Map)['ui_blackbox_required'], isFalse);
+    expect(
+        (auditReport['boundary'] as Map)['secret_plaintext_written'], isFalse);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'audit_report_enhancement_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'audit_report_enhancement_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'audit_report_enhancement_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'audit_report_enhancement_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();
