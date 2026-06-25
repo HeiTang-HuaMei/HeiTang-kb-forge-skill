@@ -21,7 +21,7 @@ def test_stop_handoff_gate_passes_current_repository(tmp_path):
     assert report.queue_status["checks"]["global_goal_complete_false_while_remaining"] is True
     assert report.handoff_contract["checks"]["stop_fields_present"] is True
     assert report.registry_status["checks"]["close_allowed_true"] is True
-    assert report.registry_status["checks"]["next_gate_matches_state"] is True
+    assert report.registry_status["checks"]["next_gate_in_chain"] is True
     assert report.forbidden_claims["allowed_final_status_present"] is True
     assert persisted["schema_version"] == "stop_handoff_gate.v1"
     assert persisted["boundary"]["ui_change"] == "not_required"

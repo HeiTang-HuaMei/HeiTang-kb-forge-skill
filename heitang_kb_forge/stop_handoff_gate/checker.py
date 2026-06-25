@@ -154,7 +154,7 @@ def _registry_status(repo: Path, state: dict, failed_checks: list[str]) -> dict:
         "release_blocker_true": row.get("release_blocker") == "true",
         "close_allowed_true": row.get("close_allowed") == "true",
         "evidence_report_recorded": "stop_handoff_gate_closure_report.md" in row.get("evidence_report", ""),
-        "next_gate_matches_state": row.get("next_core_gate", "").strip("`") == state.get("current_gate"),
+        "next_gate_in_chain": _gate_in_chain(row.get("next_core_gate", ""), state),
     }
     failed_checks.extend(name for name, passed in checks.items() if not passed)
     return {
@@ -248,6 +248,13 @@ def _index_before(values: list[str], first: str, second: str) -> bool:
     if first not in values or second not in values:
         return False
     return values.index(first) < values.index(second)
+
+
+def _gate_in_chain(value: str, state: dict) -> bool:
+    gate = value.strip("`")
+    chain = state.get("completed_gates", []) + state.get("completed_with_owner_review_needed", [])
+    chain += state.get("remaining_gates", [])
+    return gate in chain
 
 
 def _forbidden_final_claims() -> list[str]:
