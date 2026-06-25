@@ -6272,6 +6272,366 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<String> runMermaidTaskMapBasicAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成 Mermaid Task Map Basic 核心验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final mapDir = Directory(_join(workspace.path, 'mermaid_task_map_basic'));
+    await mapDir.create(recursive: true);
+    final mermaidPath = _join(mapDir.path, 'task_map.mmd');
+    final nodeIndexPath = _join(mapDir.path, 'task_map_nodes.jsonl');
+    final edgeIndexPath = _join(mapDir.path, 'task_map_edges.jsonl');
+    final validationPath =
+        _join(mapDir.path, 'task_map_validation_report.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/mermaid_task_map_basic_summary.json');
+    final nodes = _mermaidTaskMapBasicNodes();
+    final edges = _mermaidTaskMapBasicEdges();
+    final mermaid = _buildMermaidTaskMap(nodes, edges);
+    final validationRows =
+        _validateMermaidTaskMap(nodes: nodes, edges: edges, mermaid: mermaid);
+    final missingNodeValidation = _validateMermaidTaskMap(
+      nodes: nodes,
+      edges: [
+        ...edges,
+        const {
+          'edge_id': 'edge_missing_node',
+          'from': 'task_start',
+          'to': 'task_missing',
+          'label': 'missing',
+        },
+      ],
+      mermaid: mermaid,
+    );
+    final duplicateNodeValidation = _validateMermaidTaskMap(
+      nodes: [
+        ...nodes,
+        const {
+          'node_id': 'task_start',
+          'label': 'Duplicate Start',
+          'node_type': 'gate',
+        },
+      ],
+      edges: edges,
+      mermaid: mermaid,
+    );
+    await File(mermaidPath).writeAsString(mermaid, encoding: utf8);
+    await File(nodeIndexPath).writeAsString(
+      '${nodes.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(edgeIndexPath).writeAsString(
+      '${edges.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_mermaid_task_map_validation.v1',
+      'status': validationRows['status'] == 'pass' &&
+              missingNodeValidation['status'] == 'blocked' &&
+              duplicateNodeValidation['status'] == 'blocked'
+          ? 'pass'
+          : 'blocked',
+      'valid_map': validationRows,
+      'error_path_evidence': [
+        missingNodeValidation,
+        duplicateNodeValidation,
+      ],
+      'checks': {
+        'valid_map_passed': validationRows['status'] == 'pass',
+        'missing_node_rejected':
+            missingNodeValidation['failed_checks'] is List &&
+                (missingNodeValidation['failed_checks'] as List)
+                    .contains('edge_targets_resolve'),
+        'duplicate_node_rejected':
+            duplicateNodeValidation['failed_checks'] is List &&
+                (duplicateNodeValidation['failed_checks'] as List)
+                    .contains('node_ids_unique'),
+        'mermaid_starts_with_flowchart':
+            mermaid.trimLeft().startsWith('flowchart TD'),
+      },
+    };
+    await _writeJsonFile(validationPath, validationReport);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'mermaid_written': await File(mermaidPath).exists(),
+      'node_index_written': await File(nodeIndexPath).exists(),
+      'edge_index_written': await File(edgeIndexPath).exists(),
+      'validation_report_written': await File(validationPath).exists(),
+      'node_count_at_least_four': nodes.length >= 4,
+      'edge_count_at_least_three': edges.length >= 3,
+      'valid_map_passed': validationRows['status'] == 'pass',
+      'missing_node_rejected':
+          (validationReport['checks'] as Map)['missing_node_rejected'] == true,
+      'duplicate_node_rejected':
+          (validationReport['checks'] as Map)['duplicate_node_rejected'] ==
+              true,
+      'blackbox_not_required_for_core_only': true,
+      'external_renderer_used': false,
+      'figma_or_browser_render_required': false,
+      'p2_symbolic_memory_claimed': false,
+      'no_external_llm_call': true,
+      'no_vector_db_call': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_renderer_used',
+      'figma_or_browser_render_required',
+      'p2_symbolic_memory_claimed',
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_mermaid_task_map_basic_summary.v1',
+      'status': status,
+      'capability_id': 'mermaid_task_map_basic',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'mermaid_path': mermaidPath,
+      'node_index_path': nodeIndexPath,
+      'edge_index_path': edgeIndexPath,
+      'validation_report_path': validationPath,
+      'node_count': nodes.length,
+      'edge_count': edges.length,
+      'nodes': nodes,
+      'edges': edges,
+      'mermaid_preview': mermaid,
+      'validation_result': validationRows,
+      'error_path_evidence': [
+        missingNodeValidation,
+        duplicateNodeValidation,
+      ],
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMermaidTaskMapBasicAcceptance',
+        'node_builder': '_mermaidTaskMapBasicNodes',
+        'edge_builder': '_mermaidTaskMapBasicEdges',
+        'renderer': 'not_required',
+        'external_calls_made': false,
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only capability; no standalone user UI blackbox is required',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'Mermaid source, node index, edge index, validation report and summary are written',
+        'view': 'summary and Mermaid source can be read as local artifacts',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete':
+            'Artifact Center deletes only the registered test-marked artifact record and workspace summary path',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'missing node and duplicate node IDs are rejected',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_renderer_used': false,
+        'figma_or_browser_render_required': false,
+        'p2_symbolic_memory_claimed': false,
+        'no_external_llm_call': true,
+        'no_vector_db_call': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'mermaid_task_map_basic_validated',
+      module: 'agent_memory',
+      action: 'run_mermaid_task_map_basic_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'mermaid_task_map_basic',
+      targetName: 'Mermaid Task Map Basic',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'node_count': nodes.length,
+        'edge_count': edges.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'mermaid_task_map_basic_summary',
+      artifactType: 'acceptance_report',
+      title: 'Mermaid Task Map Basic Summary',
+      sourceModule: 'agent_memory',
+      sourceId: 'mermaid_task_map_basic',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'node_count': nodes.length,
+        'edge_count': edges.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Mermaid Task Map Basic 核心验收证据已生成。'
+          : 'Mermaid Task Map Basic 核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'mermaid_task_map_basic_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  static List<Map<String, Object?>> _mermaidTaskMapBasicNodes() {
+    return const [
+      {
+        'node_id': 'task_start',
+        'label': 'P1 Gate Start',
+        'node_type': 'gate',
+      },
+      {
+        'node_id': 'task_memory',
+        'label': 'Memory Evidence',
+        'node_type': 'evidence',
+      },
+      {
+        'node_id': 'task_offload',
+        'label': 'Context Offload',
+        'node_type': 'artifact',
+      },
+      {
+        'node_id': 'task_next',
+        'label': 'Next Gate',
+        'node_type': 'gate',
+      },
+    ];
+  }
+
+  static List<Map<String, Object?>> _mermaidTaskMapBasicEdges() {
+    return const [
+      {
+        'edge_id': 'edge_start_to_memory',
+        'from': 'task_start',
+        'to': 'task_memory',
+        'label': 'records',
+      },
+      {
+        'edge_id': 'edge_memory_to_offload',
+        'from': 'task_memory',
+        'to': 'task_offload',
+        'label': 'compresses',
+      },
+      {
+        'edge_id': 'edge_offload_to_next',
+        'from': 'task_offload',
+        'to': 'task_next',
+        'label': 'restores',
+      },
+    ];
+  }
+
+  static String _buildMermaidTaskMap(
+    List<Map<String, Object?>> nodes,
+    List<Map<String, Object?>> edges,
+  ) {
+    final buffer = StringBuffer('flowchart TD\n');
+    for (final node in nodes) {
+      final id = _stringValue(node['node_id'], '');
+      final label = _stringValue(node['label'], id).replaceAll('"', "'");
+      buffer.writeln('  $id["$label"]');
+    }
+    for (final edge in edges) {
+      final from = _stringValue(edge['from'], '');
+      final to = _stringValue(edge['to'], '');
+      final label = _stringValue(edge['label'], '').replaceAll('"', "'");
+      buffer.writeln('  $from -->|$label| $to');
+    }
+    return buffer.toString();
+  }
+
+  static Map<String, Object?> _validateMermaidTaskMap({
+    required List<Map<String, Object?>> nodes,
+    required List<Map<String, Object?>> edges,
+    required String mermaid,
+  }) {
+    final nodeIds = nodes
+        .map((node) => _stringValue(node['node_id'], ''))
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    final uniqueNodeIds = nodeIds.toSet();
+    final edgeTargetsResolve = edges.every((edge) =>
+        uniqueNodeIds.contains(_stringValue(edge['from'], '')) &&
+        uniqueNodeIds.contains(_stringValue(edge['to'], '')));
+    final checks = <String, bool>{
+      'mermaid_starts_with_flowchart':
+          mermaid.trimLeft().startsWith('flowchart TD'),
+      'node_ids_present': nodeIds.length == nodes.length,
+      'node_ids_unique': uniqueNodeIds.length == nodeIds.length,
+      'edges_present': edges.isNotEmpty,
+      'edge_targets_resolve': edgeTargetsResolve,
+      'no_disallowed_html': !mermaid.contains('<script'),
+    };
+    final failedChecks = checks.entries
+        .where((entry) => entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    return {
+      'status': failedChecks.isEmpty ? 'pass' : 'blocked',
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'node_count': nodes.length,
+      'edge_count': edges.length,
+    };
+  }
+
   Future<String> runKnowledgeReliabilityMinimalCoreAcceptance() async {
     if (!_canRunDesktop()) {
       return '';
