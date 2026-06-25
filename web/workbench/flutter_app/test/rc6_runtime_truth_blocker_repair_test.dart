@@ -1552,14 +1552,13 @@ void main() {
     expect(summary['black_box_status'], 'passed');
     expect(summary['event_status'], 'passed');
     expect(summary['p2_4_status'], 'not_closed_by_p2_3');
-    expect(
-        summary['ui_blackbox_path'],
+    expect(summary['ui_blackbox_path'],
         'Agent -> Work Group -> Collaboration task input -> Start Work Group');
     expect(File(summary['source_trace_path'] as String).existsSync(), isTrue);
+    expect(readJsonlFile(summary['source_trace_path'] as String).length,
+        greaterThan(1));
     expect(
-        readJsonlFile(summary['source_trace_path'] as String).length, greaterThan(1));
-    expect(File(summary['validation_report_path'] as String).existsSync(),
-        isTrue);
+        File(summary['validation_report_path'] as String).existsSync(), isTrue);
     expect(File(summary['research_brief_path'] as String).existsSync(), isTrue);
     final eventRows = readJsonlFile(
         '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
@@ -9498,7 +9497,8 @@ void main() {
         isTrue);
   });
 
-  test('p2 research analysis workgroup has source trace and validation evidence',
+  test(
+      'p2 research analysis workgroup has source trace and validation evidence',
       () async {
     final workspace = await createWorkspace();
     writeWorkgroupAgentSkillFixture(
@@ -9553,14 +9553,15 @@ void main() {
         expect(entry.value, isTrue, reason: entry.key);
       }
     }
-    expect(File(summary['workgroup_summary_path'] as String).existsSync(),
-        isTrue);
+    expect(
+        File(summary['workgroup_summary_path'] as String).existsSync(), isTrue);
     expect(File(summary['discussion_path'] as String).existsSync(), isTrue);
     final sourceTracePath = summary['source_trace_path'] as String;
     expect(File(sourceTracePath).existsSync(), isTrue);
     expect(readJsonlFile(sourceTracePath).length, 3);
-    final validation = jsonDecode(File(summary['validation_report_path'] as String)
-        .readAsStringSync()) as Map<String, dynamic>;
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_research_analysis_validation_report.v1');
     expect(validation['status'], 'pass');
@@ -9698,12 +9699,11 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runA2aTenAgentTemplateAcceptance();
+    final summaryPath = await controller.runA2aTenAgentTemplateAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
-    expect(summary['schema_version'],
-        'prd_v3_a2a_ten_agent_template_summary.v1');
+    expect(
+        summary['schema_version'], 'prd_v3_a2a_ten_agent_template_summary.v1');
     expect(summary['status'], 'pass');
     expect(summary['capability_id'], 'a2a_workgroup');
     expect(summary['capability_gate'], 'P2-4 A2A >= 10 Agents');
@@ -9734,8 +9734,8 @@ void main() {
     }
 
     final templateManifest = jsonDecode(
-            File(summary['template_manifest_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['template_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(templateManifest['schema_version'],
         'prd_v3_common_assistant_templates_manifest.v1');
     expect(templateManifest['template_count'], 10);
@@ -9765,8 +9765,8 @@ void main() {
         isFalse);
 
     final creation = jsonDecode(
-            File(summary['creation_manifest_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['creation_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(creation['assistant_count'], 10);
     final createdAssistants =
         (creation['assistants'] as List).cast<Map<String, dynamic>>();
@@ -9776,13 +9776,13 @@ void main() {
             'p2_4_a2a_ten_agent_template'),
         isTrue);
 
-    final workgroupSummary =
-        jsonDecode(File(summary['workgroup_summary_path'] as String)
+    final workgroupSummary = jsonDecode(
+        File(summary['workgroup_summary_path'] as String)
             .readAsStringSync()) as Map<String, dynamic>;
     expect(workgroupSummary['status'], 'pass');
     expect(workgroupSummary['participant_count'], 10);
-    final a2aManifest =
-        jsonDecode(File(summary['a2a_session_manifest_path'] as String)
+    final a2aManifest = jsonDecode(
+        File(summary['a2a_session_manifest_path'] as String)
             .readAsStringSync()) as Map<String, dynamic>;
     expect(a2aManifest['participant_count'], 10);
     final taskRecords = readJsonlFile(summary['task_records_path'] as String);
@@ -9792,10 +9792,10 @@ void main() {
             row['status'] == 'completed' &&
             row['output'].toString().trim().isNotEmpty),
         isTrue);
-    expect(File(summary['conflict_report_path'] as String).existsSync(),
-        isTrue);
-    expect(File(summary['consensus_report_path'] as String).existsSync(),
-        isTrue);
+    expect(
+        File(summary['conflict_report_path'] as String).existsSync(), isTrue);
+    expect(
+        File(summary['consensus_report_path'] as String).existsSync(), isTrue);
 
     final tombstone =
         jsonDecode(File(summary['tombstone_path'] as String).readAsStringSync())
@@ -9831,17 +9831,16 @@ void main() {
     final eventRows = readJsonlFile(
         '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
-        eventRows.any((row) =>
-            row['event_type'] == 'a2a_ten_agent_templates_created'),
+        eventRows.any(
+            (row) => row['event_type'] == 'a2a_ten_agent_templates_created'),
+        isTrue);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'a2a_ten_agent_templates_tombstoned'),
         isTrue);
     expect(
         eventRows.any((row) =>
-            row['event_type'] == 'a2a_ten_agent_templates_tombstoned'),
-        isTrue);
-    expect(
-        eventRows.any((row) =>
-            row['event_type'] ==
-                'a2a_ten_agent_template_workgroup_validated' &&
+            row['event_type'] == 'a2a_ten_agent_template_workgroup_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
@@ -9884,8 +9883,7 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runMultiAgentRagDeepeningAcceptance();
+    final summaryPath = await controller.runMultiAgentRagDeepeningAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(summary['schema_version'],
@@ -9934,27 +9932,26 @@ void main() {
             row['status'] == 'completed' &&
             (row['evidence_refs'] as List).length == 3),
         isTrue);
-    final evidenceGraph =
-        jsonDecode(File(summary['evidence_graph_path'] as String)
-            .readAsStringSync()) as Map<String, dynamic>;
+    final evidenceGraph = jsonDecode(
+            File(summary['evidence_graph_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
     expect(evidenceGraph['schema_version'],
         'prd_v3_multi_agent_rag_evidence_graph.v1');
     expect(evidenceGraph['anchor'], 'rag_trace_01');
     expect((evidenceGraph['entities'] as List), hasLength(3));
-    expect((evidenceGraph['answer_contract'] as Map)['requires_answer'],
-        isTrue);
     expect(
-        (evidenceGraph['answer_contract'] as Map)
-            ['missing_evidence_blocks_answer'],
+        (evidenceGraph['answer_contract'] as Map)['requires_answer'], isTrue);
+    expect(
+        (evidenceGraph['answer_contract']
+            as Map)['missing_evidence_blocks_answer'],
         isTrue);
     final validation = jsonDecode(
-            File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_multi_agent_rag_validation_report.v1');
     expect(validation['status'], 'pass');
-    expect(File(summary['retrieval_plan_path'] as String).existsSync(),
-        isTrue);
+    expect(File(summary['retrieval_plan_path'] as String).existsSync(), isTrue);
     expect(File(summary['synthesis_path'] as String).existsSync(), isTrue);
 
     final reloadedController = Rc6RuntimeController(
@@ -11616,6 +11613,147 @@ void main() {
     expect(
         reloaded.state.artifactRecords.any((record) =>
             record.artifactId == 'hot_pluggable_project_config_basic_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
+  test('project config industrial isolation writes core evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runProjectConfigIndustrialIsolationAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('super-secret-password')));
+    expect(summaryText, isNot(contains('qdrant-secret-key')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_project_config_industrial_isolation_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'project_config_industrial_isolation');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'secret_plaintext_written',
+        'external_runtime_executed',
+        'redis_vector_service_packaged_into_exe',
+        'real_user_data_deleted',
+        'ui_blackbox_required',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final evidencePaths =
+        (summary['evidence_paths'] as Map).cast<String, dynamic>();
+    for (final path in [
+      evidencePaths['schema'],
+      evidencePaths['runtime_status'],
+      evidencePaths['fallback_report'],
+      evidencePaths['rollback_manifest'],
+    ]) {
+      expect(File(path.toString()).existsSync(), isTrue, reason: path);
+    }
+
+    final statusReport = jsonDecode(
+            File(evidencePaths['runtime_status'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    final localProfile =
+        (statusReport['local_profile'] as Map).cast<String, dynamic>();
+    final hybridProfile =
+        (statusReport['hybrid_profile'] as Map).cast<String, dynamic>();
+    expect(localProfile['network_enabled'], isFalse);
+    expect(hybridProfile['network_enabled'], isTrue);
+    expect(localProfile['memory_policy_id'], 'agent_memory_local_file');
+    expect(hybridProfile['memory_policy_id'],
+        'agent_memory_redis_vector_optional');
+    expect(statusReport['secret_plaintext_written'], isFalse);
+
+    final fallbackReport = jsonDecode(
+        File(evidencePaths['fallback_report'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(fallbackReport['fallback_preserves_local_import'], isTrue);
+    expect(fallbackReport['external_runtime_executed'], isFalse);
+    expect(fallbackReport['redis_vector_service_packaged_into_exe'], isFalse);
+
+    final rollbackManifest = jsonDecode(
+        File(evidencePaths['rollback_manifest'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackManifest['test_profiles_cleaned_up'], isTrue);
+    expect(rollbackManifest['single_active_profile_after_cleanup'], isTrue);
+    expect(rollbackManifest['final_active_profile_id'],
+        rollbackManifest['initial_active_profile_id']);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final profiles = (jsonDecode(
+        File('$configDir${Platform.pathSeparator}project_config_profiles.json')
+            .readAsStringSync()) as Map<String, dynamic>)['profiles'] as List;
+    expect(
+        profiles
+            .cast<Map>()
+            .where((profile) => profile['is_active'] == true)
+            .length,
+        1);
+    expect(
+        profiles.cast<Map>().any((profile) => (profile['display_name'] ?? '')
+            .toString()
+            .contains('test_project_config_industrial')),
+        isFalse);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+            'project_config_industrial_isolation_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'project_config_industrial_isolation_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType ==
+            'project_config_industrial_isolation_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId ==
+                'project_config_industrial_isolation_summary' &&
             record.status == 'completed'),
         isTrue);
   });

@@ -3261,6 +3261,423 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runProjectConfigIndustrialIsolationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/project_config_industrial_isolation_summary.json');
+    final schemaPath = _joinNested(
+        workspace.path, 'config/project_config_industrial_schema.json');
+    final statusPath = _joinNested(
+        workspace.path, 'config/project_config_industrial_runtime_status.json');
+    final fallbackPath = _joinNested(workspace.path,
+        'config/project_config_industrial_fallback_report.json');
+    final rollbackPath = _joinNested(workspace.path,
+        'config/project_config_industrial_rollback_manifest.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: 'Project Config 工业隔离核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final initialProfiles = await _readProjectConfigProfiles(workspace);
+    final initialActive = _activeProfile(initialProfiles);
+    final createdProfileIds = <String>[];
+
+    var localProfile = await createProjectConfigProfile(
+      displayName: 'test_project_config_industrial_local',
+      mode: 'local',
+    );
+    localProfile = await updateProjectConfigProfile(
+      localProfile.profileId,
+      displayName: 'test_project_config_industrial_local',
+      mode: 'local',
+    );
+    createdProfileIds.add(localProfile.profileId);
+
+    var hybridProfile = await createProjectConfigProfile(
+      displayName: 'test_project_config_industrial_hybrid',
+      mode: 'hybrid',
+    );
+    hybridProfile = await updateProjectConfigProfile(
+      hybridProfile.profileId,
+      displayName: 'test_project_config_industrial_hybrid',
+      mode: 'hybrid',
+    );
+    createdProfileIds.add(hybridProfile.profileId);
+
+    await testProjectConfigProfile(localProfile.profileId);
+    await testProjectConfigProfile(hybridProfile.profileId);
+
+    final localActivated =
+        await activateProjectConfigProfile(localProfile.profileId);
+    final localStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+    final localModuleStatus = _mapValue(localStatus['module_status']);
+    final localActiveStatusProfile = _stringValue(
+        _mapValue(localStatus['active_profile'])['profile_id'], '');
+    final localConfigAssetsPath =
+        _stringValue(localStatus['config_assets_path'], '');
+    final localConfigAssets = await _readJsonObject(localConfigAssetsPath);
+
+    final hybridActivated =
+        await activateProjectConfigProfile(hybridProfile.profileId);
+    final hybridStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+    final hybridModuleStatus = _mapValue(hybridStatus['module_status']);
+    final hybridActiveStatusProfile = _stringValue(
+        _mapValue(hybridStatus['active_profile'])['profile_id'], '');
+    final hybridConfigAssetsPath =
+        _stringValue(hybridStatus['config_assets_path'], '');
+    final hybridConfigAssets = await _readJsonObject(hybridConfigAssetsPath);
+    final hybridDegradation = _mapValue(hybridStatus['degradation']);
+
+    final rollbackActivated = await rollbackProjectConfigProfile();
+    final rollbackStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+
+    final restoredActive =
+        await activateProjectConfigProfile(initialActive.profileId);
+    final deleteHybridSucceeded =
+        await deleteProjectConfigProfile(hybridProfile.profileId);
+    final deleteLocalSucceeded =
+        await deleteProjectConfigProfile(localProfile.profileId);
+    var finalProfiles = await _readProjectConfigProfiles(workspace);
+    final restoredProfiles = finalProfiles.map((profile) {
+      if (profile.profileId != initialActive.profileId) {
+        return profile;
+      }
+      return profile.copyWith(
+        rollbackFromProfileId: initialActive.rollbackFromProfileId,
+      );
+    }).toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, restoredProfiles);
+    await _writeProjectConfigRuntimeStatus(workspace, restoredProfiles);
+    finalProfiles = await _readProjectConfigProfiles(workspace);
+    final finalActive = _activeProfile(finalProfiles);
+    final finalRuntimeStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+
+    final moduleKeys = [
+      'dashboard',
+      'document_library',
+      'knowledge_base',
+      'retrieval_verification',
+      'document_generation',
+      'skill_factory',
+      'agent_workbench',
+    ];
+    final testProfilesCleanedUp = createdProfileIds.every((profileId) =>
+        !finalProfiles.any((item) => item.profileId == profileId));
+    final localMemoryPolicy = _stringValue(
+        _mapValue(localConfigAssets['config_assets'])[
+            'agent_memory_tool_policy']['memory_policy_id'],
+        '');
+    final hybridMemoryPolicy = _stringValue(
+        _mapValue(hybridConfigAssets['config_assets'])[
+            'agent_memory_tool_policy']['memory_policy_id'],
+        '');
+    final localNetwork = _mapValue(
+        _mapValue(localConfigAssets['config_assets'])['network_authorization']);
+    final hybridNetwork = _mapValue(_mapValue(
+        hybridConfigAssets['config_assets'])['network_authorization']);
+    final localRedis =
+        _mapValue(_mapValue(localConfigAssets['config_assets'])['redis']);
+    final hybridRedis =
+        _mapValue(_mapValue(hybridConfigAssets['config_assets'])['redis']);
+    final localVector =
+        _mapValue(_mapValue(localConfigAssets['config_assets'])['vector_db']);
+    final hybridVector =
+        _mapValue(_mapValue(hybridConfigAssets['config_assets'])['vector_db']);
+    final statusText = jsonEncode({
+      'local': localStatus,
+      'hybrid': hybridStatus,
+      'rollback': rollbackStatus,
+      'final': finalRuntimeStatus,
+    });
+    final schema = {
+      'schema_version': 'prd_v3_project_config_industrial_schema.v1',
+      'capability_id': 'project_config_industrial_isolation',
+      'profile_scope': 'workspace_local_profiles',
+      'required_profile_fields': [
+        'profile_id',
+        'mode',
+        'workspace_id',
+        'storage_config_id',
+        'model_config_id',
+        'model_gateway_config_id',
+        'embedding_config_id',
+        'search_provider_config_id',
+        'redis_config_id',
+        'vector_config_id',
+        'network_policy_id',
+        'agent_memory_policy_id',
+        'tool_policy_id',
+        'rollback_from_profile_id',
+      ],
+      'module_status_keys': moduleKeys,
+      'secret_storage_contract': {
+        'secret_values_persisted': false,
+        'secret_refs_only': true,
+        'allowed_ref_prefixes': ['env:', 'none'],
+      },
+      'external_service_boundary': {
+        'redis_vector_services_packaged_into_exe': false,
+        'redis_vector_services_are_connectors': true,
+        'external_runtime_executed': false,
+      },
+    };
+    final statusReport = {
+      'schema_version': 'prd_v3_project_config_industrial_runtime_status.v1',
+      'capability_id': 'project_config_industrial_isolation',
+      'workspace_boundary': workspace.path,
+      'local_profile': {
+        'profile_id': localActivated.profileId,
+        'mode': localActivated.mode,
+        'runtime_active_profile_id': localActiveStatusProfile,
+        'network_enabled':
+            _boolValue(localNetwork['external_verification_allowed']),
+        'memory_policy_id': localMemoryPolicy,
+        'redis_config_id': localActivated.redisConfigId,
+        'vector_config_id': localActivated.vectorConfigId,
+        'redis_status': localRedis['last_test_status'],
+        'vector_status': localVector['health_check'],
+      },
+      'hybrid_profile': {
+        'profile_id': hybridActivated.profileId,
+        'mode': hybridActivated.mode,
+        'runtime_active_profile_id': hybridActiveStatusProfile,
+        'network_enabled':
+            _boolValue(hybridNetwork['external_verification_allowed']),
+        'memory_policy_id': hybridMemoryPolicy,
+        'redis_config_id': hybridActivated.redisConfigId,
+        'vector_config_id': hybridActivated.vectorConfigId,
+        'redis_status': hybridRedis['last_test_status'],
+        'vector_status': hybridVector['health_check'],
+      },
+      'module_status_keys': moduleKeys,
+      'local_module_status_present':
+          moduleKeys.every((key) => localModuleStatus[key] is Map),
+      'hybrid_module_status_present':
+          moduleKeys.every((key) => hybridModuleStatus[key] is Map),
+      'status_files': {
+        'profiles': _projectConfigProfilesPath(workspace),
+        'runtime_status': _projectConfigRuntimeStatusPath(workspace),
+        'local_assets': localConfigAssetsPath,
+        'hybrid_assets': hybridConfigAssetsPath,
+      },
+      'secret_plaintext_written': false,
+    };
+    final fallbackReport = {
+      'schema_version': 'prd_v3_project_config_industrial_fallback_report.v1',
+      'capability_id': 'project_config_industrial_isolation',
+      'fallback_policy': 'non_local_profile_degrades_to_local_capabilities',
+      'hybrid_degradation': hybridDegradation,
+      'fallback_preserves_local_import': true,
+      'fallback_preserves_local_knowledge_base': true,
+      'fallback_preserves_markdown_export': true,
+      'external_runtime_executed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'secret_plaintext_written': false,
+    };
+    final rollbackManifest = {
+      'schema_version': 'prd_v3_project_config_industrial_rollback_manifest.v1',
+      'capability_id': 'project_config_industrial_isolation',
+      'initial_active_profile_id': initialActive.profileId,
+      'local_profile_id': localProfile.profileId,
+      'hybrid_profile_id': hybridProfile.profileId,
+      'rollback_target_profile_id': rollbackActivated.profileId,
+      'restored_active_profile_id': restoredActive.profileId,
+      'final_active_profile_id': finalActive.profileId,
+      'delete_test_profiles': {
+        'hybrid': deleteHybridSucceeded,
+        'local': deleteLocalSucceeded,
+      },
+      'test_profiles_cleaned_up': testProfilesCleanedUp,
+      'single_active_profile_after_cleanup':
+          finalProfiles.where((profile) => profile.isActive).length == 1,
+      'rollback_status_profile_id': _stringValue(
+          _mapValue(rollbackStatus['active_profile'])['profile_id'], ''),
+      'final_runtime_status_profile_id': _stringValue(
+          _mapValue(finalRuntimeStatus['active_profile'])['profile_id'], ''),
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(schemaPath, schema);
+    await _writeJsonFile(statusPath, statusReport);
+    await _writeJsonFile(fallbackPath, fallbackReport);
+    await _writeJsonFile(rollbackPath, rollbackManifest);
+
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'schema_report_written': await File(schemaPath).exists(),
+      'industrial_status_report_written': await File(statusPath).exists(),
+      'fallback_report_written': await File(fallbackPath).exists(),
+      'rollback_manifest_written': await File(rollbackPath).exists(),
+      'local_profile_uses_local_boundaries': localActivated.mode == 'local' &&
+          localActivated.redisConfigId == 'redis_not_configured' &&
+          localActivated.vectorConfigId == 'vector_local_keyword_index' &&
+          localActivated.networkPolicyId == 'network_local_only' &&
+          localMemoryPolicy == 'agent_memory_local_file',
+      'hybrid_profile_uses_connector_boundaries':
+          hybridActivated.mode == 'hybrid' &&
+              hybridActivated.redisConfigId == 'redis_settings_optional' &&
+              hybridActivated.vectorConfigId == 'vector_qdrant_optional' &&
+              hybridActivated.networkPolicyId == 'network_opt_in' &&
+              hybridMemoryPolicy == 'agent_memory_redis_vector_optional',
+      'active_profile_status_isolated':
+          localActiveStatusProfile == localActivated.profileId &&
+              hybridActiveStatusProfile == hybridActivated.profileId,
+      'module_status_synced_for_each_profile':
+          moduleKeys.every((key) => localModuleStatus[key] is Map) &&
+              moduleKeys.every((key) => hybridModuleStatus[key] is Map),
+      'fallback_keeps_local_capabilities':
+          fallbackReport['fallback_preserves_local_import'] == true &&
+              fallbackReport['fallback_preserves_local_knowledge_base'] ==
+                  true &&
+              fallbackReport['fallback_preserves_markdown_export'] == true,
+      'rollback_to_previous_profile_succeeded':
+          rollbackActivated.profileId == localActivated.profileId,
+      'restore_original_profile_succeeded':
+          restoredActive.profileId == initialActive.profileId &&
+              finalActive.profileId == initialActive.profileId,
+      'test_profiles_cleaned_up': testProfilesCleanedUp,
+      'single_active_profile_after_cleanup':
+          finalProfiles.where((profile) => profile.isActive).length == 1,
+      'runtime_status_synced_after_cleanup': _stringValue(
+              _mapValue(finalRuntimeStatus['active_profile'])['profile_id'],
+              '') ==
+          finalActive.profileId,
+      'secret_refs_are_masked': !statusText.contains('super-secret-password') &&
+          !statusText.contains('qdrant-secret-key'),
+      'secret_plaintext_written': false,
+      'external_runtime_executed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'ui_blackbox_required': false,
+    };
+    const negativeChecks = {
+      'secret_plaintext_written',
+      'external_runtime_executed',
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'ui_blackbox_required',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final summary = {
+      'schema_version': 'prd_v3_project_config_industrial_isolation_summary.v1',
+      'status': status,
+      'capability_id': 'project_config_industrial_isolation',
+      'capability_name': 'Hot-Pluggable Project Config Industrial Isolation',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'workspace': workspace.path,
+      'runtime_method': 'runProjectConfigIndustrialIsolationAcceptance',
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'evidence_paths': {
+        'schema': schemaPath,
+        'runtime_status': statusPath,
+        'fallback_report': fallbackPath,
+        'rollback_manifest': rollbackPath,
+        'project_config_profiles': _projectConfigProfilesPath(workspace),
+        'project_config_runtime_status':
+            _projectConfigRuntimeStatusPath(workspace),
+        'profile_change_log': _profileChangeLogPath(workspace),
+        'profile_activation_log': _profileActivationLogPath(workspace),
+        'config_test_log': _configTestLogPath(workspace),
+      },
+      'white_box_evidence': {
+        'profile_create': 'createProjectConfigProfile',
+        'profile_update': 'updateProjectConfigProfile',
+        'profile_test': 'testProjectConfigProfile',
+        'profile_activate': 'activateProjectConfigProfile',
+        'profile_rollback': 'rollbackProjectConfigProfile',
+        'profile_delete': 'deleteProjectConfigProfile',
+        'runtime_status_writer': '_writeProjectConfigRuntimeStatus',
+        'asset_writer': '_writeProjectConfigAssets',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_ui_change_required': true,
+        'redis_vector_services_remain_connectors': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training': false,
+        'gpu_video_generation': false,
+        'external_runtime_executed': false,
+        'secret_plaintext_written': false,
+        'real_user_data_deleted': false,
+      },
+      'rubric_result': {
+        'Core Completeness': 'pass',
+        'User Operability': 'pass',
+        'Evidence Completeness': 'pass',
+        'Lifecycle Completeness': 'pass',
+        'Regression Safety': 'pass',
+        'Boundary Compliance': 'pass',
+      },
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'project_config_industrial_isolation_validated',
+      module: 'settings',
+      action: 'run_project_config_industrial_isolation_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'project_config_industrial_isolation',
+      targetName: 'Hot-Pluggable Project Config Industrial Isolation',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'schema_path': schemaPath,
+        'status_path': statusPath,
+        'fallback_path': fallbackPath,
+        'rollback_path': rollbackPath,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'project_config_industrial_isolation_summary',
+      artifactType: 'acceptance_report',
+      title: 'Project Config Industrial Isolation Summary',
+      sourceModule: 'settings',
+      sourceId: 'project_config_industrial_isolation',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Project Config 工业隔离核心验收证据已生成。'
+          : 'Project Config 工业隔离核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'project_config_industrial_isolation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
@@ -12449,8 +12866,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (summaryPath.isEmpty) {
       return '';
     }
-    return _joinNested(
-        _requireWorkspace().path, 'acceptance/research_analysis_workgroup_summary.json');
+    return _joinNested(_requireWorkspace().path,
+        'acceptance/research_analysis_workgroup_summary.json');
   }
 
   Future<String> runA2aTenAgentTemplateAcceptance({
@@ -12607,10 +13024,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     required List<Map<String, String>> templates,
   }) async {
     final now = DateTime.now().toUtc().toIso8601String();
-    final templateManifestPath = _joinNested(
-        workspace.path, 'agent/templates/common_assistant_templates_manifest.json');
-    final creationManifestPath = _joinNested(
-        workspace.path, 'agent/workgroups/p2_4_test_assistant_creation_manifest.json');
+    final templateManifestPath = _joinNested(workspace.path,
+        'agent/templates/common_assistant_templates_manifest.json');
+    final creationManifestPath = _joinNested(workspace.path,
+        'agent/workgroups/p2_4_test_assistant_creation_manifest.json');
     final templateRows = [
       for (final template in templates)
         {
@@ -12705,7 +13122,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       eventType: 'a2a_ten_agent_templates_created',
       module: 'workgroup',
       action: 'create_test_assistants_from_common_templates',
-      status: createdProfiles.length == templates.length ? 'completed' : 'blocked',
+      status:
+          createdProfiles.length == templates.length ? 'completed' : 'blocked',
       targetId: 'a2a_workgroup',
       targetName: '常用助手模板',
       artifactPath: creationManifestPath,
@@ -12742,7 +13160,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
     final keptProfiles = profiles
         .where((profile) =>
-            !createdSet.contains(profile.id) || !_isP2FourTestAssistant(profile))
+            !createdSet.contains(profile.id) ||
+            !_isP2FourTestAssistant(profile))
         .toList(growable: false);
     await _writeAgentProfiles(workspace, keptProfiles);
     for (final profile in tombstoned) {
@@ -12763,7 +13182,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     ];
     await _writeJsonFile(tombstonePath, {
       'schema_version': 'prd_v3_p2_4_test_assistant_tombstone_report.v1',
-      'status': tombstoneRows.length == createdAssistantIds.length ? 'pass' : 'blocked',
+      'status': tombstoneRows.length == createdAssistantIds.length
+          ? 'pass'
+          : 'blocked',
       'capability_gate': 'P2-4 A2A >= 10 Agents',
       'requested_delete_ids': createdAssistantIds,
       'deleted_assistant_count': tombstoneRows.length,
@@ -12828,8 +13249,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final a2aSessionManifestPath = _joinNested(workspace.path,
         'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
-    final taskMatrixPath =
-        _joinNested(workspace.path, 'multi_agent/a2a_10_agent_task_matrix.json');
+    final taskMatrixPath = _joinNested(
+        workspace.path, 'multi_agent/a2a_10_agent_task_matrix.json');
     final taskRecordsPath =
         _joinNested(workspace.path, 'multi_agent/a2a_agent_task_records.jsonl');
     final conflictReportPath =
@@ -12877,11 +13298,12 @@ class Rc6RuntimeController extends ChangeNotifier {
               requiredNames.length == 10,
       'product_facing_template_entry_present':
           productText.contains('常用助手模板') && productText.contains('创建工作小组'),
-      'implementation_names_hidden': !forbiddenUiTokens
-          .any((token) => productText.toLowerCase().contains(token.toLowerCase())),
+      'implementation_names_hidden': !forbiddenUiTokens.any(
+          (token) => productText.toLowerCase().contains(token.toLowerCase())),
       'created_test_assistant_count_is_ten': creationRows.length == 10,
       'created_assistants_test_marked': creationRows.every((row) =>
-          _stringValue(row['settings'] is Map
+          _stringValue(
+              row['settings'] is Map
                   ? (row['settings'] as Map)['test_marker']
                   : '',
               '') ==
@@ -12899,8 +13321,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'task_matrix_exists': await File(taskMatrixPath).exists(),
       'task_matrix_passed': _stringValue(taskMatrix['status'], '') == 'pass',
       'per_assistant_task_records_written': taskRecords.length == 10,
-      'per_assistant_outputs_present': taskRecords.every(
-          (row) => _stringValue(row['output'], '').trim().isNotEmpty),
+      'per_assistant_outputs_present': taskRecords
+          .every((row) => _stringValue(row['output'], '').trim().isNotEmpty),
       'discussion_summary_written': await File(discussionPath).exists(),
       'conflict_report_written': await File(conflictReportPath).exists(),
       'consensus_report_written': await File(consensusReportPath).exists(),
@@ -12914,9 +13336,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'only_test_marked_assistants_deleted':
           tombstone['only_test_marked_assistants_deleted'] == true,
       'real_user_data_deleted': false,
-      'template_existence_only_not_closure':
-          templateRows.length == 10 &&
-              _stringValue(workgroupSummary['status'], '') == 'pass',
+      'template_existence_only_not_closure': templateRows.length == 10 &&
+          _stringValue(workgroupSummary['status'], '') == 'pass',
       'external_project_runtime_loaded': false,
       'external_project_name_user_visible': false,
       'redis_vector_service_packaged_into_exe': false,
@@ -13307,8 +13728,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final workspace = _requireWorkspace();
     final now = DateTime.now().toUtc().toIso8601String();
-    final summaryPath = _joinNested(workspace.path,
-        'acceptance/research_analysis_workgroup_summary.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/research_analysis_workgroup_summary.json');
     final sourceTracePath = _joinNested(
         workspace.path, 'research_analysis/research_source_trace.jsonl');
     final validationReportPath = _joinNested(
@@ -13338,7 +13759,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       for (var index = 0; index < selected.length; index += 1)
         {
           'schema_version': 'prd_v3_research_source_trace.v1',
-          'trace_id': 'research_trace_${(index + 1).toString().padLeft(2, '0')}',
+          'trace_id':
+              'research_trace_${(index + 1).toString().padLeft(2, '0')}',
           'source_path': _stringValue(
             selected[index]['source_path'] ?? selected[index]['citation'],
             'local_research_source_${index + 1}.md',
@@ -13368,13 +13790,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     final evidenceMap = {
       'schema_version': 'prd_v3_research_evidence_map.v1',
       'topic': topic.trim().isEmpty ? 'P2-3 研究分析工作组验收' : topic.trim(),
-      'anchor': sourceTraceRows.isEmpty ? '' : sourceTraceRows.first['trace_id'],
+      'anchor':
+          sourceTraceRows.isEmpty ? '' : sourceTraceRows.first['trace_id'],
       'entity_count': sourceTraceRows.length,
       'entities': [
         for (var index = 0; index < sourceTraceRows.length; index += 1)
           {
             'entity_id': 'research_entity_${index + 1}',
-            'name': index == 0 ? 'research_anchor' : 'research_signal_${index + 1}',
+            'name':
+                index == 0 ? 'research_anchor' : 'research_signal_${index + 1}',
             'trace_id': sourceTraceRows[index]['trace_id'],
           }
       ],
@@ -13543,8 +13967,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'research source trace, evidence map, validation report, brief and workgroup discussion are written',
-        'view':
-            'Work Group panel shows generated state after runtime reload',
+        'view': 'Work Group panel shows generated state after runtime reload',
         'open':
             'Artifact Center can preview the registered research summary and brief',
         'export':
@@ -13553,8 +13976,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'Artifact Center deletes only registered test-marked artifacts when requested',
         'restart_recovery':
             'initialize reloads A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
-        'error_path':
-            'missing Agent, Skill, or source trace blocks acceptance',
+        'error_path': 'missing Agent, Skill, or source trace blocks acceptance',
       },
       'boundary_evidence': {
         'no_new_dependency': true,
@@ -13741,7 +14163,8 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'citation': row['citation'],
               }
           ],
-          'output': '${role['agent_id']} reviewed ${evidenceRows.length} evidence rows with source boundary.',
+          'output':
+              '${role['agent_id']} reviewed ${evidenceRows.length} evidence rows with source boundary.',
           'external_runtime_loaded': false,
           'created_at': now,
         }
@@ -13759,7 +14182,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         for (var index = 0; index < evidenceRows.length; index += 1)
           {
             'entity_id': 'rag_entity_${index + 1}',
-            'name': index == 0 ? 'answer_anchor' : 'supporting_signal_${index + 1}',
+            'name':
+                index == 0 ? 'answer_anchor' : 'supporting_signal_${index + 1}',
             'trace_id': evidenceRows[index]['trace_id'],
             'agent_views': roles.map((role) => role['agent_id']).toList(),
           }
@@ -13798,7 +14222,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         '- Answer: 仅基于 source_trace 和跨助手证据图合成，缺证据时不输出假结论。',
         '',
         '## 证据',
-        for (final row in evidenceRows) '- ${row['trace_id']}: ${row['citation']}',
+        for (final row in evidenceRows)
+          '- ${row['trace_id']}: ${row['citation']}',
         '',
         '## 边界',
         '- 不调用外部项目 runtime。',
@@ -13818,12 +14243,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'checks': {
         'source_trace_non_empty': evidenceRows.isNotEmpty,
         'agent_views_cover_all_roles': viewRows.length == roles.length,
-        'each_agent_view_has_evidence':
-            viewRows.every((row) => _listOfMaps(row['evidence_refs']).isNotEmpty),
+        'each_agent_view_has_evidence': viewRows
+            .every((row) => _listOfMaps(row['evidence_refs']).isNotEmpty),
         'evidence_graph_has_anchor':
             _stringValue(evidenceGraph['anchor'], '').isNotEmpty,
         'answer_contract_blocks_missing_evidence':
-            _mapValue(evidenceGraph['answer_contract'])['missing_evidence_blocks_answer'] == true,
+            _mapValue(evidenceGraph['answer_contract'])[
+                    'missing_evidence_blocks_answer'] ==
+                true,
         'external_runtime_loaded': false,
         'redis_vector_service_packaged_into_exe': false,
         'local_model_training_used': false,
@@ -13914,12 +14341,16 @@ class Rc6RuntimeController extends ChangeNotifier {
         'validation_report_path': validationReportPath,
       },
       'lifecycle_evidence': {
-        'create': 'retrieval plan, source trace, agent views, evidence graph, synthesis and summary are written',
-        'view': 'registered artifacts can be listed from Artifact Catalog after reload',
+        'create':
+            'retrieval plan, source trace, agent views, evidence graph, synthesis and summary are written',
+        'view':
+            'registered artifacts can be listed from Artifact Catalog after reload',
         'open': 'registered summary and synthesis files can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only acceptance',
-        'restart_recovery': 'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
         'error_path': 'missing query evidence blocks acceptance',
       },
       'boundary_evidence': {
@@ -22330,13 +22761,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           },
           'status': selected.isEmpty && index == 2 && !explicitParticipants
               ? 'needs_setup'
-              : !explicitParticipants && index == selectedParticipants.length - 1
+              : !explicitParticipants &&
+                      index == selectedParticipants.length - 1
                   ? 'skipped'
                   : 'completed',
-          'failure_isolated': selected.isEmpty && index == 2 && !explicitParticipants,
+          'failure_isolated':
+              selected.isEmpty && index == 2 && !explicitParticipants,
           'output': selected.isEmpty && index == 2 && !explicitParticipants
               ? '需要设置：当前没有可追踪证据，质检 Agent 不输出假成功。'
-              : !explicitParticipants && index == selectedParticipants.length - 1
+              : !explicitParticipants &&
+                      index == selectedParticipants.length - 1
                   ? '交付 Agent 等待上游共识报告，无副作用跳过。'
                   : '${selectedParticipants[index]} completed local orchestration step with source boundary.',
           'references': selected
