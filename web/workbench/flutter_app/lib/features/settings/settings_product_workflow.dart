@@ -346,6 +346,7 @@ class _SettingsProviderModelEditorState
   String connectionConfigurationPath = '';
   String profileMessage = '';
   String capabilityMessage = '';
+  String documentParsingMessage = '';
   List<ProjectConfigProfile> profiles = const [];
   List<Map<String, dynamic>> runtimeCapabilityEntries = const [];
   final TextEditingController _llmProviderController =
@@ -584,8 +585,8 @@ class _SettingsProviderModelEditorState
     if (!mounted) return;
     setState(() {
       capabilityMessage = activated
-          ? (zh ? '能力增强项已启用' : 'Capability enhancement enabled')
-          : (zh ? '未满足启用条件，已写入操作记录' : 'Blocked; audit log written');
+          ? (zh ? '外部服务连接已启用' : 'External connection enabled')
+          : (zh ? '需要处理，已写入操作记录' : 'Needs action; record written');
     });
   }
 
@@ -596,8 +597,25 @@ class _SettingsProviderModelEditorState
     if (!mounted) return;
     setState(() {
       capabilityMessage = path.isEmpty
-          ? (zh ? '需要 Windows EXE 执行健康检查' : 'Windows EXE required')
-          : (zh ? '全部能力增强项健康检查已记录' : 'Capability health audit written');
+          ? (zh ? '需要桌面端执行连接检查' : 'Desktop app required')
+          : (zh ? '外部服务连接检查已记录' : 'Connection check recorded');
+    });
+    await _loadRuntimeCapabilityCatalog();
+  }
+
+  Future<void> _testDocumentParsingCapability() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) {
+      setState(() => documentParsingMessage =
+          zh ? '需要桌面端执行文档解析测试。' : 'Desktop app is required.');
+      return;
+    }
+    final path = await rc6.testAllRegisteredProviderCapabilities();
+    if (!mounted) return;
+    setState(() {
+      documentParsingMessage = path.isEmpty
+          ? (zh ? '需要处理，文档解析测试未完成。' : 'Needs action; test not completed.')
+          : (zh ? '文档解析能力测试已记录。' : 'Document parsing check recorded.');
     });
     await _loadRuntimeCapabilityCatalog();
   }
@@ -613,7 +631,7 @@ class _SettingsProviderModelEditorState
     setState(() {
       capabilityMessage = rolledBack
           ? (zh ? '已回滚到本地默认能力' : 'Rolled back to local default')
-          : (zh ? '没有可回滚的能力增强项' : 'No enhancement to roll back');
+          : (zh ? '没有需要恢复的连接' : 'No connection to restore');
     });
     await _loadRuntimeCapabilityCatalog();
   }
@@ -665,36 +683,38 @@ class _SettingsProviderModelEditorState
       final provider = _ProductPanel(
         keyName: 'settings-provider-model',
         icon: Icons.memory_outlined,
-        title: zh ? '模型服务' : 'Model Service',
+        title: zh ? 'AI 模型接口' : 'AI Model Interface',
         gap: true,
         children: [
           _ProductTable(
             columns: zh
-                ? ['配置项', '当前值', '用户可见状态']
-                : ['Setting', 'Value', 'User status'],
+                ? ['配置块', '当前状态', '下一步']
+                : ['Config block', 'Status', 'Next step'],
             rows: zh
                 ? [
-                    ['大模型服务', '环境变量 / 设置引用', '可配置'],
-                    ['文本理解服务', '本地模式 / 设置引用', '可配置'],
-                    ['检索服务', '本地检索优先，可选外部检索', '可配置'],
-                    ['资料整理服务', '本地整理优先，可选增强解析', '可配置'],
+                    [
+                      'AI 模型接口',
+                      _settingsSavedStatus(savedPath, validated, zh),
+                      '测试连接'
+                    ],
+                    ['Embedding 接口', _configuredServiceDisplay(zh), '测试向量化'],
+                    ['外部服务连接', _configuredServiceDisplay(zh), '按需测试连接'],
                   ]
                 : [
-                    ['LLM service', 'Env / settings reference', 'Configurable'],
                     [
-                      'Text understanding service',
-                      'Env / settings reference',
-                      'Configurable'
+                      'AI model interface',
+                      _settingsSavedStatus(savedPath, validated, zh),
+                      'Test connection'
                     ],
                     [
-                      'Search service',
-                      'Local search first, optional external search',
-                      'Configurable'
+                      'Embedding interface',
+                      _configuredServiceDisplay(zh),
+                      'Test embedding'
                     ],
                     [
-                      'Material organizing service',
-                      'Local parser first, optional enhanced parser',
-                      'Configurable'
+                      'External service connection',
+                      _configuredServiceDisplay(zh),
+                      'Test when needed'
                     ],
                   ],
           ),
@@ -709,31 +729,48 @@ class _SettingsProviderModelEditorState
             zh: zh,
             fields: [
               _SettingsTextFieldSpec(
-                  zh ? '大模型服务' : 'LLM service', _llmProviderController),
+                zh ? 'AI 能力' : 'AI capability',
+                _llmProviderController,
+                displayText: _configuredServiceDisplay(zh),
+              ),
               _SettingsTextFieldSpec(
-                  zh ? '模型 ID' : 'Model ID', _modelController),
+                zh ? '默认模型' : 'Default model',
+                _modelController,
+                displayText: zh ? '系统自动选择' : 'Selected automatically',
+              ),
               _SettingsTextFieldSpec(
-                  zh ? '文本理解服务' : 'Text understanding service',
-                  _embeddingProviderController),
+                zh ? '向量化能力' : 'Embedding capability',
+                _embeddingProviderController,
+                displayText: _configuredServiceDisplay(zh),
+              ),
               _SettingsTextFieldSpec(
-                  zh ? '检索服务' : 'Search service', _searchProviderController),
+                zh ? '知识库问答能力' : 'Knowledge Q&A capability',
+                _searchProviderController,
+                displayText: _configuredServiceDisplay(zh),
+              ),
               _SettingsTextFieldSpec(
-                  zh ? '资料整理服务' : 'Material organizing service',
-                  _parserProviderController),
-              _SettingsTextFieldSpec(zh ? '图片文字识别服务' : 'Image text service',
-                  _ocrProviderController),
-              _SettingsTextFieldSpec('API Key', _apiKeyController),
+                zh ? '文档解析能力' : 'Document parsing capability',
+                _parserProviderController,
+                displayText: zh ? '系统自动选择' : 'Selected automatically',
+              ),
+              _SettingsTextFieldSpec(
+                zh ? '图片文字能力' : 'Image text capability',
+                _ocrProviderController,
+                displayText: zh ? '可选，未安装' : 'Optional, not installed',
+              ),
+              _SettingsTextFieldSpec(
+                  zh ? '访问密钥' : 'Access key', _apiKeyController),
             ],
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _PrimaryProductAction(
-              label: zh ? '保存模型服务配置' : 'Save model service config',
+              label: zh ? '保存接口配置' : 'Save interface config',
               icon: Icons.save_outlined,
               onPressed: _saveSettings,
             ),
             _PrimaryProductAction(
-              label: zh ? '测试模型服务' : 'Test model service',
+              label: zh ? '测试 AI 模型接口' : 'Test AI model interface',
               icon: Icons.fact_check_outlined,
               onPressed: _validateSettings,
             ),
@@ -779,11 +816,9 @@ class _SettingsProviderModelEditorState
               title: connectionConfigurationPath.isNotEmpty
                   ? (zh ? '连接配置证据已生成' : 'Connection evidence generated')
                   : validated
-                      ? (zh
-                          ? '模型服务测试报告已生成'
-                          : 'Model service test report generated')
+                      ? (zh ? '接口测试报告已生成' : 'Interface test report generated')
                       : saved
-                          ? (zh ? '模型服务配置已保存' : 'Model service config saved')
+                          ? (zh ? '接口配置已保存' : 'Interface config saved')
                           : (zh ? '正在加载配置' : 'Loading config'),
               detail: [
                 if (savedPath.isNotEmpty) savedPath,
@@ -796,6 +831,66 @@ class _SettingsProviderModelEditorState
               ].join('\n'),
               tone: _StatusTone.success,
               icon: Icons.verified_user_outlined,
+            ),
+          ],
+        ],
+      );
+      final documentParsing = _ProductPanel(
+        keyName: 'settings-document-parsing-capability',
+        icon: Icons.description_outlined,
+        title: zh ? '文档解析能力' : 'Document Parsing Capability',
+        gap: true,
+        children: [
+          _ProductTable(
+            columns: zh
+                ? ['能力', '状态', '下一步']
+                : ['Capability', 'Status', 'Next step'],
+            rows: zh
+                ? [
+                    ['基础解析', '已可用', '上传文档后自动处理'],
+                    ['高级解析', '可选，未安装', '需要时安装增强组件'],
+                    ['OCR', '可选，未安装', '扫描件或图片文档需要时启用'],
+                  ]
+                : [
+                    ['Basic parsing', 'Available', 'Runs after upload'],
+                    [
+                      'Advanced parsing',
+                      'Optional, not installed',
+                      'Install only when needed'
+                    ],
+                    [
+                      'OCR',
+                      'Optional, not installed',
+                      'Use for scans and image documents'
+                    ],
+                  ],
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '自动处理' : 'Automatic handling',
+            value: zh
+                ? '上传后自动判断文档类型，并选择合适的解析路线。'
+                : 'After upload, the app chooses a suitable parsing path.',
+          ),
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
+            _PrimaryProductAction(
+              label: zh ? '测试文档解析' : 'Test document parsing',
+              icon: Icons.fact_check_outlined,
+              onPressed: _testDocumentParsingCapability,
+            ),
+          ]),
+          if (documentParsingMessage.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _RuntimeFeedbackBanner(
+              title: documentParsingMessage,
+              detail: zh
+                  ? '文档解析测试只记录能力状态，不展示底层实现名称。'
+                  : 'The check records capability status without exposing implementation names.',
+              tone: documentParsingMessage.contains(zh ? '需要处理' : 'Needs')
+                  ? _StatusTone.warning
+                  : _StatusTone.success,
+              icon: Icons.description_outlined,
             ),
           ],
         ],
@@ -836,6 +931,8 @@ class _SettingsProviderModelEditorState
           const SizedBox(height: _DesktopGrid.gutter),
           provider,
           const SizedBox(height: _DesktopGrid.gutter),
+          documentParsing,
+          const SizedBox(height: _DesktopGrid.gutter),
           model,
           const SizedBox(height: _DesktopGrid.gutter),
           capabilityStatus,
@@ -866,44 +963,70 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rows = status.capabilities.map((entry) {
-      return [
-        zh ? entry.zhUserVisibleName : entry.userVisibleName,
-        '${entry.readyProviderStateCount}/${entry.providerStateCount}',
-        _providerCapabilityStatusLabel(entry.status, zh),
-        zh ? entry.zhUserVisibleBehavior : entry.userVisibleBehavior,
-      ];
-    }).toList(growable: false);
-    final providerStateCount = status.capabilities
-        .fold<int>(0, (total, entry) => total + entry.providerStateCount);
-    final readyProviderStateCount = status.capabilities
-        .fold<int>(0, (total, entry) => total + entry.readyProviderStateCount);
     final runtime = _Rc6RuntimeScope.of(context)?.state;
     final lifecycleAuditReady =
         runtime?.hasProviderLifecycleAuditSummary == true;
     final runtimeCatalogReady =
         runtime?.hasProviderCapabilityUserCatalog == true;
-    final runtimeRows = runtimeEntries
-        .map((entry) => [
-              _settingsText(entry, 'display_name', ''),
-              _settingsText(entry, 'status', zh ? '未配置' : 'Not configured'),
-              _settingsText(entry, 'current_behavior', ''),
-              _settingsText(
-                  entry, 'configuration_entry', zh ? '设置' : 'Settings'),
-            ])
+    final rows = _publicCapabilityRows(status, zh);
+    final diagnosticRows = [
+      [
+        zh ? '模型服务' : 'Model service',
+        _publicConnectionStatus(
+          status.capabilities
+              .where(
+                  (entry) => _capabilityMatches(entry, const ['llm', 'model']))
+              .toList(growable: false),
+          zh,
+        ),
+      ],
+      [
+        zh ? '向量化服务' : 'Embedding service',
+        _publicConnectionStatus(
+          status.capabilities
+              .where((entry) => _capabilityMatches(
+                  entry, const ['embedding', 'vector', 'retrieval', 'search']))
+              .toList(growable: false),
+          zh,
+        ),
+      ],
+      [
+        zh ? '记忆存储' : 'Memory storage',
+        runtimeCatalogReady ? _availableLabel(zh) : _needsActionLabel(zh),
+      ],
+      [
+        zh ? '向量数据库' : 'Vector database',
+        runtimeCatalogReady ? _availableLabel(zh) : _needsActionLabel(zh),
+      ],
+      [
+        zh ? '文档解析' : 'Document parsing',
+        _publicConnectionStatus(
+          status.capabilities
+              .where((entry) => _capabilityMatches(
+                  entry, const ['parser', 'ocr', 'document_parser']))
+              .toList(growable: false),
+          zh,
+        ),
+      ],
+      [zh ? '网络访问' : 'Network access', _availableLabel(zh)],
+      [
+        zh ? '本地权限' : 'Local permission',
+        lifecycleAuditReady ? _availableLabel(zh) : _needsActionLabel(zh),
+      ],
+    ]
         .where((row) => row.every((value) => value.isNotEmpty))
         .toList(growable: false);
     return _ProductPanel(
       keyName: 'settings-provider-capability-status',
       icon: Icons.extension_outlined,
-      title: zh ? '能力状态' : 'Capability Status',
+      title: zh ? '能力摘要' : 'Capability Summary',
       gap: true,
       children: [
         _FieldRow(
-          label: zh ? '能力增强项' : 'Capability enhancements',
-          value: zh
-              ? '$providerStateCount 项已登记，$readyProviderStateCount 项可选'
-              : '$providerStateCount registered, $readyProviderStateCount selectable',
+          label: zh ? '外部服务连接能力' : 'External service connectivity',
+          value: runtimeCatalogReady
+              ? (zh ? '已可用' : 'Available')
+              : (zh ? '已配置，待测试' : 'Configured, needs test'),
         ),
         const SizedBox(height: 8),
         _FieldRow(
@@ -914,42 +1037,39 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _FieldRow(
-          label: zh ? '当前能力目录' : 'Current capability catalog',
+          label: zh ? '连接摘要' : 'Connection summary',
           value: runtimeCatalogReady
               ? (zh ? '已生成' : 'Generated')
               : (zh ? '未生成' : 'Not generated'),
         ),
-        if (runtimeRows.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        _ProductTable(
+          columns:
+              zh ? ['能力', '状态', '下一步'] : ['Capability', 'Status', 'Next step'],
+          rows: rows,
+        ),
+        if (diagnosticRows.isNotEmpty) ...[
           const SizedBox(height: 8),
           _ProductTable(
-            columns: zh
-                ? ['能力', '状态', '当前表现', '入口']
-                : ['Capability', 'Status', 'Current behavior', 'Entry'],
-            rows: runtimeRows,
+            columns: zh ? ['诊断项', '状态'] : ['Diagnostic item', 'Status'],
+            rows: diagnosticRows,
           ),
         ],
         const SizedBox(height: 8),
-        _ProductTable(
-          columns: zh
-              ? ['能力', '增强项', '状态', '当前表现']
-              : ['Capability', 'Options', 'Status', 'Current behavior'],
-          rows: rows,
-        ),
-        const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '测试增强项' : 'Test enhancement',
+            label: zh ? '测试连接' : 'Test connection',
             icon: Icons.fact_check_outlined,
             onPressed: status.capabilities.isEmpty ? null : onTestCapability,
           ),
           _PrimaryProductAction(
-            label: zh ? '测试全部增强项' : 'Test all enhancements',
+            label: zh ? '测试全部连接' : 'Test all connections',
             icon: Icons.rule_folder_outlined,
             onPressed:
                 status.capabilities.isEmpty ? null : onTestAllCapabilities,
           ),
           _PrimaryProductAction(
-            label: zh ? '回滚增强项' : 'Rollback enhancement',
+            label: zh ? '恢复默认连接' : 'Restore default',
             icon: Icons.restore_outlined,
             onPressed:
                 status.capabilities.isEmpty ? null : onRollbackCapability,
@@ -960,8 +1080,8 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
           _RuntimeFeedbackBanner(
             title: message,
             detail: zh
-                ? '能力增强项启用、阻止和回滚都会写入配置操作记录。'
-                : 'Enhancement activation, blocking, and rollback write config audit assets.',
+                ? '连接启用、阻止和恢复都会写入配置操作记录。'
+                : 'Connection changes are recorded in configuration history.',
             tone: _StatusTone.neutral,
             icon: Icons.rule_folder_outlined,
           ),
@@ -1011,7 +1131,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
             [
               zh ? '暂无配置档' : 'No profile',
               zh ? '未配置' : 'Not configured',
-              zh ? '需要 Windows EXE' : 'Windows EXE required',
+              zh ? '需要处理' : 'Needs action',
               '',
             ]
           ]
@@ -1022,7 +1142,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
                   profile.isActive
                       ? (zh ? '当前启用' : 'Active')
                       : (zh ? '未启用' : 'Inactive'),
-                  profile.lastTestStatus,
+                  _publicProfileStatus(profile.lastTestStatus, zh),
                 ])
             .toList(growable: false);
     return _ProductPanel(
@@ -1049,7 +1169,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
           label: zh ? '健康度' : 'Health',
           value: activeProfile == null
               ? (zh ? '未配置' : 'Not configured')
-              : '${activeProfile.lastTestStatus} / v${activeProfile.version}',
+              : _publicProfileStatus(activeProfile.lastTestStatus, zh),
         ),
         const SizedBox(height: 8),
         _FieldRow(
@@ -1125,6 +1245,22 @@ String _profileModeLabel(String mode, bool zh) {
   };
 }
 
+String _publicProfileStatus(String status, bool zh) {
+  final lower = status.toLowerCase();
+  if (lower.contains('pass') ||
+      lower.contains('success') ||
+      lower.contains('connected')) {
+    return _connectedLabel(zh);
+  }
+  if (lower.contains('fail') || lower.contains('error')) {
+    return _failedLabel(zh);
+  }
+  if (lower.contains('configured') || lower.contains('test')) {
+    return _configuredServiceDisplay(zh);
+  }
+  return _needsActionLabel(zh);
+}
+
 String _firstProviderRef(ProviderCapabilityStatus status) {
   for (final capability in status.capabilities) {
     if (capability.providerRefs.isNotEmpty) {
@@ -1134,33 +1270,180 @@ String _firstProviderRef(ProviderCapabilityStatus status) {
   return '';
 }
 
-String _providerCapabilityStatusLabel(String status, bool zh) {
-  if (!zh) {
-    return switch (status) {
-      'available' => 'Available',
-      'available_with_gated_options' => 'Available, options gated',
-      'configured_not_tested' => 'Configured, test required',
-      'dependency_gated' => 'Dependency gated',
-      'external_runtime_required' => 'User runtime required',
-      'needs_secret_config' => 'Secret config required',
-      'needs_network_authorization' => 'Network authorization required',
-      'needs_verification' => 'Verification required',
-      'needs_provider_config' => 'Connection config required',
-      _ => status,
-    };
-  }
+String _availableLabel(bool zh) => zh ? '已可用' : 'Available';
+
+String _connectedLabel(bool zh) => zh ? '已连接' : 'Connected';
+
+String _configuredServiceDisplay(bool zh) =>
+    zh ? '已配置，待测试' : 'Configured, needs test';
+
+String _notConfiguredLabel(bool zh) => zh ? '未配置' : 'Not configured';
+
+String _failedLabel(bool zh) => zh ? '测试失败' : 'Test failed';
+
+String _optionalNotInstalledLabel(bool zh) =>
+    zh ? '可选，未安装' : 'Optional, not installed';
+
+String _needsActionLabel(bool zh) => zh ? '需要处理' : 'Needs action';
+
+String _settingsSavedStatus(String savedPath, bool validated, bool zh) {
+  if (validated) return _connectedLabel(zh);
+  if (savedPath.isNotEmpty) return _configuredServiceDisplay(zh);
+  return _notConfiguredLabel(zh);
+}
+
+String _publicCapabilityStatusLabel(String status, bool zh) {
   return switch (status) {
-    'available' => '可用',
-    'available_with_gated_options' => '可用，扩展项受控',
-    'configured_not_tested' => '已配置，需测试',
-    'dependency_gated' => '依赖待满足',
-    'external_runtime_required' => '需要自有运行时',
-    'needs_secret_config' => '需要安全密钥',
-    'needs_network_authorization' => '需要网络授权',
-    'needs_verification' => '需要核验',
-    'needs_provider_config' => '需要连接配置',
-    _ => status,
+    'available' => _availableLabel(zh),
+    'connected' => _connectedLabel(zh),
+    'configured_not_tested' => _configuredServiceDisplay(zh),
+    'available_with_gated_options' => _availableLabel(zh),
+    'dependency_gated' => _optionalNotInstalledLabel(zh),
+    'external_runtime_required' => _optionalNotInstalledLabel(zh),
+    'needs_secret_config' => _notConfiguredLabel(zh),
+    'needs_network_authorization' => _needsActionLabel(zh),
+    'needs_verification' => _configuredServiceDisplay(zh),
+    'needs_provider_config' => _notConfiguredLabel(zh),
+    'connection_failed' => _failedLabel(zh),
+    'auth_failed' => _failedLabel(zh),
+    _ => status.contains('failed')
+        ? _failedLabel(zh)
+        : status.contains('missing') || status.contains('required')
+            ? _notConfiguredLabel(zh)
+            : _needsActionLabel(zh),
   };
+}
+
+String _publicCapabilityName(ProviderCapabilityEntry entry, bool zh) {
+  final text = [
+    entry.capabilityId,
+    entry.capabilityArea,
+    entry.providerType,
+    entry.userVisibleName,
+    entry.zhUserVisibleName,
+  ].join(' ').toLowerCase();
+  if (text.contains('parser') ||
+      text.contains('ocr') ||
+      text.contains('document')) {
+    return zh ? '文档解析能力' : 'Document parsing capability';
+  }
+  if (text.contains('embedding') || text.contains('vector')) {
+    return zh ? '外部服务连接能力' : 'External service connectivity';
+  }
+  if (text.contains('retrieval') ||
+      text.contains('search') ||
+      text.contains('rag') ||
+      text.contains('knowledge')) {
+    return zh ? '知识库问答能力' : 'Knowledge Q&A capability';
+  }
+  if (text.contains('skill')) {
+    return zh ? 'Skill 生成能力' : 'Skill generation capability';
+  }
+  if (text.contains('agent') || text.contains('workflow')) {
+    return zh ? 'Agent 执行能力' : 'Agent execution capability';
+  }
+  if (text.contains('export') || text.contains('artifact')) {
+    return zh ? '文档生成能力' : 'Document generation capability';
+  }
+  if (text.contains('llm') || text.contains('model')) {
+    return zh ? 'AI 能力' : 'AI capability';
+  }
+  return zh ? '外部服务连接能力' : 'External service connectivity';
+}
+
+String _publicCapabilityNextStep(ProviderCapabilityEntry entry, bool zh) {
+  final status = _publicCapabilityStatusLabel(entry.status, zh);
+  if (status == _availableLabel(zh) || status == _connectedLabel(zh)) {
+    return zh ? '可直接使用' : 'Ready to use';
+  }
+  if (status == _configuredServiceDisplay(zh)) {
+    return zh ? '测试连接' : 'Test connection';
+  }
+  if (status == _optionalNotInstalledLabel(zh)) {
+    return zh ? '需要时安装' : 'Install when needed';
+  }
+  if (status == _notConfiguredLabel(zh)) {
+    return zh ? '补充配置' : 'Add configuration';
+  }
+  if (status == _failedLabel(zh)) {
+    return zh ? '检查配置后重试' : 'Check config and retry';
+  }
+  return zh ? '查看提示并处理' : 'Review prompt and fix';
+}
+
+bool _capabilityMatches(ProviderCapabilityEntry entry, List<String> keywords) {
+  final text = [
+    entry.capabilityId,
+    entry.capabilityArea,
+    entry.providerType,
+    entry.userVisibleName,
+    entry.zhUserVisibleName,
+  ].join(' ').toLowerCase();
+  return keywords.any(text.contains);
+}
+
+List<List<String>> _publicCapabilityRows(
+    ProviderCapabilityStatus status, bool zh) {
+  final rows = <String, List<String>>{};
+  for (final entry in status.capabilities) {
+    final name = _publicCapabilityName(entry, zh);
+    final statusLabel = _publicCapabilityStatusLabel(entry.status, zh);
+    final nextStep = _publicCapabilityNextStep(entry, zh);
+    final existing = rows[name];
+    if (existing == null ||
+        existing[1] == _optionalNotInstalledLabel(zh) ||
+        existing[1] == _notConfiguredLabel(zh)) {
+      rows[name] = [name, statusLabel, nextStep];
+    }
+  }
+  final orderedNames = zh
+      ? const [
+          '文档解析能力',
+          'AI 能力',
+          '知识库问答能力',
+          'Skill 生成能力',
+          'Agent 执行能力',
+          '文档生成能力',
+          '外部服务连接能力',
+        ]
+      : const [
+          'Document parsing capability',
+          'AI capability',
+          'Knowledge Q&A capability',
+          'Skill generation capability',
+          'Agent execution capability',
+          'Document generation capability',
+          'External service connectivity',
+        ];
+  for (final name in orderedNames) {
+    rows.putIfAbsent(
+      name,
+      () => [
+        name,
+        name == (zh ? '文档解析能力' : 'Document parsing capability')
+            ? _availableLabel(zh)
+            : _configuredServiceDisplay(zh),
+        name == (zh ? '文档解析能力' : 'Document parsing capability')
+            ? (zh ? '上传文档后自动处理' : 'Runs after upload')
+            : (zh ? '按需测试连接' : 'Test when needed'),
+      ],
+    );
+  }
+  return orderedNames.map((name) => rows[name]!).toList(growable: false);
+}
+
+String _publicConnectionStatus(List<ProviderCapabilityEntry> entries, bool zh) {
+  if (entries.isEmpty) return _configuredServiceDisplay(zh);
+  if (entries.any((entry) =>
+      _publicCapabilityStatusLabel(entry.status, zh) == _connectedLabel(zh) ||
+      _publicCapabilityStatusLabel(entry.status, zh) == _availableLabel(zh))) {
+    return _connectedLabel(zh);
+  }
+  if (entries.any((entry) =>
+      _publicCapabilityStatusLabel(entry.status, zh) == _failedLabel(zh))) {
+    return zh ? '连接失败' : 'Connection failed';
+  }
+  return _configuredServiceDisplay(zh);
 }
 
 class _SettingsExporterView extends StatelessWidget {
@@ -1414,9 +1697,9 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
               label: zh ? '桌面能力' : 'Desktop capability',
               value: isWebRuntime
                   ? (zh
-                      ? '请使用 Windows EXE 执行本地文件能力'
-                      : 'Use the Windows EXE for local file workflows')
-                  : (zh ? '桌面运行可用' : 'Desktop runtime available')),
+                      ? '请使用桌面端执行本地文件能力'
+                      : 'Use the desktop app for local file workflows')
+                  : (zh ? '桌面端可用' : 'Desktop app available')),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '失败处理' : 'Failure handling',
@@ -1580,8 +1863,8 @@ class _SettingsProvidersStorageViewState
         redisTested = false;
         redisStatus = 'desktop_runtime_required';
         redisDetail = zh
-            ? '真实专业记忆连接测试需要 Windows EXE 桌面端。'
-            : 'Real professional memory test requires the Windows desktop runtime.';
+            ? '真实专业记忆连接测试需要桌面端。'
+            : 'Real professional memory test requires the desktop app.';
       });
       return;
     }
@@ -1625,8 +1908,8 @@ class _SettingsProvidersStorageViewState
         qdrantTested = false;
         qdrantStatus = 'desktop_runtime_required';
         qdrantDetail = zh
-            ? '真实知识记忆连接测试需要 Windows EXE 桌面端。'
-            : 'Real knowledge memory test requires the Windows desktop runtime.';
+            ? '真实知识记忆连接测试需要桌面端。'
+            : 'Real knowledge memory test requires the desktop app.';
       });
       return;
     }
@@ -1676,9 +1959,8 @@ class _SettingsProvidersStorageViewState
         storageTested = true;
         redisStatus = 'desktop_runtime_required';
         qdrantStatus = 'desktop_runtime_required';
-        redisDetail = zh
-            ? '真实配置保存需要 Windows EXE 桌面端。'
-            : 'Real config save requires the Windows desktop runtime.';
+        redisDetail =
+            zh ? '真实配置保存需要桌面端。' : 'Real config save requires the desktop app.';
       });
       return;
     }
@@ -1771,20 +2053,20 @@ class _SettingsProvidersStorageViewState
                       '专业短期记忆',
                       '${_redisHostController.text}:${_redisPortController.text} / ${_redisPrefixController.text}',
                       redisTested
-                          ? 'PING / 写读删通过'
+                          ? '已连接'
                           : _storageStatusLabel(redisStatus, zh),
-                      redisTested ? '可用' : '已配置'
+                      redisTested ? '已连接' : '已配置，待测试'
                     ],
                     [
                       '知识记忆',
                       '${_qdrantEndpointController.text} / ${_qdrantCollectionController.text}',
                       qdrantTested
-                          ? '健康检查 / collection / 向量探针通过'
+                          ? '已连接'
                           : _storageStatusLabel(qdrantStatus, zh),
-                      qdrantTested ? '可用' : '已配置'
+                      qdrantTested ? '已连接' : '已配置，待测试'
                     ],
-                    ['知识库索引', '本地文件索引 + 专业服务可选', '本地索引可用', '可用'],
-                    ['模型服务', '环境变量', '连接复验通过', '可用'],
+                    ['知识库索引', '本地文件索引 + 专业服务可选', '已可用', '已可用'],
+                    ['模型服务', '环境变量', '已连接', '已连接'],
                     ['API Key', '************', '掩码展示', '已保护'],
                   ]
                 : [
@@ -1804,29 +2086,29 @@ class _SettingsProvidersStorageViewState
                       'Professional short-term memory',
                       '${_redisHostController.text}:${_redisPortController.text} / ${_redisPrefixController.text}',
                       redisTested
-                          ? 'PING / write-read-delete passed'
+                          ? 'Connected'
                           : _storageStatusLabel(redisStatus, zh),
-                      redisTested ? 'Available' : 'Configured'
+                      redisTested ? 'Connected' : 'Configured, needs test'
                     ],
                     [
                       'Knowledge memory',
                       '${_qdrantEndpointController.text} / ${_qdrantCollectionController.text}',
                       qdrantTested
-                          ? 'Health / collection / vector probe passed'
+                          ? 'Connected'
                           : _storageStatusLabel(qdrantStatus, zh),
-                      qdrantTested ? 'Available' : 'Configured'
+                      qdrantTested ? 'Connected' : 'Configured, needs test'
                     ],
                     [
                       'Knowledge base index',
                       'Local file index + optional professional service',
-                      'Local index available',
+                      'Available',
                       'Available'
                     ],
                     [
                       'Model service',
                       'Environment variables',
-                      'Live smoke passed',
-                      'Available'
+                      'Connected',
+                      'Connected'
                     ],
                     ['API Key', '************', 'Masked', 'Protected'],
                   ],
@@ -1936,10 +2218,10 @@ class _SettingsProvidersStorageViewState
               value: zh
                   ? configLoading
                       ? '正在加载工作区配置'
-                      : 'Docker 未运行时显示已配置未测试；不得显示为已连接'
+                      : '未完成测试时显示已配置，待测试'
                   : configLoading
                       ? 'Loading workspace config'
-                      : 'When Docker is not running, show configured-not-tested; never connected'),
+                      : 'Show configured, needs test until a connection test passes'),
           const SizedBox(height: 8),
           _SectionCaption(zh ? '文档导出工具' : 'Document export tools'),
           const SizedBox(height: 6),
@@ -1982,35 +2264,33 @@ class _SettingsProvidersStorageViewState
 }
 
 class _SettingsTextFieldSpec {
-  const _SettingsTextFieldSpec(this.label, this.controller);
+  const _SettingsTextFieldSpec(this.label, this.controller, {this.displayText});
 
   final String label;
   final TextEditingController controller;
+  final String? displayText;
 }
 
 String _storageStatusLabel(String status, bool zh) {
   return switch (status) {
-    'connected' => zh ? '连接成功' : 'Connected',
-    'configured_not_tested' => zh ? '已配置未测试' : 'Configured, not tested',
-    'desktop_runtime_required' =>
-      zh ? '需要 Windows EXE 测试' : 'Desktop runtime required',
-    'missing_password' => zh ? '缺少记忆服务密码' : 'Memory service password missing',
-    'auth_failed' => zh ? '鉴权失败' : 'Authentication failed',
-    'invalid_endpoint' => zh ? 'Endpoint 无效' : 'Invalid endpoint',
-    'invalid_dimension' => zh ? '维度无效' : 'Invalid dimension',
-    'invalid_port' => zh ? '端口无效' : 'Invalid port',
-    'health_failed' => zh ? '健康检查失败' : 'Health check failed',
-    'collection_create_failed' =>
-      zh ? 'Collection 创建失败' : 'Collection create failed',
-    'collection_check_failed' =>
-      zh ? 'Collection 检查失败' : 'Collection check failed',
-    'vector_write_failed' => zh ? '测试向量写入失败' : 'Vector write failed',
-    'vector_search_failed' => zh ? '测试向量检索失败' : 'Vector search failed',
-    'vector_delete_failed' => zh ? '测试向量删除失败' : 'Vector delete failed',
+    'connected' => zh ? '已连接' : 'Connected',
+    'configured_not_tested' => zh ? '已配置，待测试' : 'Configured, needs test',
+    'desktop_runtime_required' => zh ? '需要处理' : 'Needs action',
+    'missing_password' => zh ? '未配置' : 'Not configured',
+    'auth_failed' => zh ? '测试失败' : 'Test failed',
+    'invalid_endpoint' => zh ? '测试失败' : 'Test failed',
+    'invalid_dimension' => zh ? '测试失败' : 'Test failed',
+    'invalid_port' => zh ? '测试失败' : 'Test failed',
+    'health_failed' => zh ? '测试失败' : 'Test failed',
+    'collection_create_failed' => zh ? '测试失败' : 'Test failed',
+    'collection_check_failed' => zh ? '测试失败' : 'Test failed',
+    'vector_write_failed' => zh ? '测试失败' : 'Test failed',
+    'vector_search_failed' => zh ? '测试失败' : 'Test failed',
+    'vector_delete_failed' => zh ? '测试失败' : 'Test failed',
     'connection_failed' => zh ? '连接失败' : 'Connection failed',
-    'ping_failed' => zh ? 'PING 失败' : 'PING failed',
-    'probe_failed' => zh ? '探针失败' : 'Probe failed',
-    _ => status,
+    'ping_failed' => zh ? '测试失败' : 'Test failed',
+    'probe_failed' => zh ? '测试失败' : 'Test failed',
+    _ => zh ? '需要处理' : 'Needs action',
   };
 }
 
@@ -2057,6 +2337,19 @@ class _SettingsConnectionForm extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           final field = fields[index];
+          final displayText = field.displayText;
+          if (displayText != null) {
+            return TextFormField(
+              key: ValueKey<String>('settings-display-${field.label}'),
+              initialValue: displayText,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: field.label,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+            );
+          }
           return TextField(
             controller: field.controller,
             obscureText: field.label.toLowerCase().contains('password') ||
@@ -2107,10 +2400,12 @@ class _SettingsWorkspaceView extends StatelessWidget {
                   icon: Icons.storage_outlined),
               _MetricDatum(
                   label: zh ? '模式' : 'Mode',
-                  value: isWebRuntime ? 'Web' : 'EXE',
+                  value: isWebRuntime
+                      ? (zh ? '预览' : 'Preview')
+                      : (zh ? '桌面端' : 'Desktop'),
                   detail: isWebRuntime
                       ? (zh ? '预览模式' : 'preview mode')
-                      : (zh ? '桌面运行' : 'desktop runtime'),
+                      : (zh ? '本地文件能力可用' : 'local files available'),
                   icon: isWebRuntime
                       ? Icons.public_outlined
                       : Icons.desktop_windows_outlined),

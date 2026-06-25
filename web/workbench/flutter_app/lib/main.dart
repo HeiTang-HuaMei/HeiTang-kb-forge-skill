@@ -2327,7 +2327,7 @@ String _documentTypeLabel(String type, bool zh) {
 String _structureStatusLabel(String status, bool zh) {
   return switch (status) {
     'local_text_scan' => zh ? '文本已扫描' : 'Text scanned',
-    'requires_parser' => zh ? '待解析器' : 'Parser required',
+    'requires_parser' => zh ? '需要处理' : 'Needs action',
     'not_scanned' => zh ? '待扫描' : 'Not scanned',
     _ => status.isEmpty ? (zh ? '待扫描' : 'Not scanned') : status,
   };

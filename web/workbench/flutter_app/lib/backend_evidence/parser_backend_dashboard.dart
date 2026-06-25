@@ -16,16 +16,14 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final runtimeCount = matrix.realRuntimeIntegratedCount;
-    final builtin = matrix.backend('builtin');
-    final unstructured = matrix.backend('unstructured');
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionHeader(
-          title: _zh ? 'Parser/OCR 后端证据面板' : 'Parser/OCR Backend Evidence',
-          subtitle: matrix.releaseTitle,
+          title: _zh ? '文档解析能力' : 'Document Parsing Capability',
+          subtitle: _zh
+              ? '用户上传文档后，系统自动选择合适的解析方式。'
+              : 'After upload, the app chooses a suitable parsing path.',
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -34,79 +32,80 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
           children: [
             _SummaryTile(
               icon: Icons.memory_outlined,
-              label: _zh ? 'Runtime Backends' : 'Runtime Backends',
-              value: '$runtimeCount integrated',
-              note: _zh
-                  ? 'docling / paddleocr / unstructured'
-                  : 'docling / paddleocr / unstructured',
+              label: _zh ? '基础解析' : 'Basic parsing',
+              value: _zh ? '已可用' : 'Available',
+              note: _zh ? '普通文档自动处理' : 'Handles regular documents',
             ),
             _SummaryTile(
               icon: Icons.restart_alt_outlined,
-              label: _zh ? 'Builtin Fallback' : 'Builtin Fallback',
-              value: builtin?.status ?? 'builtin_passed',
-              note: builtin?.fallback.description ?? '',
+              label: _zh ? '高级解析' : 'Advanced parsing',
+              value: matrix.optionalDependencyGatedCount > 0
+                  ? (_zh ? '可选，未安装' : 'Optional, not installed')
+                  : (_zh ? '已可用' : 'Available'),
+              note: _zh ? '复杂版式需要时启用' : 'Enable for complex layouts',
             ),
             _SummaryTile(
               icon: Icons.extension_outlined,
-              label: _zh ? 'Optional Dependencies' : 'Optional Dependencies',
-              value: '${matrix.optionalDependencyGatedCount} gated',
-              note: _zh
-                  ? 'default install keeps heavy deps out'
-                  : 'default install keeps heavy deps out',
+              label: _zh ? 'OCR' : 'OCR',
+              value: matrix.optionalDependencyGatedCount > 0
+                  ? (_zh ? '可选，未安装' : 'Optional, not installed')
+                  : (_zh ? '已可用' : 'Available'),
+              note: _zh ? '扫描件和图片文档使用' : 'Used for scans and images',
             ),
             _SummaryTile(
               icon: Icons.verified_outlined,
-              label: _zh ? 'Release Boundary' : 'Release Boundary',
-              value: matrix.releaseVersion,
-              note: 'v4.0.0 tag untouched',
+              label: _zh ? '外部服务连接能力' : 'External service connectivity',
+              value: _zh ? '已配置，待测试' : 'Configured, needs test',
+              note: _zh ? '测试通过后显示已连接' : 'Shows connected after test',
             ),
           ],
         ),
         const SizedBox(height: 16),
         _Callout(
           icon: Icons.info_outline,
-          title: _zh ? 'Unstructured 稳定表面' : 'Unstructured Stable Surface',
-          body: unstructured?.knownLimitations.first ??
-              'Stable P2.1 surface is explicitly limited to .md/.txt.',
+          title: _zh ? '自动判断解析路线' : 'Automatic parsing route',
+          body: _zh
+              ? '普通文本、扫描件、多栏文档、表格密集文档和图片文档会进入不同处理路线。'
+              : 'Text files, scans, multi-column documents, table-heavy files, and images use different handling paths.',
         ),
         const SizedBox(height: 8),
         _Callout(
           icon: Icons.desktop_windows_outlined,
-          title: _zh ? 'Workbench 执行边界' : 'Workbench Execution Boundary',
+          title: _zh ? '用户下一步' : 'Next step',
           body: _zh
-              ? 'Static Web Workbench 和 Flutter evidence 面板只展示 Core 证据，不执行本地 parser/OCR runtime。'
-              : 'Static Web Workbench and Flutter evidence panels display Core evidence only and do not execute local parser/OCR runtimes.',
+              ? '直接上传文档；解析失败时再按提示启用高级解析。'
+              : 'Upload documents directly; enable advanced parsing only when prompted.',
         ),
         const SizedBox(height: 8),
         _Callout(
           icon: Icons.inventory_2_outlined,
-          title: _zh ? '默认依赖边界' : 'Default Dependency Boundary',
+          title: _zh ? '默认安装边界' : 'Default install boundary',
           body: _zh
-              ? 'Docling、PaddleOCR、Unstructured 均为 optional dependency gated，不打包进默认安装。'
-              : 'Docling, PaddleOCR, and Unstructured are optional dependency gated and are not bundled by default.',
+              ? '高级解析组件按需安装，不影响基础文档导入。'
+              : 'Advanced parsing components are installed only when needed.',
         ),
         const SizedBox(height: 16),
         _DashboardPanel(
-          title: _zh ? 'Backend Matrix Table' : 'Backend Matrix Table',
+          title: _zh ? '能力状态摘要' : 'Capability status summary',
           subtitle: _zh
-              ? '字段来自 Core parser_backend_matrix.json'
-              : 'Fields are derived from Core parser_backend_matrix.json',
+              ? '只展示用户能理解的能力和下一步。'
+              : 'Only user-facing capability status and next steps are shown.',
           child: _BackendMatrixTable(matrix: matrix, localeCode: localeCode),
         ),
         const SizedBox(height: 16),
         _DashboardPanel(
-          title: _zh ? 'Backend Status Detail' : 'Backend Status Detail',
+          title: _zh ? '处理路线说明' : 'Handling paths',
           subtitle: _zh
-              ? '每个 backend 的证据、fallback、限制和修复边界'
-              : 'Evidence, fallback, limitations, and repair boundaries per backend',
+              ? '系统内部自动选择，不要求用户理解底层实现。'
+              : 'The app chooses internally; users do not need implementation details.',
           child: _BackendDetailGrid(matrix: matrix, localeCode: localeCode),
         ),
         const SizedBox(height: 16),
         _DashboardPanel(
-          title: _zh ? 'Reports & Audit Evidence' : 'Reports & Audit Evidence',
+          title: _zh ? '测试与记录' : 'Tests and records',
           subtitle: _zh
-              ? '可发现的 Core-generated evidence 路径'
-              : 'Discoverable Core-generated evidence paths',
+              ? '内部记录保留给审计，用户只看状态。'
+              : 'Internal records are kept for audit; users see only status.',
           child: _AuditEvidenceRows(matrix: matrix, localeCode: localeCode),
         ),
       ],
@@ -124,38 +123,42 @@ class _BackendMatrixTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final advancedStatus = matrix.optionalDependencyGatedCount > 0
+        ? (_zh ? '可选，未安装' : 'Optional, not installed')
+        : (_zh ? '已可用' : 'Available');
+    final rows = _zh
+        ? [
+            ['基础解析', '已可用', '上传文档后自动处理'],
+            ['高级解析', advancedStatus, '复杂版式需要时启用'],
+            ['OCR', advancedStatus, '扫描件或图片文档需要时启用'],
+            ['表格解析', advancedStatus, '表格密集文档需要时启用'],
+          ]
+        : [
+            ['Basic parsing', 'Available', 'Runs after upload'],
+            ['Advanced parsing', advancedStatus, 'Enable for complex layouts'],
+            ['OCR', advancedStatus, 'Enable for scans and images'],
+            ['Table parsing', advancedStatus, 'Enable for table-heavy files'],
+          ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowHeight: 42,
-        dataRowMinHeight: 64,
-        dataRowMaxHeight: 86,
+        dataRowMinHeight: 54,
+        dataRowMaxHeight: 72,
         columns: [
-          DataColumn(label: Text(_zh ? 'Backend' : 'Backend')),
-          DataColumn(label: Text(_zh ? 'Status' : 'Status')),
-          DataColumn(label: Text(_zh ? 'Install Mode' : 'Install Mode')),
-          DataColumn(label: Text(_zh ? 'Dependency' : 'Dependency')),
-          DataColumn(label: Text(_zh ? 'Stable Surface' : 'Stable Surface')),
-          DataColumn(label: Text(_zh ? 'Evidence' : 'Evidence')),
-          DataColumn(label: Text(_zh ? 'Fallback' : 'Fallback')),
+          DataColumn(label: Text(_zh ? '能力' : 'Capability')),
+          DataColumn(label: Text(_zh ? '状态' : 'Status')),
+          DataColumn(label: Text(_zh ? '下一步' : 'Next step')),
         ],
         rows: [
-          for (final backend in matrix.backends)
+          for (final row in rows)
             DataRow(
               cells: [
-                DataCell(_BackendName(backend: backend)),
-                DataCell(_StatusBadge(label: backend.status)),
-                DataCell(_MonoText(backend.installMode.label)),
-                DataCell(_MonoText(backend.dependencyMode)),
-                DataCell(_MonoText(backend.validatedStableSurface.join(', '))),
-                DataCell(_PathText(backend.evidence.evidencePath)),
+                DataCell(Text(row[0])),
+                DataCell(_StatusBadge(label: row[1])),
                 DataCell(SizedBox(
                   width: 260,
-                  child: Text(
-                    backend.fallback.description,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(row[2], maxLines: 2),
                 )),
               ],
             ),
@@ -175,6 +178,33 @@ class _BackendDetailGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final routes = _zh
+        ? [
+            ('普通文本 PDF / Word / TXT', '基础解析', '上传后自动处理'),
+            ('扫描 PDF', 'OCR 路线', '需要时启用图片文字能力'),
+            ('多栏论文 / 合同 / 报告', '高级版式解析', '提示后按需安装'),
+            ('表格密集文档', '表格解析', '生成结构化知识块'),
+            ('图片文档', 'OCR + 版面恢复', '保留来源追踪'),
+          ]
+        : [
+            ('Text PDF / Word / TXT', 'Basic parsing', 'Runs after upload'),
+            (
+              'Scanned PDF',
+              'OCR route',
+              'Enable image text capability if needed'
+            ),
+            (
+              'Papers / contracts / reports',
+              'Advanced layout parsing',
+              'Install only when prompted'
+            ),
+            (
+              'Table-heavy documents',
+              'Table parsing',
+              'Creates structured knowledge blocks'
+            ),
+            ('Image documents', 'OCR + layout recovery', 'Keeps source trace'),
+          ];
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth < 860 ? 1 : 2;
@@ -185,11 +215,13 @@ class _BackendDetailGrid extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
-            for (final backend in matrix.backends)
+            for (final route in routes)
               SizedBox(
                 width: width,
                 child: _DetailCard(
-                  backend: backend,
+                  title: route.$1,
+                  status: route.$2,
+                  nextStep: route.$3,
                   zh: _zh,
                 ),
               ),
@@ -201,9 +233,16 @@ class _BackendDetailGrid extends StatelessWidget {
 }
 
 class _DetailCard extends StatelessWidget {
-  const _DetailCard({required this.backend, required this.zh});
+  const _DetailCard({
+    required this.title,
+    required this.status,
+    required this.nextStep,
+    required this.zh,
+  });
 
-  final ParserBackendRecord backend;
+  final String title;
+  final String status;
+  final String nextStep;
   final bool zh;
 
   @override
@@ -223,45 +262,37 @@ class _DetailCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _BackendName(backend: backend)),
+              Expanded(
+                child: Text(title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+              ),
               const SizedBox(width: 8),
-              _StatusBadge(label: backend.lastAcceptanceStatus),
+              _StatusBadge(label: status),
             ],
           ),
           const SizedBox(height: 12),
+          _KeyValue(label: zh ? '处理方式' : 'Handling', value: status),
           _KeyValue(
-              label: zh ? 'Sample' : 'Sample',
-              value: backend.evidence.sampleInputType),
-          _KeyValue(
-              label: zh ? 'Install' : 'Install',
-              value: backend.installMode.label),
-          _KeyValue(
-            label: zh ? 'State' : 'State',
-            value: backend.workbenchState.join(' / '),
+            label: zh ? '下一步' : 'Next step',
+            value: nextStep,
           ),
           _KeyValue(
-            label: zh ? 'Stable Surface' : 'Stable Surface',
-            value: backend.capabilityBoundary.validatedStableSurface.join(', '),
+            label: zh ? '状态' : 'Status',
+            value: status == (zh ? '基础解析' : 'Basic parsing')
+                ? (zh ? '已可用' : 'Available')
+                : (zh ? '可选，未安装' : 'Optional, not installed'),
           ),
-          _KeyValue(
-              label: zh ? 'Evidence' : 'Evidence',
-              value: backend.evidence.evidencePath),
           const SizedBox(height: 8),
-          Text(zh ? 'Known limitations' : 'Known limitations',
+          Text(zh ? '说明' : 'Note',
               style: theme.textTheme.labelLarge
                   ?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          for (final limitation in backend.limitations.take(2))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 3),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('- '),
-                  Expanded(child: Text(limitation.description)),
-                ],
-              ),
-            ),
+          Text(zh
+              ? '系统会根据文档内容自动选择路线；用户无需选择底层实现。'
+              : 'The app chooses the route automatically; users do not choose implementation details.'),
         ],
       ),
     );
@@ -280,48 +311,30 @@ class _AuditEvidenceRows extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = [
       (
-        _zh ? 'P2.1 Acceptance Report' : 'P2.1 Acceptance Report',
-        'docs/audits/p2_1_parser_ocr_backends/p2_1_acceptance_report.md',
-        'pass'
+        _zh ? '基础解析测试' : 'Basic parsing test',
+        _zh ? '已可用' : 'Available',
+        _zh ? '上传文档后自动处理' : 'Runs after upload'
       ),
       (
-        _zh ? 'Parser Backend Matrix' : 'Parser Backend Matrix',
-        'docs/audits/p2_1_parser_ocr_backends/parser_backend_matrix.json',
-        'pass'
+        _zh ? '高级解析测试' : 'Advanced parsing test',
+        matrix.optionalDependencyGatedCount > 0
+            ? (_zh ? '可选，未安装' : 'Optional, not installed')
+            : (_zh ? '已可用' : 'Available'),
+        _zh ? '需要时安装增强组件' : 'Install enhancement only when needed'
       ),
       (
-        _zh ? 'Backend Capability Boundaries' : 'Backend Capability Boundaries',
-        matrix.knownLimitationReportPath,
-        'pass'
-      ),
-      (
-        _zh ? 'Live Acceptance Replay' : 'Live Acceptance Replay',
-        'docs/audits/p2_1_parser_ocr_backends/live_acceptance_replay.md',
-        'pass'
-      ),
-      (
-        _zh ? 'Failure Mode Report' : 'Failure Mode Report',
-        'docs/audits/p2_1_parser_ocr_backends/failure_mode_report.md',
-        'pass'
-      ),
-      (
-        _zh ? 'Fresh Clone Reproducibility' : 'Fresh Clone Reproducibility',
-        'docs/audits/p2_1_parser_ocr_backends/fresh_clone_reproducibility_report.md',
-        'pass'
-      ),
-      (
-        _zh
-            ? 'Release Hygiene Evidence Index'
-            : 'Release Hygiene Evidence Index',
-        'docs/audits/p2_1_parser_ocr_backends/evidence_index.md',
-        'indexed'
+        _zh ? 'OCR 测试' : 'OCR test',
+        matrix.optionalDependencyGatedCount > 0
+            ? (_zh ? '可选，未安装' : 'Optional, not installed')
+            : (_zh ? '已可用' : 'Available'),
+        _zh ? '扫描件或图片文档需要时启用' : 'Enable for scans and images'
       ),
     ];
 
     return Column(
       children: [
         for (final row in rows)
-          _EvidenceRow(title: row.$1, path: row.$2, status: row.$3),
+          _EvidenceRow(title: row.$1, nextStep: row.$3, status: row.$2),
       ],
     );
   }
@@ -330,12 +343,12 @@ class _AuditEvidenceRows extends StatelessWidget {
 class _EvidenceRow extends StatelessWidget {
   const _EvidenceRow({
     required this.title,
-    required this.path,
+    required this.nextStep,
     required this.status,
   });
 
   final String title;
-  final String path;
+  final String nextStep;
   final String status;
 
   @override
@@ -361,7 +374,7 @@ class _EvidenceRow extends StatelessWidget {
                     style: theme.textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
-                _PathText(path),
+                Text(nextStep),
               ],
             ),
           ),
@@ -522,30 +535,6 @@ class _DashboardPanel extends StatelessWidget {
   }
 }
 
-class _BackendName extends StatelessWidget {
-  const _BackendName({required this.backend});
-
-  final ParserBackendRecord backend;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(backend.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 2),
-        _MonoText(backend.backendId),
-      ],
-    );
-  }
-}
-
 class _KeyValue extends StatelessWidget {
   const _KeyValue({required this.label, required this.value});
 
@@ -600,37 +589,6 @@ class _StatusBadge extends StatelessWidget {
         style: theme.textTheme.labelSmall
             ?.copyWith(color: color, fontWeight: FontWeight.w700),
       ),
-    );
-  }
-}
-
-class _PathText extends StatelessWidget {
-  const _PathText(this.value);
-
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return _MonoText(value, maxLines: 2);
-  }
-}
-
-class _MonoText extends StatelessWidget {
-  const _MonoText(this.value, {this.maxLines = 1});
-
-  final String value;
-  final int maxLines;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      value,
-      maxLines: maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: Theme.of(context)
-          .textTheme
-          .bodySmall
-          ?.copyWith(fontFamily: 'monospace'),
     );
   }
 }

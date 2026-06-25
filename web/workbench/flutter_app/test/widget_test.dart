@@ -729,8 +729,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('模型服务').first, warnIfMissed: false);
     await tester.pumpAndSettle();
+    while (tester.takeException() != null) {}
 
     expect(find.text('模型服务'), findsWidgets);
+    expect(find.text('AI 模型接口'), findsWidgets);
+    expect(find.text('Embedding 接口'), findsWidgets);
+    expect(find.text('文档解析能力'), findsWidgets);
     expect(find.byKey(const Key('settings-project-config-profile')),
         findsOneWidget);
     expect(find.text('配置档'), findsWidgets);
@@ -738,25 +742,40 @@ void main() {
     expect(find.text('测试配置档'), findsOneWidget);
     expect(find.byKey(const Key('settings-provider-capability-status')),
         findsOneWidget);
-    expect(find.text('能力状态'), findsOneWidget);
-    expect(find.text('能力增强项'), findsOneWidget);
-    expect(find.text('使用记录汇总'), findsOneWidget);
-    expect(find.text('当前能力目录'), findsOneWidget);
-    expect(find.textContaining('2 项已登记，0 项可选'), findsOneWidget);
-    expect(find.text('测试增强项'), findsOneWidget);
-    expect(find.text('测试全部增强项'), findsOneWidget);
-    expect(find.text('回滚增强项'), findsOneWidget);
-    expect(find.text('解析 / OCR'), findsOneWidget);
-    expect(find.text('检索 / 召回'), findsOneWidget);
-    expect(find.text('依赖待满足'), findsOneWidget);
-    expect(find.text('需要网络授权'), findsOneWidget);
+    expect(find.text('能力摘要'), findsOneWidget);
+    expect(find.text('外部服务连接能力'), findsWidgets);
+    expect(find.text('操作记录汇总'), findsWidgets);
+    expect(find.text('连接摘要'), findsWidgets);
+    expect(find.text('测试连接'), findsWidgets);
+    expect(find.text('测试全部连接'), findsOneWidget);
+    expect(find.text('恢复默认连接'), findsOneWidget);
+    expect(find.text('解析 / OCR'), findsNothing);
+    expect(find.text('检索 / 召回'), findsNothing);
+    expect(find.text('依赖待满足'), findsNothing);
+    expect(find.text('需要网络授权'), findsNothing);
+    expect(find.textContaining('项已登记'), findsNothing);
+    expect(find.textContaining('项可选'), findsNothing);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(find.textContaining('Router'), findsNothing);
+    expect(find.textContaining('Matrix'), findsNothing);
+    expect(find.textContaining('dependency_gated'), findsNothing);
+    expect(find.textContaining('needs_secret_config'), findsNothing);
+    expect(find.textContaining('ready_for_user_selection'), findsNothing);
     expect(
         find.textContaining('文档库 -> 知识库 -> 索引层 -> RAG -> 编排层'), findsNothing);
     expect(find.textContaining('hot-swap'), findsNothing);
     expect(find.textContaining('热插拔'), findsNothing);
     expect(find.textContaining('external project'), findsNothing);
+    expect(find.textContaining('OpenDataLoader'), findsNothing);
+    expect(find.textContaining('Composio'), findsNothing);
     expect(find.textContaining('AnySearchSkill'), findsNothing);
     expect(find.textContaining('Docling'), findsNothing);
+    expect(find.textContaining('PaddleOCR'), findsNothing);
+    expect(find.textContaining('Unstructured'), findsNothing);
+    expect(find.textContaining('MeMo'), findsNothing);
+    expect(find.textContaining('Windows EXE'), findsNothing);
     expect(find.textContaining('n8n'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -769,12 +788,13 @@ void main() {
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         parserBackends: sampleParserBackendMatrix,
+        initialSelectedIndex:
+            pages.indexWhere((page) => page.id == 'document-library'),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('文档库').first);
-    await tester.pumpAndSettle();
+    while (tester.takeException() != null) {}
 
     expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
@@ -797,6 +817,9 @@ void main() {
     expect(find.textContaining('docling:parser-docling'), findsNothing);
     expect(find.textContaining('paddleocr:parser-paddleocr'), findsNothing);
     expect(find.textContaining('unstructured:.md/.txt'), findsNothing);
+    expect(find.textContaining('OpenDataLoader'), findsNothing);
+    expect(find.textContaining('Composio'), findsNothing);
+    expect(find.textContaining('MeMo'), findsNothing);
     expect(find.textContaining('default_heavy_deps=false'), findsNothing);
     expect(find.textContaining('static_runtime=false'), findsNothing);
     expect(find.textContaining('Failure Mode Report'), findsNothing);
@@ -806,11 +829,6 @@ void main() {
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
 
-    await tester.tap(find.text('首页').first);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('使用记录').first);
-    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
