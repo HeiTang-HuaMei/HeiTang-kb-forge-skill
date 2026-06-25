@@ -115,6 +115,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runOfficeCollaborationWorkgroupAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<void> deleteTestOfficeDocxAdapterArtifact() async => initialize();
 
   Future<String> readLatestDocumentGenerationHistoryMarkdown({
@@ -591,6 +596,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<String> runMultiAgentDiscussion({
     String topic = '',
     List<String> participantAgentIds = const [],
+    bool writeOfficeCollaborationSummaryIfReady = true,
+    String officeCollaborationUiBlackboxPath =
+        'Agent -> Work Group -> Start Work Group',
   }) async =>
       '';
   Future<String> runWorkgroupBasicRuntimeAcceptance({

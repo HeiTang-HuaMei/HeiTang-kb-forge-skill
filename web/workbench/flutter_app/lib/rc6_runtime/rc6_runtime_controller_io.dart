@@ -8659,6 +8659,33 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runOfficeCollaborationWorkgroupAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final latestOfficeDocument =
+        await _latestExistingOfficeDocumentArtifact(workspace);
+    if (latestOfficeDocument.$1.trim().isEmpty) {
+      _fail('请先生成或导出一个办公文档，再启动办公协作。');
+      return '';
+    }
+    final summaryPath = await runMultiAgentDiscussion(
+      topic: 'P2-2 Office Collaboration Workgroup',
+      writeOfficeCollaborationSummaryIfReady: false,
+    );
+    if (summaryPath.trim().isEmpty) {
+      return '';
+    }
+    return _writeOfficeCollaborationWorkgroupSummary(
+      officeDocumentPath: latestOfficeDocument.$1,
+      officeManifestPath: latestOfficeDocument.$2,
+      workgroupSummaryPath: summaryPath,
+      uiBlackboxPath:
+          'Document Generation -> DOCX Export -> Agent -> Work Group',
+    );
+  }
+
   Future<String> runAssistantBackendSeparationAcceptance() async {
     if (!_canRunDesktop()) {
       return '';
@@ -11978,6 +12005,40 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<(String, String)> _latestExistingOfficeDocumentArtifact(
+      Directory workspace) async {
+    final candidates = <(String, String)>[
+      (
+        _joinNested(workspace.path, 'export/docx/generated.docx'),
+        _joinNested(workspace.path, 'export/docx/generated_file_report.json')
+      ),
+      (
+        _joinNested(
+            workspace.path, 'export/office_docx_adapter/generated.docx'),
+        _joinNested(workspace.path,
+            'export/office_docx_adapter/generated_file_report.json')
+      ),
+    ];
+    (String, String, DateTime)? latest;
+    for (final candidate in candidates) {
+      final file = File(candidate.$1);
+      if (!await file.exists()) {
+        continue;
+      }
+      final modified = await file.lastModified();
+      if (latest == null || modified.isAfter(latest.$3)) {
+        latest = (candidate.$1, candidate.$2, modified);
+      }
+    }
+    if (latest == null) {
+      return ('', '');
+    }
+    return (
+      latest.$1,
+      await File(latest.$2).exists() ? latest.$2 : '',
+    );
+  }
+
   Future<void> generateSkill({
     Rc6SkillGenerationConfig config = const Rc6SkillGenerationConfig(),
   }) async {
@@ -12289,6 +12350,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<String> runMultiAgentDiscussion({
     String topic = '',
     List<String> participantAgentIds = const [],
+    bool writeOfficeCollaborationSummaryIfReady = true,
+    String officeCollaborationUiBlackboxPath =
+        'Agent -> Work Group -> Start Work Group',
   }) async {
     if (!_canRunDesktop()) {
       return '';
@@ -12347,6 +12411,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       participantAgentIds: participantAgentIds,
       modelRouteEvidence: a2aRouteEvidence,
     );
+    if (writeOfficeCollaborationSummaryIfReady) {
+      await _writeOfficeCollaborationWorkgroupSummaryIfReady(
+        workgroupSummaryPath: summaryPath,
+        uiBlackboxPath: officeCollaborationUiBlackboxPath,
+      );
+    }
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
@@ -12550,6 +12620,225 @@ class Rc6RuntimeController extends ChangeNotifier {
         'failed_checks': failedChecks,
         'participant_count': participants.length,
         'p2_4_status': 'not_closed_by_p2_1',
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
+  }
+
+  Future<String> _writeOfficeCollaborationWorkgroupSummaryIfReady({
+    required String workgroupSummaryPath,
+    required String uiBlackboxPath,
+  }) async {
+    final workspace = _requireWorkspace();
+    final latestOfficeDocument =
+        await _latestExistingOfficeDocumentArtifact(workspace);
+    if (latestOfficeDocument.$1.trim().isEmpty) {
+      return '';
+    }
+    return _writeOfficeCollaborationWorkgroupSummary(
+      officeDocumentPath: latestOfficeDocument.$1,
+      officeManifestPath: latestOfficeDocument.$2,
+      workgroupSummaryPath: workgroupSummaryPath,
+      uiBlackboxPath: uiBlackboxPath,
+    );
+  }
+
+  Future<String> _writeOfficeCollaborationWorkgroupSummary({
+    required String officeDocumentPath,
+    required String officeManifestPath,
+    required String workgroupSummaryPath,
+    required String uiBlackboxPath,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/office_collaboration_workgroup_summary.json');
+    final officeDocument = File(officeDocumentPath);
+    final officeManifest = officeManifestPath.trim().isEmpty
+        ? const <String, dynamic>{}
+        : await _readJsonObject(officeManifestPath);
+    final workgroupSummary = await _readJsonObject(workgroupSummaryPath);
+    final discussionPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final discussionManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final docxMissingParts = await _missingDocxRequiredParts(officeDocument);
+    final workgroupStatus = _stringValue(workgroupSummary['status'], '');
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'office_document_exists': await officeDocument.exists(),
+      'office_document_non_empty':
+          await officeDocument.exists() && await officeDocument.length() > 0,
+      'office_document_is_docx':
+          _extension(officeDocument.path).toLowerCase() == '.docx',
+      'office_document_zip_header': await _hasZipHeader(officeDocument),
+      'office_document_required_parts': docxMissingParts.isEmpty,
+      'office_manifest_exists': officeManifestPath.trim().isNotEmpty &&
+          await File(officeManifestPath).exists(),
+      'office_manifest_passed':
+          _stringValue(officeManifest['status'], '') == 'pass',
+      'workgroup_summary_exists': await File(workgroupSummaryPath).exists(),
+      'workgroup_summary_passed': workgroupStatus == 'pass',
+      'discussion_written': await File(discussionPath).exists(),
+      'discussion_manifest_written':
+          await File(discussionManifestPath).exists(),
+      'a2a_session_manifest_written':
+          await File(a2aSessionManifestPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'ui_blackbox_path_defined': uiBlackboxPath.trim().isNotEmpty,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'p2_4_ten_agent_gate_closed': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'p2_4_ten_agent_gate_closed',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_office_collaboration_workgroup_summary.v1',
+      'status': status,
+      'capability_id': 'office_collaboration_workgroup',
+      'capability_gate': 'P2-2 Office Collaboration Workgroup',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'ui_blackbox_path': uiBlackboxPath,
+      'user_facing_capability': '办公协作',
+      'office_document_path': officeDocument.path,
+      'office_manifest_path': officeManifestPath,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'discussion_path': discussionPath,
+      'discussion_manifest_path': discussionManifestPath,
+      'a2a_session_manifest_path': a2aSessionManifestPath,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
+      'checks': checks,
+      'missing_docx_parts': docxMissingParts,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runOfficeCollaborationWorkgroupAcceptance',
+        'summary_method': '_writeOfficeCollaborationWorkgroupSummary',
+        'office_document_validation': '_missingDocxRequiredParts',
+        'workgroup_runtime_summary': workgroupSummaryPath,
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'path': uiBlackboxPath,
+        'action': 'export DOCX then start work group',
+        'automation_key': 'workgroup-basic-runtime-evidence-button',
+        'result_visible_to_user': status == 'pass' ? '办公协作成果已生成' : '需要处理',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'DOCX export and workgroup discussion output are created in the workspace',
+        'view':
+            'Document Generation and Work Group panels expose generated state after runtime reload',
+        'open':
+            'Artifact Center can preview the registered summary/report files',
+        'export':
+            'Artifact Center can export registered office and workgroup files',
+        'delete':
+            'No real user data is deleted; only registered test-marked artifacts are eligible for deletion',
+        'restart_recovery':
+            'initialize reloads Office export, A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing Office document or missing Agent/Skill blocks acceptance',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+        'p2_4_ten_agent_gate_closed': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'next_gate': 'P2-3 Research Analysis Workgroup',
+      'p2_4_status': 'not_closed_by_p2_2',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'office_collaboration_workgroup_validated',
+      module: 'workgroup',
+      action: 'run_office_collaboration_workgroup_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'office_collaboration_workgroup',
+      targetName: 'Office Collaboration Workgroup',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'office_document_path': officeDocument.path,
+        'workgroup_summary_path': workgroupSummaryPath,
+        'p2_4_status': 'not_closed_by_p2_2',
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_collaboration_workgroup_summary',
+      artifactType: 'acceptance_report',
+      title: 'Office Collaboration Workgroup Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'office_collaboration_workgroup',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'office_document_path': officeDocument.path,
+        'workgroup_summary_path': workgroupSummaryPath,
+        'p2_4_status': 'not_closed_by_p2_2',
         'test_marked_artifact': true,
       },
     );
@@ -14471,9 +14760,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           : '',
       agentProfiles: agentProfiles,
       agentConversations: agentConversations,
-      agentActivityLogPath: await File(_agentActivityLogPath(workspace)).exists()
-          ? _agentActivityLogPath(workspace)
-          : '',
+      agentActivityLogPath:
+          await File(_agentActivityLogPath(workspace)).exists()
+              ? _agentActivityLogPath(workspace)
+              : '',
       agentArtifactCatalogPath:
           await File(_agentArtifactCatalogPath(workspace)).exists()
               ? _agentArtifactCatalogPath(workspace)

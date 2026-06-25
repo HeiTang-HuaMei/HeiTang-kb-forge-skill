@@ -9138,6 +9138,144 @@ void main() {
         isTrue);
   });
 
+  test('p2 office collaboration workgroup has office and workgroup evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\n');
+    final agentDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+      ..createSync(recursive: true);
+    File('${agentDir.path}${Platform.pathSeparator}agents.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_catalog.v1',
+      'status': 'saved',
+      'agents': [
+        {
+          'id': 'test_office_workgroup_agent',
+          'name': '办公协作测试助手',
+          'description': '用于 P2-2 办公协作黑盒验收。',
+          'role': '处理当前办公协作任务',
+          'status': 'available',
+          'created_at': now,
+          'updated_at': now,
+          'workspace_id': '默认工作本',
+          'primary_knowledge_base_id': 'K1',
+          'allowed_reference_kb_ids': [],
+          'kb_scope_mode': 'single',
+          'answer_policy_id': 'strict_evidence',
+          'ai_profile_id': 'ai_profile_default_local',
+          'bound_knowledge_base_ids': ['K1'],
+          'bound_skill_ids': ['primary_skill'],
+          'settings': {'reply_mode': 'local_fallback_until_configured'},
+        }
+      ],
+      'updated_at': now,
+    }));
+    final conversationDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_office_workgroup_agent')
+      ..createSync(recursive: true);
+    File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_conversation.v1',
+      'conversation_id': 'conv_test_office_workgroup_agent',
+      'agent_id': 'test_office_workgroup_agent',
+      'messages': [],
+      'created_at': now,
+      'updated_at': now,
+    }));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.runOfficeArtifactAdapterAcceptance();
+    final summaryPath =
+        await controller.runOfficeCollaborationWorkgroupAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_office_collaboration_workgroup_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'office_collaboration_workgroup');
+    expect(summary['capability_gate'], 'P2-2 Office Collaboration Workgroup');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['p2_4_status'], 'not_closed_by_p2_2');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'p2_4_ten_agent_gate_closed') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+    expect(summary['missing_docx_parts'], isEmpty);
+    final officeDocument = File(summary['office_document_path'] as String);
+    expect(officeDocument.existsSync(), isTrue);
+    expect(officeDocument.readAsBytesSync().take(4).toList(),
+        [0x50, 0x4b, 0x03, 0x04]);
+    expect(
+        File(summary['workgroup_summary_path'] as String).existsSync(), isTrue);
+    expect(File(summary['discussion_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasExportedDocument, isTrue);
+    expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'office_collaboration_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_collaboration_workgroup_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
