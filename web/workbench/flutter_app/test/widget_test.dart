@@ -781,6 +781,62 @@ void main() {
   });
 
   testWidgets(
+      'settings storage and document generation tabs stay product-facing',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+      contracts: sampleWorkbenchContracts,
+      providerCapabilityStatus: sampleProviderCapabilityStatus,
+      isWebRuntime: false,
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('sidebar-workspace')));
+    await tester.tap(find.byKey(const Key('sidebar-workspace')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('记忆与存储').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    while (tester.takeException() != null) {}
+
+    expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
+    expect(find.text('记忆与存储配置'), findsOneWidget);
+    expect(find.text('专业短期记忆'), findsWidgets);
+    expect(find.text('知识记忆服务'), findsOneWidget);
+    expect(find.textContaining('Qdrant'), findsNothing);
+    expect(find.textContaining('provider_'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Matrix'), findsNothing);
+
+    await tester.tap(find.text('导出').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    while (tester.takeException() != null) {}
+
+    expect(find.byKey(const Key('settings-exporter')), findsOneWidget);
+    expect(find.text('文档生成工具设置'), findsOneWidget);
+    expect(find.text('高级文档生成工具'), findsOneWidget);
+    expect(find.text('文档格式输出'), findsNothing);
+    expect(find.textContaining('Exporter'), findsNothing);
+    expect(find.textContaining('导出器'), findsNothing);
+    expect(find.textContaining('dependency-gated'), findsNothing);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(find.textContaining('Router'), findsNothing);
+    expect(find.textContaining('Matrix'), findsNothing);
+    expect(find.textContaining('OpenDataLoader'), findsNothing);
+    expect(find.textContaining('Composio'), findsNothing);
+    expect(find.textContaining('Docling'), findsNothing);
+    expect(find.textContaining('PaddleOCR'), findsNothing);
+    expect(find.textContaining('Unstructured'), findsNothing);
+    expect(find.textContaining('MeMo'), findsNothing);
+    expect(find.textContaining('n8n'), findsNothing);
+    expect(find.textContaining('0/'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
       'renders parser backend evidence without executable parser claims',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1320));

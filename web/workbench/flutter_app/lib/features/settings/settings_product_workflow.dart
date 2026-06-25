@@ -116,7 +116,7 @@ class _SettingsOverviewCards extends StatelessWidget {
               0,
             ),
             _SettingsOverviewCardData(
-              '导出工具',
+              '文档生成工具',
               'Markdown、Word、PDF、PPT、表格',
               Icons.file_download_outlined,
               3,
@@ -154,7 +154,7 @@ class _SettingsOverviewCards extends StatelessWidget {
               0,
             ),
             _SettingsOverviewCardData(
-              'Export tools',
+              'Document generation tools',
               'Markdown, Word, PDF, PPT, tables',
               Icons.file_download_outlined,
               3,
@@ -820,15 +820,9 @@ class _SettingsProviderModelEditorState
                       : saved
                           ? (zh ? '接口配置已保存' : 'Interface config saved')
                           : (zh ? '正在加载配置' : 'Loading config'),
-              detail: [
-                if (savedPath.isNotEmpty) savedPath,
-                if (validationPath.isNotEmpty) validationPath,
-                if (connectionConfigurationPath.isNotEmpty)
-                  'acceptance/connection_configuration_summary.json',
-                zh
-                    ? 'secret 仅保存掩码或环境变量引用'
-                    : 'secrets are masked or env references only',
-              ].join('\n'),
+              detail: zh
+                  ? '配置和测试记录已保存；访问密钥仅保存掩码或环境变量引用。'
+                  : 'Configuration and test records are saved; access keys remain masked or environment references.',
               tone: _StatusTone.success,
               icon: Icons.verified_user_outlined,
             ),
@@ -903,8 +897,9 @@ class _SettingsProviderModelEditorState
         children: [
           _FieldRow(
               label: zh ? '默认模型' : 'Default model',
-              value:
-                  loading ? (zh ? '正在加载' : 'Loading') : _modelController.text),
+              value: loading
+                  ? (zh ? '正在加载' : 'Loading')
+                  : (zh ? '系统自动选择' : 'Selected automatically')),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '默认语言' : 'Default language',
@@ -1571,7 +1566,7 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
     return _ProductPanel(
       keyName: 'settings-exporter',
       icon: Icons.file_download_outlined,
-      title: zh ? '导出工具设置' : 'Export Tool Settings',
+      title: zh ? '文档生成工具设置' : 'Document Generation Tools',
       gap: true,
       children: [
         _ProductTable(
@@ -1582,53 +1577,52 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
               ? [
                   [
                     '内置生成器',
-                    '本地可用',
+                    '已可用',
                     'md / txt / json / csv / docx / pdf / pptx / xlsx'
                   ],
-                  ['Markdown / TXT', '本地可用', '无需外部导出工具'],
-                  ['JSON / CSV / XLSX', '本地可用', '结构化和表格导出'],
-                  ['DOCX / PDF / PPTX', '本地可用', '内置轻量导出'],
-                  [
-                    '外部导出器',
-                    '高级增强',
-                    'LibreOffice / Pandoc / Office / 专业 PDF 引擎'
-                  ],
+                  ['Markdown / TXT', '已可用', '无需额外工具'],
+                  ['JSON / CSV / XLSX', '已可用', '结构化和表格输出'],
+                  ['DOCX / PDF / PPTX', '已可用', '内置轻量生成'],
+                  ['高级文档生成工具', '可选，未安装', '需要高保真排版时按提示安装'],
                 ]
               : [
                   [
                     'Built-in generator',
-                    'Local available',
+                    'Available',
                     'md / txt / json / csv / docx / pdf / pptx / xlsx'
                   ],
-                  ['Markdown / TXT', 'Local available', 'No external exporter'],
+                  ['Markdown / TXT', 'Available', 'No extra tool required'],
                   [
                     'JSON / CSV / XLSX',
-                    'Local available',
-                    'Structured and table export'
+                    'Available',
+                    'Structured and table output'
                   ],
                   [
                     'DOCX / PDF / PPTX',
-                    'Local available',
-                    'Built-in lightweight export'
+                    'Available',
+                    'Built-in lightweight generation'
                   ],
                   [
-                    'External exporter',
-                    'Advanced enhancement',
-                    'LibreOffice / Pandoc / Office / PDF engine'
+                    'Advanced document generation tools',
+                    'Optional, not installed',
+                    'Install only for high-fidelity layout'
                   ],
                 ],
         ),
         const SizedBox(height: 8),
         _SectionCaption(zh
-            ? '高级外部导出器（高保真排版、复杂模板、企业格式）'
-            : 'Advanced external exporters for high-fidelity layout and enterprise formats'),
+            ? '高级文档生成工具（高保真排版、复杂模板、企业格式）'
+            : 'Advanced document generation tools for high-fidelity layout and enterprise formats'),
         const SizedBox(height: 6),
         _SettingsConnectionForm(
           zh: zh,
           fields: [
-            _SettingsTextFieldSpec('DOCX Exporter', _docxController),
-            _SettingsTextFieldSpec('PDF Exporter', _pdfController),
-            _SettingsTextFieldSpec('PPTX Exporter', _pptxController),
+            _SettingsTextFieldSpec(
+                zh ? 'DOCX 生成工具' : 'DOCX generation tool', _docxController),
+            _SettingsTextFieldSpec(
+                zh ? 'PDF 生成工具' : 'PDF generation tool', _pdfController),
+            _SettingsTextFieldSpec(
+                zh ? 'PPTX 生成工具' : 'PPTX generation tool', _pptxController),
             _SettingsTextFieldSpec(
                 zh ? '导出根目录' : 'Export root', _exportRootController),
           ],
@@ -1636,12 +1630,12 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
         const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '保存导出工具配置' : 'Save export tool config',
+            label: zh ? '保存文档生成配置' : 'Save document generation config',
             icon: Icons.save_outlined,
             onPressed: _saveSettings,
           ),
           _PrimaryProductAction(
-            label: zh ? '测试导出工具配置' : 'Test export tool config',
+            label: zh ? '测试文档生成配置' : 'Test document generation config',
             icon: Icons.fact_check_outlined,
             onPressed: _validateSettings,
           ),
@@ -1650,15 +1644,13 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
           const SizedBox(height: 8),
           _RuntimeFeedbackBanner(
             title: validated
-                ? (zh ? '导出工具测试报告已生成' : 'Export tool test report generated')
-                : (zh ? '导出工具配置已保存' : 'Export tool config saved'),
-            detail: [
-              if (savedPath.isNotEmpty) savedPath,
-              if (validationPath.isNotEmpty) validationPath,
-              zh
-                  ? 'DOCX/PDF/PPTX 仍按依赖配置启用'
-                  : 'DOCX/PDF/PPTX remain dependency-gated',
-            ].join('\n'),
+                ? (zh
+                    ? '文档生成测试报告已生成'
+                    : 'Document generation test report generated')
+                : (zh ? '文档生成配置已保存' : 'Document generation config saved'),
+            detail: zh
+                ? '文档生成工具按需启用；普通格式无需额外安装。'
+                : 'Document generation tools are enabled only when needed; common formats need no extra install.',
             tone: _StatusTone.success,
             icon: Icons.file_download_done_outlined,
           ),
@@ -2017,7 +2009,7 @@ class _SettingsProvidersStorageViewState
   String _storageFeedbackDetail() {
     final details = <String>[
       if (savedConfigPath.isNotEmpty)
-        zh ? '配置文件：$savedConfigPath' : 'Config file: $savedConfigPath',
+        zh ? '存储配置已保存' : 'Storage configuration saved',
       if (redisDetail.isNotEmpty)
         '${zh ? '专业短期记忆' : 'Short-term memory'}: $redisDetail',
       if (qdrantDetail.isNotEmpty)
@@ -2202,7 +2194,8 @@ class _SettingsProvidersStorageViewState
       final detail = _ProductPanel(
         keyName: 'settings-provider-detail',
         icon: Icons.tune_outlined,
-        title: zh ? '导出工具与授权状态' : 'Export Tool and Authorization Status',
+        title:
+            zh ? '文档生成与授权状态' : 'Document Generation and Authorization Status',
         gap: true,
         children: [
           _FieldRow(
@@ -2223,7 +2216,7 @@ class _SettingsProvidersStorageViewState
                       ? 'Loading workspace config'
                       : 'Show configured, needs test until a connection test passes'),
           const SizedBox(height: 8),
-          _SectionCaption(zh ? '文档导出工具' : 'Document export tools'),
+          _SectionCaption(zh ? '文档格式输出' : 'Document format output'),
           const SizedBox(height: 6),
           _ProductTable(
             columns: zh
@@ -2231,18 +2224,26 @@ class _SettingsProvidersStorageViewState
                 : ['Format', 'Status', 'Config entry'],
             rows: zh
                 ? [
-                    ['Markdown', '本地可用', '无需外部导出工具'],
-                    ['JSON / CSV', '本地可用', '无需外部导出工具'],
-                    ['DOCX', '需要设置导出工具', '配置后启用'],
-                    ['PDF', '需要设置导出工具', '配置后启用'],
-                    ['PPTX', '需要设置导出工具', '配置后启用'],
+                    ['Markdown', '已可用', '无需额外工具'],
+                    ['JSON / CSV', '已可用', '无需额外工具'],
+                    ['DOCX', '可选，未安装', '需要时配置'],
+                    ['PDF', '可选，未安装', '需要时配置'],
+                    ['PPTX', '可选，未安装', '需要时配置'],
                   ]
                 : [
-                    ['Markdown', 'Local available', 'No external exporter'],
-                    ['JSON / CSV', 'Local available', 'No external exporter'],
-                    ['DOCX', 'Exporter config required', 'Enable after config'],
-                    ['PDF', 'Exporter config required', 'Enable after config'],
-                    ['PPTX', 'Exporter config required', 'Enable after config'],
+                    ['Markdown', 'Available', 'No extra tool required'],
+                    ['JSON / CSV', 'Available', 'No extra tool required'],
+                    [
+                      'DOCX',
+                      'Optional, not installed',
+                      'Configure when needed'
+                    ],
+                    ['PDF', 'Optional, not installed', 'Configure when needed'],
+                    [
+                      'PPTX',
+                      'Optional, not installed',
+                      'Configure when needed'
+                    ],
                   ],
           ),
         ],
