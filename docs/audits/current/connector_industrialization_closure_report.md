@@ -8,7 +8,7 @@ Status: connector_industrialization_completed_needs_owner_review
 - current_gate before closure: P2-7 Connector Industrialization
 - capability_id: connector_industrialization
 - acceptance_type: core_only
-- next_gate after closure: P2-8 Full Blackbox Automation Matrix
+- next_gate after closure: P2-8 Blackbox Automation Baseline
 
 This gate validates only the P2-7 core-only connector industrialization slice. It does not close P2-8, P2 Release Gate, Final Owner Review, or the ordinary product UI external-source verification blackbox path.
 
@@ -126,9 +126,9 @@ P2-7 regenerates the registered connector/provider integration artifacts in the 
   - Added P2-7 core-only connector industrialization acceptance.
   - Added targeted runtime test for connector evidence, degraded/failure states, audit, rollback, Event Ledger, Artifact Catalog and restart reload.
 - retry_count: 0 for P2-7 targeted validation in this closure pass.
-- next_gate: P2-8 Full Blackbox Automation Matrix
+- next_gate: P2-8 Blackbox Automation Baseline
 - remaining_gates: non-empty; P2 Release Gate and Final Owner Review remain queued
 
 ## Resume Prompt
 
-Continue from `P2-8 Full Blackbox Automation Matrix`. Do not treat P2-7 as P2 Release Gate completion. Keep UI second-knife dirty files and external-project/model-gateway governance drafts isolated unless the next gate explicitly absorbs them.
+Continue from `P2-8 Blackbox Automation Baseline`. Do not treat P2-7 as P2 Release Gate completion. Keep UI second-knife dirty files and external-project/model-gateway governance drafts isolated unless the next gate explicitly absorbs them.
