@@ -121,10 +121,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "pending_current_gate_commit",
-  "workspace_clean": false,
+  "last_commit": "67f7270",
+  "workspace_clean": true,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T03:27:50.3447518Z",
+  "updated_at": "2026-06-25T03:31:30.0000000Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
