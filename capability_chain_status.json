@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-9 Windows Packaging Baseline Smoke",
+  "current_gate": "P2-10 Role-based Workgroup",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -80,11 +80,11 @@
     "P2-5 Multi-Agent RAG Deepening",
     "P2-6 Hot-Pluggable Project Config Industrial Isolation",
     "P2-7 Connector Industrialization",
-    "P2-8 Blackbox Automation Baseline"
+    "P2-8 Blackbox Automation Baseline",
+    "P2-9 Windows Packaging Baseline Smoke"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-9 Windows Packaging Baseline Smoke",
     "P2-10 Role-based Workgroup",
     "P2-11 ReAct Tool Runtime Industrialization",
     "P2-12 Long Context Evaluation",
@@ -252,7 +252,8 @@
     "P2-7 Connector Industrialization has core-only connector health, failure, audit, rollback, Event Ledger and Artifact Catalog evidence; external runtimes remain guarded and Redis/vector services remain external connectors; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-8 Blackbox Automation Baseline.",
     "P2-8 Blackbox Automation Baseline has core-only baseline matrix, append contract, gap matrix, regression plan, boundary report, Event Ledger and Artifact Catalog evidence; final full matrix remains a P2 Release Gate duty.",
-    "P2 queue now continues with P2-9 Windows Packaging Baseline Smoke."
+    "P2 queue now continues with P2-9 Windows Packaging Baseline Smoke.",
+    "P2-9 Windows Packaging Baseline Smoke completed with package launch, window, workspace/config probe, restart persistence and connector boundary smoke."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
