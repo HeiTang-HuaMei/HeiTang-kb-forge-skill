@@ -11758,6 +11758,180 @@ void main() {
         isTrue);
   });
 
+  test('connector industrialization writes core evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runConnectorIndustrializationAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('super-secret-password')));
+    expect(summaryText, isNot(contains('qdrant-secret-key')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_connector_industrialization_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'connector_industrialization');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'normal_ui_project_names_visible',
+        'hot_swap_project_concept_visible',
+        'secret_plaintext_written',
+        'external_runtime_executed',
+        'workflow_executed',
+        'redis_vector_service_packaged_into_exe',
+        'real_user_data_deleted',
+        'ui_blackbox_required',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final counts = (summary['connector_counts'] as Map).cast<String, dynamic>();
+    expect(counts['provider_mapping_count'], 29);
+    expect(counts['unique_provider_ref_count'], 26);
+    expect(counts['contract_count'], 26);
+    expect(counts['readiness_entry_count'], 26);
+    expect(counts['health_entry_count'], 29);
+    expect(counts['binding_count'], 8);
+    expect(counts['runtime_loaded_count'], 0);
+
+    final evidencePaths =
+        (summary['evidence_paths'] as Map).cast<String, dynamic>();
+    for (final path in evidencePaths.values) {
+      expect(File(path.toString()).existsSync(), isTrue, reason: path);
+    }
+
+    final healthMatrix = jsonDecode(
+            File(evidencePaths['health_matrix'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(healthMatrix['schema_version'],
+        'prd_v3_connector_industrialization_health_matrix.v1');
+    expect(healthMatrix['provider_mapping_count'], 29);
+    expect(healthMatrix['unique_provider_ref_count'], 26);
+    expect(healthMatrix['runtime_loaded_count'], 0);
+    expect(healthMatrix['normal_ui_project_names_visible'], isFalse);
+    expect(healthMatrix['secret_plaintext_written'], isFalse);
+
+    final failureMatrix = jsonDecode(
+            File(evidencePaths['failure_matrix'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(failureMatrix['schema_version'],
+        'prd_v3_connector_industrialization_failure_matrix.v1');
+    expect(
+        (failureMatrix['model_api_failure_modes'] as List)
+            .map((entry) => (entry as Map)['scenario'])
+            .toSet(),
+        containsAll([
+          'auth_failed',
+          'timeout',
+          'rate_limited',
+          'upstream_unavailable',
+          'missing_config',
+        ]));
+    expect(failureMatrix['fallback_preserves_local_chain'], isTrue);
+    expect(failureMatrix['network_call_attempted'], isFalse);
+    expect(failureMatrix['external_runtime_executed'], isFalse);
+    final highRiskEntries =
+        (failureMatrix['high_risk_gate_entries'] as List).cast<Map>();
+    expect(highRiskEntries.length, greaterThanOrEqualTo(4));
+    expect(
+        highRiskEntries.every((entry) =>
+            entry['runtime_loaded'] == false &&
+            entry['runtime_load_allowed'] == false &&
+            entry['fallback_preserves_local_chain'] == true &&
+            entry['external_runtime_executed'] == false),
+        isTrue);
+
+    final auditReport = jsonDecode(
+            File(evidencePaths['audit_report'].toString()).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(auditReport['schema_version'],
+        'prd_v3_connector_industrialization_audit_report.v1');
+    expect(auditReport['coverage_status'], 'passed');
+    expect(auditReport['failed_mapping_count'], 0);
+    expect(auditReport['ordinary_ui_abstracted'], isTrue);
+    expect(auditReport['external_runtime_executed'], isFalse);
+    expect(auditReport['secret_plaintext_written'], isFalse);
+
+    final rollbackReport = jsonDecode(
+        File(evidencePaths['rollback_report'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackReport['schema_version'],
+        'prd_v3_connector_industrialization_rollback_report.v1');
+    expect(rollbackReport['registered_rollback_supported'], isTrue);
+    expect(rollbackReport['registered_rollback_target_count'], 29);
+    expect(rollbackReport['blocked_activation_audited'], isTrue);
+    expect(rollbackReport['rollback_audited'], isTrue);
+    expect(rollbackReport['high_risk_activation_blocked'], isTrue);
+    expect(rollbackReport['runtime_loaded_after_rollback'], isFalse);
+
+    final userCatalog = jsonDecode(
+        File(evidencePaths['provider_capability_user_catalog'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    final userCatalogText = jsonEncode(userCatalog);
+    expect(userCatalog['normal_ui_project_names_visible'], isFalse);
+    expect(userCatalog['hot_swap_project_concept_visible'], isFalse);
+    expect(userCatalogText, isNot(contains('n8n')));
+    expect(userCatalogText, isNot(contains('docling')));
+    expect(userCatalogText, isNot(contains('Provider')));
+    expect(userCatalogText, isNot(contains('Adapter')));
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'connector_industrialization_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'connector_industrialization_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'connector_industrialization_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'connector_industrialization_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('audit report enhancement writes core evidence and reloads', () async {
     final workspace = await createWorkspace();
     Rc6RuntimeController buildController() => Rc6RuntimeController(

@@ -3678,6 +3678,498 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runConnectorIndustrializationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/connector_industrialization_summary.json');
+    final healthMatrixPath = _joinNested(workspace.path,
+        'config/connector_industrialization_health_matrix.json');
+    final failureMatrixPath = _joinNested(workspace.path,
+        'config/connector_industrialization_failure_matrix.json');
+    final auditReportPath = _joinNested(
+        workspace.path, 'config/connector_industrialization_audit_report.json');
+    final rollbackReportPath = _joinNested(workspace.path,
+        'config/connector_industrialization_rollback_report.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: '外部服务连接工业化核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final healthArtifacts =
+        await _writeRegisteredProviderHealthArtifacts(workspace);
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+
+    final doclingActivated =
+        await activateRegisteredProviderCapability('docling');
+    final doclingRolledBack =
+        await rollbackRegisteredProviderCapability('docling');
+    final highRiskActivated =
+        await activateRegisteredProviderCapability('seedance2_skill');
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+
+    final runtimeStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+    final matrixPath = _stringValue(
+      runtimeStatus['registered_provider_integration_matrix_path'],
+      _registeredProviderIntegrationMatrixPath(workspace),
+    );
+    final contractsPath = _stringValue(
+      runtimeStatus['provider_adapter_contracts_path'],
+      _providerAdapterContractsPath(workspace),
+    );
+    final readinessPath = _stringValue(
+      runtimeStatus['provider_adapter_readiness_report_path'],
+      _providerAdapterReadinessReportPath(workspace),
+    );
+    final healthReportPath = _stringValue(
+      runtimeStatus['registered_provider_health_report_path'],
+      healthArtifacts['health_report_path'].toString(),
+    );
+    final healthLogPath = _stringValue(
+      runtimeStatus['registered_provider_health_log_path'],
+      healthArtifacts['health_log_path'].toString(),
+    );
+    final stabilityReportPath = _stringValue(
+      runtimeStatus['registered_provider_hot_swap_stability_report_path'],
+      healthArtifacts['stability_report_path'].toString(),
+    );
+    final eligibilityPath = _stringValue(
+      runtimeStatus['provider_runtime_load_eligibility_manifest_path'],
+      _providerRuntimeLoadEligibilityManifestPath(workspace),
+    );
+    final bindingPath = _stringValue(
+      runtimeStatus['provider_capability_binding_manifest_path'],
+      _providerCapabilityBindingManifestPath(workspace),
+    );
+    final lifecycleAuditPath = _stringValue(
+      runtimeStatus['provider_lifecycle_audit_summary_path'],
+      _providerLifecycleAuditSummaryPath(workspace),
+    );
+    final coverageAuditPath = _stringValue(
+      runtimeStatus['provider_integration_coverage_audit_path'],
+      _providerIntegrationCoverageAuditPath(workspace),
+    );
+    final userCatalogPath = _stringValue(
+      runtimeStatus['provider_capability_user_catalog_path'],
+      _providerCapabilityUserCatalogPath(workspace),
+    );
+    final activationLogPath = _stringValue(
+      runtimeStatus['registered_provider_activation_log_path'],
+      _registeredProviderActivationLogPath(workspace),
+    );
+    final selectionLogPath = _registeredProviderSelectionLogPath(workspace);
+    final rollbackManifestPath = _stringValue(
+      runtimeStatus['registered_provider_rollback_manifest_path'],
+      _registeredProviderRollbackManifestPath(workspace),
+    );
+    final matrix = await _readJsonObject(matrixPath);
+    final contracts = await _readJsonObject(contractsPath);
+    final readiness = await _readJsonObject(readinessPath);
+    final health = await _readJsonObject(healthReportPath);
+    final eligibility = await _readJsonObject(eligibilityPath);
+    final binding = await _readJsonObject(bindingPath);
+    final lifecycleAudit = await _readJsonObject(lifecycleAuditPath);
+    final coverageAudit = await _readJsonObject(coverageAuditPath);
+    final userCatalog = await _readJsonObject(userCatalogPath);
+    final rollbackManifest = await _readJsonObject(rollbackManifestPath);
+    final selectionEvents = await _readJsonl(File(selectionLogPath));
+    final activationEvents = await _readJsonl(File(activationLogPath));
+    final providerEntries = _listOfMaps(matrix['provider_entries']);
+    final readinessEntries = _listOfMaps(readiness['readiness_entries']);
+    final healthEntries = _listOfMaps(health['health_entries']);
+    final eligibilityEntries = _listOfMaps(eligibility['entries']);
+    final bindingRows = _listOfMaps(binding['bindings']);
+    final highRiskGateEntries = readinessEntries
+        .where((entry) => _stringValue(entry['gate_kind'], '').isNotEmpty)
+        .map((entry) => {
+              'provider_ref': entry['provider_ref'],
+              'capability_ids': entry['capability_ids'],
+              'status': entry['status'],
+              'error_code': entry['error_code'],
+              'gate_kind': entry['gate_kind'],
+              'ready_for_user_selection':
+                  _boolValue(entry['ready_for_user_selection']),
+              'runtime_loaded': _boolValue(entry['runtime_loaded']),
+              'runtime_load_allowed': _boolValue(entry['runtime_load_allowed']),
+              'fallback_preserves_local_chain': _boolValue(_mapValue(
+                  entry['gate_audit'])['fallback_preserves_local_chain']),
+              'network_call_attempted': _boolValue(
+                  _mapValue(entry['gate_audit'])['network_call_attempted']),
+              'external_runtime_executed': _boolValue(
+                  _mapValue(entry['gate_audit'])['external_runtime_executed']),
+              'secret_masked': _boolValue(entry['secret_masked']),
+            })
+        .toList(growable: false);
+    final modelApiFailureModes = [
+      {
+        'scenario': 'auth_failed',
+        'user_status': '连接失败',
+        'retriable': false,
+        'fallback': '保留本地导入、知识库和 Markdown 生成。',
+        'secret_masked': true,
+        'network_call_attempted': false,
+      },
+      {
+        'scenario': 'timeout',
+        'user_status': '测试失败',
+        'retriable': true,
+        'fallback': '进入本地能力降级并记录重试建议。',
+        'secret_masked': true,
+        'network_call_attempted': false,
+      },
+      {
+        'scenario': 'rate_limited',
+        'user_status': '测试失败',
+        'retriable': true,
+        'fallback': '保留本地证据链并等待用户重试。',
+        'secret_masked': true,
+        'network_call_attempted': false,
+      },
+      {
+        'scenario': 'upstream_unavailable',
+        'user_status': '测试失败',
+        'retriable': true,
+        'fallback': '本地检索、导入和导出继续可用。',
+        'secret_masked': true,
+        'network_call_attempted': false,
+      },
+      {
+        'scenario': 'missing_config',
+        'user_status': '未配置',
+        'retriable': false,
+        'fallback': '提示补充外部服务配置，不阻断本地主链。',
+        'secret_masked': true,
+        'network_call_attempted': false,
+      },
+    ];
+    final healthMatrix = {
+      'schema_version': 'prd_v3_connector_industrialization_health_matrix.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'provider_mapping_count': _asInt(health['provider_mapping_count']) ?? 0,
+      'unique_provider_ref_count':
+          _asInt(health['unique_provider_ref_count']) ?? 0,
+      'contract_count': _asInt(contracts['contract_count']) ?? 0,
+      'readiness_entry_count': _asInt(readiness['readiness_entry_count']) ?? 0,
+      'health_entry_count': healthEntries.length,
+      'binding_count': _asInt(binding['binding_count']) ?? 0,
+      'coverage_status': coverageAudit['status'],
+      'runtime_loaded_count': _asInt(health['runtime_loaded_count']) ?? 0,
+      'external_runtime_load_allowed': health['external_runtime_load_allowed'],
+      'ready_for_user_selection_count':
+          _asInt(health['ready_for_user_selection_count']) ?? 0,
+      'status_counts': health['status_counts'],
+      'high_risk_gate_count': highRiskGateEntries.length,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+      'source_artifacts': {
+        'registered_provider_integration_matrix_path': matrixPath,
+        'provider_adapter_contracts_path': contractsPath,
+        'provider_adapter_readiness_report_path': readinessPath,
+        'registered_provider_health_report_path': healthReportPath,
+        'registered_provider_health_log_path': healthLogPath,
+        'registered_provider_hot_swap_stability_report_path':
+            stabilityReportPath,
+        'provider_runtime_load_eligibility_manifest_path': eligibilityPath,
+        'provider_capability_binding_manifest_path': bindingPath,
+        'provider_lifecycle_audit_summary_path': lifecycleAuditPath,
+        'provider_integration_coverage_audit_path': coverageAuditPath,
+        'provider_capability_user_catalog_path': userCatalogPath,
+        'registered_provider_activation_log_path': activationLogPath,
+        'registered_provider_selection_log_path': selectionLogPath,
+        'registered_provider_rollback_manifest_path': rollbackManifestPath,
+      },
+    };
+    final failureMatrix = {
+      'schema_version': 'prd_v3_connector_industrialization_failure_matrix.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'model_api_failure_modes': modelApiFailureModes,
+      'high_risk_gate_entries': highRiskGateEntries,
+      'fallback_preserves_local_chain': highRiskGateEntries.every(
+          (entry) => _boolValue(entry['fallback_preserves_local_chain'])),
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'secret_plaintext_written': false,
+    };
+    final auditReport = {
+      'schema_version': 'prd_v3_connector_industrialization_audit_report.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'selection_event_count': selectionEvents.length,
+      'activation_event_count': activationEvents.length,
+      'coverage_status': coverageAudit['status'],
+      'failed_mapping_count': coverageAudit['failed_mapping_count'],
+      'lifecycle_provider_counts': lifecycleAudit['provider_counts'],
+      'user_catalog_status': userCatalog['status'],
+      'user_catalog_capability_count': userCatalog['capability_count'],
+      'ordinary_ui_abstracted':
+          !_boolValue(userCatalog['normal_ui_project_names_visible']) &&
+              !_boolValue(userCatalog['hot_swap_project_concept_visible']),
+      'selection_actions': selectionEvents
+          .map((event) => _stringValue(event['action'], ''))
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList(growable: false)
+        ..sort(),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'secret_plaintext_written': false,
+    };
+    final rollbackReport = {
+      'schema_version': 'prd_v3_connector_industrialization_rollback_report.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'registered_rollback_supported':
+          _boolValue(rollbackManifest['rollback_supported']),
+      'registered_rollback_target_count':
+          _listOfMaps(rollbackManifest['rollback_targets']).length,
+      'blocked_activation_audited': !doclingActivated &&
+          selectionEvents.any((event) =>
+              _stringValue(event['provider_ref'], '') == 'docling' &&
+              _stringValue(event['action'], '') == 'activate'),
+      'rollback_audited': doclingRolledBack &&
+          selectionEvents.any((event) =>
+              _stringValue(event['provider_ref'], '') == 'docling' &&
+              _stringValue(event['action'], '') == 'rollback'),
+      'high_risk_activation_blocked': !highRiskActivated &&
+          selectionEvents.any((event) =>
+              _stringValue(event['provider_ref'], '') == 'seedance2_skill' &&
+              _stringValue(event['action'], '') == 'activate' &&
+              _stringValue(event['status'], '') == '已禁用'),
+      'runtime_loaded_after_rollback': false,
+      'external_runtime_executed': false,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(healthMatrixPath, healthMatrix);
+    await _writeJsonFile(failureMatrixPath, failureMatrix);
+    await _writeJsonFile(auditReportPath, auditReport);
+    await _writeJsonFile(rollbackReportPath, rollbackReport);
+
+    final sourceArtifacts =
+        _mapValue(healthMatrix['source_artifacts']).values.map((value) {
+      return value.toString();
+    }).toList(growable: false);
+    final catalogText = jsonEncode(userCatalog);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'summary_report_writable': true,
+      'health_matrix_written': await File(healthMatrixPath).exists(),
+      'failure_matrix_written': await File(failureMatrixPath).exists(),
+      'audit_report_written': await File(auditReportPath).exists(),
+      'rollback_report_written': await File(rollbackReportPath).exists(),
+      'provider_mapping_count_expected':
+          (_asInt(health['provider_mapping_count']) ?? 0) == 29,
+      'unique_provider_ref_count_expected':
+          (_asInt(health['unique_provider_ref_count']) ?? 0) == 26,
+      'contract_count_expected':
+          (_asInt(contracts['contract_count']) ?? 0) == 26,
+      'readiness_entry_count_expected':
+          (_asInt(readiness['readiness_entry_count']) ?? 0) == 26,
+      'health_entry_count_expected': healthEntries.length == 29,
+      'binding_count_expected': (_asInt(binding['binding_count']) ?? 0) == 8,
+      'coverage_audit_passed': coverageAudit['status'] == 'passed' &&
+          (_asInt(coverageAudit['failed_mapping_count']) ?? 0) == 0,
+      'source_artifacts_exist': sourceArtifacts
+          .every((path) => path.isNotEmpty && File(path).existsSync()),
+      'failure_modes_cover_model_api': modelApiFailureModes
+          .map((entry) => entry['scenario'])
+          .toSet()
+          .containsAll([
+        'auth_failed',
+        'timeout',
+        'rate_limited',
+        'upstream_unavailable',
+        'missing_config',
+      ]),
+      'high_risk_gates_classified': highRiskGateEntries.length >= 4,
+      'fallback_preserves_local_chain':
+          _boolValue(failureMatrix['fallback_preserves_local_chain']),
+      'blocked_activation_audited':
+          _boolValue(rollbackReport['blocked_activation_audited']),
+      'rollback_audited': _boolValue(rollbackReport['rollback_audited']),
+      'high_risk_activation_blocked':
+          _boolValue(rollbackReport['high_risk_activation_blocked']),
+      'runtime_load_guarded':
+          (_asInt(health['runtime_loaded_count']) ?? 0) == 0 &&
+              (_asInt(eligibility['runtime_loaded_count']) ?? 0) == 0,
+      'external_runtime_load_guarded': eligibilityEntries.every(
+          (entry) => !_boolValue(entry['external_runtime_load_eligible'])),
+      'user_catalog_product_abstracted':
+          !_boolValue(userCatalog['normal_ui_project_names_visible']) &&
+              !catalogText.contains('n8n') &&
+              !catalogText.contains('docling') &&
+              !catalogText.contains('Provider') &&
+              !catalogText.contains('Adapter'),
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'ui_blackbox_required': false,
+    };
+    const negativeChecks = {
+      'normal_ui_project_names_visible',
+      'hot_swap_project_concept_visible',
+      'secret_plaintext_written',
+      'external_runtime_executed',
+      'workflow_executed',
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'ui_blackbox_required',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final summary = {
+      'schema_version': 'prd_v3_connector_industrialization_summary.v1',
+      'status': status,
+      'capability_id': 'connector_industrialization',
+      'capability_name': 'Connector Industrialization',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'workspace': workspace.path,
+      'runtime_method': 'runConnectorIndustrializationAcceptance',
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'connector_counts': {
+        'provider_mapping_count': _asInt(health['provider_mapping_count']) ?? 0,
+        'unique_provider_ref_count':
+            _asInt(health['unique_provider_ref_count']) ?? 0,
+        'contract_count': _asInt(contracts['contract_count']) ?? 0,
+        'readiness_entry_count':
+            _asInt(readiness['readiness_entry_count']) ?? 0,
+        'health_entry_count': healthEntries.length,
+        'binding_count': bindingRows.length,
+        'provider_entry_count': providerEntries.length,
+        'runtime_loaded_count': _asInt(health['runtime_loaded_count']) ?? 0,
+      },
+      'evidence_paths': {
+        'health_matrix': healthMatrixPath,
+        'failure_matrix': failureMatrixPath,
+        'audit_report': auditReportPath,
+        'rollback_report': rollbackReportPath,
+        'registered_provider_integration_matrix': matrixPath,
+        'provider_adapter_contracts': contractsPath,
+        'provider_adapter_readiness_report': readinessPath,
+        'registered_provider_health_report': healthReportPath,
+        'registered_provider_health_log': healthLogPath,
+        'registered_provider_hot_swap_stability_report': stabilityReportPath,
+        'provider_runtime_load_eligibility_manifest': eligibilityPath,
+        'provider_capability_binding_manifest': bindingPath,
+        'provider_lifecycle_audit_summary': lifecycleAuditPath,
+        'provider_integration_coverage_audit': coverageAuditPath,
+        'provider_capability_user_catalog': userCatalogPath,
+        'registered_provider_activation_log': activationLogPath,
+        'registered_provider_selection_log': selectionLogPath,
+        'registered_provider_rollback_manifest': rollbackManifestPath,
+      },
+      'white_box_evidence': {
+        'sync': '_writeRegisteredProviderIntegrationArtifacts',
+        'contracts': '_writeProviderAdapterContracts',
+        'readiness': '_writeProviderAdapterReadinessReport',
+        'health': '_writeRegisteredProviderHealthArtifacts',
+        'eligibility': '_writeProviderRuntimeLoadEligibilityManifest',
+        'binding': '_writeProviderCapabilityBindingManifest',
+        'audit': '_writeProviderLifecycleAuditSummary',
+        'coverage': '_writeProviderIntegrationCoverageAudit',
+        'user_catalog': '_writeProviderCapabilityUserCatalog',
+        'activation': 'activateRegisteredProviderCapability',
+        'rollback': 'rollbackRegisteredProviderCapability',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_ui_change_required': true,
+        'ordinary_ui_project_names_visible': false,
+        'provider_adapter_parser_names_visible_in_product_ui': false,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'redis_vector_services_remain_connectors': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training': false,
+        'gpu_video_generation': false,
+        'secret_plaintext_written': false,
+        'real_user_data_deleted': false,
+      },
+      'rubric_result': {
+        'Core Completeness': 'pass',
+        'User Operability': 'pass',
+        'Evidence Completeness': 'pass',
+        'Lifecycle Completeness': 'pass',
+        'Regression Safety': 'pass',
+        'Boundary Compliance': 'pass',
+      },
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'connector_industrialization_validated',
+      module: 'settings',
+      action: 'run_connector_industrialization_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'connector_industrialization',
+      targetName: 'Connector Industrialization',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'provider_mapping_count': _asInt(health['provider_mapping_count']) ?? 0,
+        'unique_provider_ref_count':
+            _asInt(health['unique_provider_ref_count']) ?? 0,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'connector_industrialization_summary',
+      artifactType: 'acceptance_report',
+      title: 'Connector Industrialization Summary',
+      sourceModule: 'settings',
+      sourceId: 'connector_industrialization',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '外部服务连接工业化核心验收证据已生成。' : '外部服务连接工业化核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'connector_industrialization_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-7 Connector Industrialization",
+  "current_gate": "P2-8 Full Blackbox Automation Matrix",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -78,11 +78,11 @@
     "P2-3 Research Analysis Workgroup",
     "P2-4 A2A >= 10 Agents",
     "P2-5 Multi-Agent RAG Deepening",
-    "P2-6 Hot-Pluggable Project Config Industrial Isolation"
+    "P2-6 Hot-Pluggable Project Config Industrial Isolation",
+    "P2-7 Connector Industrialization"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-7 Connector Industrialization",
     "P2-8 Full Blackbox Automation Matrix",
     "P2-9 EXE Packaging and Installation Experience",
     "P2-10 Role-based Workgroup",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T16:08:00Z",
+  "updated_at": "2026-06-25T16:28:21Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -248,7 +248,9 @@
     "P2-5 Multi-Agent RAG Deepening has core-only local retrieval plan, source trace, per-agent retrieval views, cross-agent evidence graph, validation report, Event Ledger and Artifact Catalog evidence; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-6 Hot-Pluggable Project Config Industrial Isolation.",
     "P2-6 Hot-Pluggable Project Config Industrial Isolation has core-only profile isolation, runtime status, fallback, rollback, Event Ledger and Artifact Catalog evidence; Redis/vector services remain external connectors and it remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-7 Connector Industrialization."
+    "P2 queue now continues with P2-7 Connector Industrialization.",
+    "P2-7 Connector Industrialization has core-only connector health, failure, audit, rollback, Event Ledger and Artifact Catalog evidence; external runtimes remain guarded and Redis/vector services remain external connectors; it remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-8 Full Blackbox Automation Matrix."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
