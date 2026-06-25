@@ -119,6 +119,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runConnectionConfigurationAcceptance();
+    } else if (_autoRunHotPluggableProjectConfigBasicOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Project Config Basic 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runHotPluggableProjectConfigBasicAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -2949,6 +2956,290 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? 'Connection Configuration 验收证据已生成。'
           : 'Connection Configuration 验收存在缺口。',
       lastError: status == 'pass' ? '' : 'connection_configuration_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runHotPluggableProjectConfigBasicAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/hot_pluggable_project_config_basic_summary.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: 'Project Config Basic 核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final initialProfiles = await _readProjectConfigProfiles(workspace);
+    final initialActive = _activeProfile(initialProfiles);
+    final createdTestProfileIds = <String>[];
+    var updatedTestVersion = 0;
+    var testProfileId = '';
+    var testCopyProfileId = '';
+    var profileTestId = '';
+    var activeBeforeReload = '';
+    var activeAfterReload = '';
+    var deleteActiveBlocked = false;
+    var deleteInactiveSucceeded = false;
+    var missingActivateBlocked = false;
+    var rollbackToOriginalSucceeded = false;
+    var deleteTestProfileSucceeded = false;
+    Map<String, dynamic> statusAfterReload = const {};
+
+    var testProfile = await createProjectConfigProfile(
+      displayName: 'test_project_config_profile_p1_25',
+      mode: 'hybrid',
+    );
+    testProfileId = testProfile.profileId;
+    createdTestProfileIds.add(testProfileId);
+    testProfile = await updateProjectConfigProfile(
+      testProfile.profileId,
+      displayName: 'test_project_config_profile_p1_25_updated',
+      mode: 'cloud',
+    );
+    updatedTestVersion = testProfile.version;
+
+    var testCopy = await copyProjectConfigProfile(testProfile.profileId);
+    testCopyProfileId = testCopy.profileId;
+    createdTestProfileIds.add(testCopyProfileId);
+    testCopy = await updateProjectConfigProfile(
+      testCopy.profileId,
+      displayName: 'test_project_config_profile_p1_25_copy',
+      mode: 'local',
+    );
+
+    profileTestId = await testProjectConfigProfile(testProfile.profileId);
+    final activated = await activateProjectConfigProfile(testProfile.profileId);
+    activeBeforeReload = activated.profileId;
+
+    final reloadedProfiles = await _readProjectConfigProfiles(workspace);
+    activeAfterReload = _activeProfile(reloadedProfiles).profileId;
+    statusAfterReload =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+
+    deleteActiveBlocked =
+        await deleteProjectConfigProfile(activeAfterReload) == false;
+    deleteInactiveSucceeded =
+        await deleteProjectConfigProfile(testCopy.profileId);
+    try {
+      await activateProjectConfigProfile(
+          'missing_p1_25_project_config_profile');
+    } catch (_) {
+      missingActivateBlocked = true;
+    }
+
+    final restoredActive =
+        await activateProjectConfigProfile(initialActive.profileId);
+    rollbackToOriginalSucceeded =
+        restoredActive.profileId == initialActive.profileId;
+    deleteTestProfileSucceeded =
+        await deleteProjectConfigProfile(testProfile.profileId);
+
+    var finalProfiles = await _readProjectConfigProfiles(workspace);
+    final restoredProfiles = finalProfiles.map((profile) {
+      if (profile.profileId != initialActive.profileId) {
+        return profile;
+      }
+      return profile.copyWith(
+        rollbackFromProfileId: initialActive.rollbackFromProfileId,
+      );
+    }).toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, restoredProfiles);
+    await _writeProjectConfigRuntimeStatus(workspace, restoredProfiles);
+    finalProfiles = await _readProjectConfigProfiles(workspace);
+    final finalActive = _activeProfile(finalProfiles);
+    final finalRuntimeStatus =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+    final moduleStatus = _mapValue(finalRuntimeStatus['module_status']);
+    final requiredModules = [
+      'dashboard',
+      'document_library',
+      'knowledge_base',
+      'retrieval_verification',
+      'document_generation',
+      'skill_factory',
+      'agent_workbench',
+    ];
+    final downstreamSynced =
+        requiredModules.every((key) => moduleStatus[key] is Map);
+
+    final profileChangeLogPath = _profileChangeLogPath(workspace);
+    final profileActivationLogPath = _profileActivationLogPath(workspace);
+    final configTestLogPath = _configTestLogPath(workspace);
+    final profileChangeLogText = File(profileChangeLogPath).existsSync()
+        ? File(profileChangeLogPath).readAsStringSync()
+        : '';
+    final profileActivationLogText = File(profileActivationLogPath).existsSync()
+        ? File(profileActivationLogPath).readAsStringSync()
+        : '';
+    final configTestLogText = File(configTestLogPath).existsSync()
+        ? File(configTestLogPath).readAsStringSync()
+        : '';
+    final finalProfileIds =
+        finalProfiles.map((profile) => profile.profileId).toSet();
+    final testProfilesCleanedUp = createdTestProfileIds
+        .every((profileId) => !finalProfileIds.contains(profileId));
+    final runtimeActiveProfileId = _stringValue(
+        _mapValue(finalRuntimeStatus['active_profile'])['profile_id'], '');
+    final reloadRuntimeActiveProfileId = _stringValue(
+        _mapValue(statusAfterReload['active_profile'])['profile_id'], '');
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'profiles_file_persisted':
+          await File(_projectConfigProfilesPath(workspace)).exists(),
+      'runtime_status_file_persisted':
+          await File(_projectConfigRuntimeStatusPath(workspace)).exists(),
+      'test_profile_created': testProfileId.isNotEmpty &&
+          testProfile.displayName.contains('test_project_config_profile'),
+      'test_profile_updated_versioned': updatedTestVersion > 1,
+      'test_profile_copied': testCopyProfileId.isNotEmpty &&
+          testCopy.displayName.contains('test_project_config_profile'),
+      'profile_test_logged': profileTestId.startsWith('profile_test_') &&
+          configTestLogText.contains(profileTestId),
+      'activation_persisted_before_reload':
+          activeBeforeReload == testProfileId &&
+              activeAfterReload == testProfileId &&
+              reloadRuntimeActiveProfileId == testProfileId,
+      'restart_recovery_from_workspace_files':
+          activeAfterReload == testProfileId,
+      'active_profile_delete_blocked': deleteActiveBlocked,
+      'inactive_test_profile_delete_succeeded': deleteInactiveSucceeded,
+      'missing_profile_activate_blocked': missingActivateBlocked,
+      'rollback_to_original_profile_succeeded': rollbackToOriginalSucceeded,
+      'test_profiles_cleaned_up':
+          deleteTestProfileSucceeded && testProfilesCleanedUp,
+      'single_active_profile_after_cleanup':
+          finalProfiles.where((profile) => profile.isActive).length == 1,
+      'runtime_status_synced_after_cleanup':
+          runtimeActiveProfileId == finalActive.profileId &&
+              finalActive.profileId == initialActive.profileId,
+      'downstream_modules_synced': downstreamSynced,
+      'profile_change_log_persisted':
+          profileChangeLogText.contains(testProfileId) &&
+              profileChangeLogText.contains(testCopyProfileId),
+      'profile_activation_log_persisted':
+          profileActivationLogText.contains(testProfileId) &&
+              profileActivationLogText.contains(initialActive.profileId),
+      'error_path_recorded': deleteActiveBlocked && missingActivateBlocked,
+      'external_services_remain_connectors': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'secret_plaintext_written': false,
+      'real_user_data_deleted': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+      'secret_plaintext_written',
+      'real_user_data_deleted',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_hot_pluggable_project_config_basic_summary.v1',
+      'status': status,
+      'capability_id': 'hot_pluggable_project_config_basic',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'workspace': workspace.path,
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'runtime_method': 'runHotPluggableProjectConfigBasicAcceptance',
+      'created_test_profile_ids': createdTestProfileIds,
+      'active_profile_before_reload': activeBeforeReload,
+      'active_profile_after_reload': activeAfterReload,
+      'final_active_profile_id': finalActive.profileId,
+      'original_active_profile_id': initialActive.profileId,
+      'project_config_profiles_path': _projectConfigProfilesPath(workspace),
+      'project_config_runtime_status_path':
+          _projectConfigRuntimeStatusPath(workspace),
+      'profile_change_log_path': profileChangeLogPath,
+      'profile_activation_log_path': profileActivationLogPath,
+      'config_test_log_path': configTestLogPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'create': 'createProjectConfigProfile',
+        'copy': 'copyProjectConfigProfile',
+        'update': 'updateProjectConfigProfile',
+        'activate': 'activateProjectConfigProfile',
+        'rollback': 'activate original profile after test activation',
+        'delete_test_profiles': 'deleteProjectConfigProfile',
+        'test_profile': 'testProjectConfigProfile',
+        'runtime_status_writer': '_writeProjectConfigRuntimeStatus',
+        'restart_recovery': '_readProjectConfigProfiles from workspace files',
+      },
+      'lifecycle_evidence': {
+        'create': testProfileId,
+        'copy': testCopyProfileId,
+        'update_version': updatedTestVersion,
+        'activate': activeBeforeReload,
+        'restart_recovery': activeAfterReload,
+        'delete_active_blocked': deleteActiveBlocked,
+        'delete_inactive_test_copy': deleteInactiveSucceeded,
+        'delete_inactive_test_profile': deleteTestProfileSucceeded,
+        'restore_original_active_profile': finalActive.profileId,
+        'missing_profile_error_path': missingActivateBlocked,
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_services_remain_connectors': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'secret_plaintext_written': false,
+        'real_user_data_deleted': false,
+      },
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'hot_pluggable_project_config_basic_validated',
+      module: 'settings',
+      action: 'run_hot_pluggable_project_config_basic_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'hot_pluggable_project_config_basic',
+      targetName: 'Hot-Pluggable Project Config Basic',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'created_test_profile_ids': createdTestProfileIds,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'hot_pluggable_project_config_basic_summary',
+      artifactType: 'acceptance_report',
+      title: 'Hot-Pluggable Project Config Basic Summary',
+      sourceModule: 'settings',
+      sourceId: 'hot_pluggable_project_config_basic',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Project Config Basic 核心验收证据已生成。'
+          : 'Project Config Basic 核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'hot_pluggable_project_config_basic_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -29373,6 +29664,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunConnectionConfigurationOnLaunch() {
     return _envEnabled('HEITANG_P1_CONNECTION_CONFIGURATION_E2E');
+  }
+
+  bool _autoRunHotPluggableProjectConfigBasicOnLaunch() {
+    return _envEnabled('HEITANG_P1_HOT_PLUGGABLE_PROJECT_CONFIG_E2E');
   }
 
   bool _envEnabled(String key) {

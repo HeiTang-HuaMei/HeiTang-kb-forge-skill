@@ -9229,6 +9229,102 @@ void main() {
         isTrue);
   });
 
+  test('hot pluggable project config basic writes core evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runHotPluggableProjectConfigBasicAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('super-secret-password')));
+    expect(summaryText, isNot(contains('qdrant-secret-key')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_hot_pluggable_project_config_basic_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'hot_pluggable_project_config_basic');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'redis_vector_service_packaged_into_exe',
+        'secret_plaintext_written',
+        'real_user_data_deleted',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final profiles = (jsonDecode(
+        File('$configDir${Platform.pathSeparator}project_config_profiles.json')
+            .readAsStringSync()) as Map<String, dynamic>)['profiles'] as List;
+    expect(
+        profiles
+            .cast<Map>()
+            .where((profile) => profile['is_active'] == true)
+            .length,
+        1);
+    expect(
+        profiles.cast<Map>().any((profile) => (profile['display_name'] ?? '')
+            .toString()
+            .contains('test_project_config_profile_p1_25')),
+        isFalse);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+            'hot_pluggable_project_config_basic_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'hot_pluggable_project_config_basic_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'hot_pluggable_project_config_basic_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'hot_pluggable_project_config_basic_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();
