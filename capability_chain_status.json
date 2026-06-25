@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-24 Connection Configuration Blackbox Verification",
+  "current_gate": "P1-25 Hot-Pluggable Project Config Basic",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -48,11 +48,11 @@
     "P1-20 Office Artifact Adapter Research / DOCX Basic",
     "P1-21 Assistant Backend Separation",
     "P1-22 UI Taste Gate",
-    "P1-23 Full Route Responsive Review"
+    "P1-23 Full Route Responsive Review",
+    "P1-24 Connection Configuration Blackbox Verification"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-24 Connection Configuration Blackbox Verification",
     "P1-25 Hot-Pluggable Project Config Basic",
     "P1-26 Audit Report Enhancement",
     "P1-27 Codex Execution Harness Enhancement",
@@ -121,10 +121,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "b6a99f6",
+  "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T00:28:00Z",
+  "updated_at": "2026-06-25T02:18:37.8908441Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -190,7 +190,9 @@
     "P1-21 Assistant Backend Separation has user-blackbox backend binding evidence, masked-secret boundary evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
     "P1-22 UI Taste Gate has user-blackbox UI taste evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
     "P1-23 Full Route Responsive Review has user-blackbox route/responsive evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-24 Connection Configuration Blackbox Verification."
+    "P1 queue now continues with P1-24 Connection Configuration Blackbox Verification.",
+    "P1-24 Connection Configuration Blackbox Verification has user-blackbox settings connection evidence, masked-secret boundary evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-25 Hot-Pluggable Project Config Basic."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

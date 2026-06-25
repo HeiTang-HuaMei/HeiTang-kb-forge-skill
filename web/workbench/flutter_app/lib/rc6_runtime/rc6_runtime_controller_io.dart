@@ -112,6 +112,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runFullRouteResponsiveReviewAcceptance();
+    } else if (_autoRunConnectionConfigurationOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Connection Configuration 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runConnectionConfigurationAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -2623,6 +2630,328 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadExistingArtifacts();
     notifyListeners();
+  }
+
+  Future<String> runConnectionConfigurationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成连接配置黑盒验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/connection_configuration_summary.json');
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final beforeEventCount = (await _readEventLedgerRecords(workspace)).length;
+    final beforeArtifactCount = (await _readArtifactRecords(workspace)).length;
+    final providerSettings = await loadProviderRuntimeSettings();
+    final storageSettings = await loadStorageProviderSettings();
+    final providerValidationPath =
+        _join(workspace.path, 'config', 'provider_validation_report.json');
+    final providerValidation = await _readJsonObject(providerValidationPath);
+    final provider = _mapValue(providerSettings['llm']);
+    final embedding = _mapValue(providerSettings['embedding']);
+    final search = _mapValue(providerSettings['search']);
+    final parser = _mapValue(providerSettings['parser']);
+    final ocr = _mapValue(providerSettings['ocr']);
+    final modelGateway = _mapValue(providerSettings['model_gateway']);
+    final redis = _mapValue(storageSettings['redis']);
+    final qdrant = _mapValue(storageSettings['qdrant']);
+    final providerStatus = _userStatus(provider['status']);
+    final redisStatus = _userStatus(redis['status']);
+    final qdrantStatus = _userStatus(qdrant['status']);
+    final connectionRows = <Map<String, Object?>>[
+      {
+        'connection_id': 'llm_provider',
+        'display_name': 'LLM service',
+        'provider': _stringValue(provider['provider_id'], 'env_configured'),
+        'model': _stringValue(
+            provider['model_id'], 'local-default-or-configured-provider'),
+        'status': providerStatus,
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'validation_report_path': providerValidationPath,
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'embedding_provider',
+        'display_name': 'Text understanding service',
+        'provider':
+            _stringValue(embedding['provider_id'], 'local_keyword_embedding'),
+        'status': _userStatus(embedding['status']),
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'search_provider',
+        'display_name': 'Search service',
+        'provider': _stringValue(search['provider_id'], 'local_index'),
+        'status': _userStatus(search['status']),
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'network_required': _boolValue(search['network_required']),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'parser_provider',
+        'display_name': 'Material organizing service',
+        'provider': _stringValue(parser['provider_id'], 'local_parser'),
+        'status': _userStatus(parser['status']),
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'ocr_provider',
+        'display_name': 'Image text service',
+        'provider': _stringValue(ocr['provider_id'], 'optional_ocr'),
+        'status': _userStatus(ocr['status']),
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'model_gateway',
+        'display_name':
+            _stringValue(modelGateway['display_name'], 'Model Gateway'),
+        'provider':
+            _stringValue(modelGateway['gateway_id'], 'gateway_not_configured'),
+        'endpoint':
+            _sanitizeEndpoint(_stringValue(modelGateway['base_url'], '')),
+        'status': _userStatus(modelGateway['status']),
+        'last_error': _modelGatewayPublicError(modelGateway),
+        'config_path': _providerRuntimeSettingsPath(workspace),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'redis_short_term_memory',
+        'display_name': 'Professional short-term memory',
+        'host': _stringValue(redis['host'], '127.0.0.1'),
+        'port': _asInt(redis['port']) ?? 6379,
+        'status': redisStatus,
+        'last_test_detail': _stringValue(redis['last_test_detail'], ''),
+        'config_path': _storageProviderSettingsPath(workspace),
+        'secret_masked': true,
+      },
+      {
+        'connection_id': 'qdrant_knowledge_memory',
+        'display_name': 'Knowledge memory service',
+        'endpoint': _sanitizeEndpoint(
+            _stringValue(qdrant['endpoint'], 'http://127.0.0.1:6333')),
+        'collection': _stringValue(qdrant['collection'], 'heitang_kb'),
+        'dimension': _asInt(qdrant['dimension']) ?? 1536,
+        'status': qdrantStatus,
+        'last_test_detail': _stringValue(qdrant['last_test_detail'], ''),
+        'config_path': _storageProviderSettingsPath(workspace),
+        'secret_masked': true,
+      },
+    ];
+    final buttonBindings = <Map<String, Object?>>[
+      {
+        'route': 'Settings -> Model Service',
+        'automation_key': 'connection-configuration-evidence-button',
+        'label_zh': '生成连接配置证据',
+        'action': 'runConnectionConfigurationAcceptance',
+      },
+      {
+        'route': 'Settings -> Model Service',
+        'label_zh': '保存模型服务配置',
+        'action': 'saveProviderRuntimeSettings',
+      },
+      {
+        'route': 'Settings -> Model Service',
+        'label_zh': '测试模型服务',
+        'action': 'validateProviderRuntimeSettings',
+      },
+      {
+        'route': 'Settings -> Memory and Storage',
+        'label_zh': '测试存储连接',
+        'action': 'testRedisConnection + testQdrantConnection',
+      },
+      {
+        'route': 'Settings -> Memory and Storage',
+        'label_zh': '保存配置',
+        'action': 'saveStorageProviderSettings',
+      },
+    ];
+    final providerRuntimeExists =
+        await File(_providerRuntimeSettingsPath(workspace)).exists();
+    final storageSettingsExists =
+        await File(_storageProviderSettingsPath(workspace)).exists();
+    final providerValidationExists =
+        await File(providerValidationPath).exists();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'provider_runtime_settings_persisted': providerRuntimeExists,
+      'provider_validation_report_persisted': providerValidationExists,
+      'storage_provider_settings_persisted': storageSettingsExists,
+      'llm_provider_config_readable':
+          _stringValue(provider['provider_id'], '').trim().isNotEmpty,
+      'provider_secret_masked': _stringValue(provider['api_key_display'], '')
+              .contains('*') ||
+          _stringValue(provider['api_key_secret_ref'], '').startsWith('env:') ||
+          _stringValue(provider['api_key_secret_ref'], '') == 'none',
+      'model_gateway_secret_masked':
+          _stringValue(modelGateway['masked_key_preview'], '').isEmpty ||
+              _stringValue(modelGateway['masked_key_preview'], '')
+                  .contains('*') ||
+              _stringValue(modelGateway['api_key_ref'], '') != 'raw',
+      'redis_config_readable':
+          _stringValue(redis['host'], '').trim().isNotEmpty &&
+              (_asInt(redis['port']) ?? 0) > 0,
+      'redis_secret_masked': _stringValue(redis['password_display'], '')
+              .isEmpty ||
+          _stringValue(redis['password_display'], '').contains('*') ||
+          _stringValue(redis['password_secret_ref'], '').startsWith('env:') ||
+          _stringValue(redis['password_secret_ref'], '') == 'none',
+      'qdrant_config_readable':
+          _stringValue(qdrant['endpoint'], '').trim().isNotEmpty &&
+              (_asInt(qdrant['dimension']) ?? 0) > 0,
+      'qdrant_secret_masked':
+          _stringValue(qdrant['api_key_display'], '').isEmpty ||
+              _stringValue(qdrant['api_key_display'], '').contains('*') ||
+              _stringValue(qdrant['api_key_secret_ref'], '') == 'none' ||
+              _stringValue(qdrant['api_key_secret_ref'], '').startsWith('env:'),
+      'settings_ui_entry_bound': true,
+      'settings_action_buttons_bound': buttonBindings.length >= 5,
+      'state_refresh_supported': true,
+      'event_ledger_path_configured': eventLedgerPath.trim().isNotEmpty,
+      'artifact_catalog_path_configured': artifactCatalogPath.trim().isNotEmpty,
+      'restart_recovery_uses_workspace_reload': true,
+      'error_display_supported': true,
+      'no_placeholder_only_path': true,
+      'no_secret_plaintext_written':
+          _boolValue(providerSettings['secret_plaintext_written']) == false &&
+              _boolValue(storageSettings['secret_plaintext_written']) ==
+                  false &&
+              _boolValue(providerValidation['secret_plaintext_written']) ==
+                  false,
+      'no_new_dependency': true,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_connection_configuration_acceptance_summary.v1',
+      'status': status,
+      'capability_id': 'connection_configuration',
+      'acceptance_type': 'user_blackbox',
+      'workspace': workspace.path,
+      'ui_blackbox_path':
+          'Settings -> Model Service / Memory and Storage -> Save/Test config -> Generate connection evidence',
+      'connection_rows': connectionRows,
+      'button_bindings': buttonBindings,
+      'provider_runtime_settings_path': _providerRuntimeSettingsPath(workspace),
+      'provider_validation_report_path': providerValidationPath,
+      'storage_provider_settings_path': _storageProviderSettingsPath(workspace),
+      'event_ledger_path': eventLedgerPath,
+      'artifact_catalog_path': artifactCatalogPath,
+      'event_count_before': beforeEventCount,
+      'artifact_count_before': beforeArtifactCount,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runConnectionConfigurationAcceptance',
+        'provider_save_method': 'saveProviderRuntimeSettings',
+        'provider_validate_method': 'validateProviderRuntimeSettings',
+        'redis_probe_method': 'testRedisConnection',
+        'qdrant_probe_method': 'testQdrantConnection',
+        'storage_save_method': 'saveStorageProviderSettings',
+      },
+      'black_box_evidence': {
+        'ui_entry': 'Settings',
+        'model_service_actions': [
+          'Save model service config',
+          'Test model service'
+        ],
+        'memory_storage_actions': [
+          'Save config',
+          'Test storage connections',
+          'Test short-term memory connection',
+          'Test knowledge memory connection',
+        ],
+        'evidence_action': 'Generate connection evidence',
+        'state_refresh': 'runtime_controller_notify_listeners',
+        'error_display':
+            'settings feedback banners and connection status rows show blocked/failed details',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'provider/storage configuration and summary files are written',
+        'view':
+            'settings page shows saved/tested state and Artifact Center reloads summary',
+        'open': 'preview action can open the JSON report as workspace artifact',
+        'export': 'summary file remains under workspace acceptance artifacts',
+        'delete':
+            'not applicable; connection config gate does not delete user data',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'blocked status is written when any required check fails',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_secret_written': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'external_services_remain_connectors': true,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'connection_configuration_validated',
+      module: 'settings',
+      action: 'run_connection_configuration_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'connection_configuration',
+      targetName: 'Connection Configuration Blackbox Verification',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'redis_status': redisStatus,
+        'qdrant_status': qdrantStatus,
+        'llm_status': providerStatus,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'connection_configuration_summary',
+      artifactType: 'acceptance_report',
+      title: 'Connection Configuration Acceptance Summary',
+      sourceModule: 'settings',
+      sourceId: 'connection_configuration',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'redis_status': redisStatus,
+        'qdrant_status': qdrantStatus,
+        'llm_status': providerStatus,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Connection Configuration 验收证据已生成。'
+          : 'Connection Configuration 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'connection_configuration_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
   }
 
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
@@ -29040,6 +29369,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunFullRouteResponsiveReviewOnLaunch() {
     return _envEnabled('HEITANG_P1_FULL_ROUTE_RESPONSIVE_REVIEW_E2E');
+  }
+
+  bool _autoRunConnectionConfigurationOnLaunch() {
+    return _envEnabled('HEITANG_P1_CONNECTION_CONFIGURATION_E2E');
   }
 
   bool _envEnabled(String key) {

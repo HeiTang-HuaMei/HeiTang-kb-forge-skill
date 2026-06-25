@@ -339,9 +339,11 @@ class _SettingsProviderModelEditorState
   bool loading = false;
   bool saved = false;
   bool validated = false;
+  bool validatingConnectionConfiguration = false;
   bool profileLoading = false;
   String savedPath = '';
   String validationPath = '';
+  String connectionConfigurationPath = '';
   String profileMessage = '';
   String capabilityMessage = '';
   List<ProjectConfigProfile> profiles = const [];
@@ -555,6 +557,23 @@ class _SettingsProviderModelEditorState
     await _loadRuntimeCapabilityCatalog();
   }
 
+  Future<void> _runConnectionConfigurationAcceptance() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null || rc6.state.running || validatingConnectionConfiguration) {
+      return;
+    }
+    setState(() => validatingConnectionConfiguration = true);
+    final path = await rc6.runConnectionConfigurationAcceptance();
+    if (!mounted) return;
+    setState(() {
+      connectionConfigurationPath = path;
+      validatingConnectionConfiguration = false;
+      saved = saved || path.isNotEmpty;
+      validated = validated || path.isNotEmpty;
+    });
+    await _loadRuntimeCapabilityCatalog();
+  }
+
   Future<void> _testCapabilityEnhancement() async {
     final rc6 = widget.runtimeController;
     if (rc6 == null) return;
@@ -604,13 +623,27 @@ class _SettingsProviderModelEditorState
     if (rc6 == null) return;
     final catalog = await rc6.loadProviderCapabilityUserCatalog();
     final entries = catalog['entries'];
-    if (entries is! List) return;
+    Rc6ArtifactRecord? latestConnectionSummary;
+    for (final record in rc6.state.artifactRecords) {
+      if (record.artifactId == 'connection_configuration_summary' &&
+          record.isActive) {
+        latestConnectionSummary = record;
+        break;
+      }
+    }
     if (!mounted) return;
     setState(() {
-      runtimeCapabilityEntries = entries
-          .whereType<Map>()
-          .map((entry) => Map<String, dynamic>.from(entry))
-          .toList(growable: false);
+      if (entries is List) {
+        runtimeCapabilityEntries = entries
+            .whereType<Map>()
+            .map((entry) => Map<String, dynamic>.from(entry))
+            .toList(growable: false);
+      }
+      if (latestConnectionSummary != null) {
+        connectionConfigurationPath = latestConnectionSummary.filePath;
+        saved = true;
+        validated = true;
+      }
     });
   }
 
@@ -705,17 +738,58 @@ class _SettingsProviderModelEditorState
               onPressed: _validateSettings,
             ),
           ]),
-          if (saved || validated || loading) ...[
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
+            _PrimaryProductAction(
+              automationKey: 'connection-configuration-evidence-button',
+              label: validatingConnectionConfiguration
+                  ? (zh ? '正在生成连接配置证据' : 'Generating connection evidence')
+                  : (zh ? '生成连接配置证据' : 'Generate connection evidence'),
+              icon: Icons.cable_outlined,
+              onPressed: widget.runtimeController == null ||
+                      validatingConnectionConfiguration
+                  ? null
+                  : _runConnectionConfigurationAcceptance,
+            ),
+            _DisplayAction(
+              label: connectionConfigurationPath.isEmpty
+                  ? (zh ? '等待连接配置报告' : 'Waiting for connection report')
+                  : (zh ? '预览连接配置报告' : 'Preview connection report'),
+              icon: Icons.visibility_outlined,
+              onPressed: connectionConfigurationPath.isEmpty
+                  ? null
+                  : () => _showWorkspaceArtifactPreview(
+                        context,
+                        rc6: widget.runtimeController,
+                        title: zh ? '连接配置报告预览' : 'Connection report preview',
+                        path: connectionConfigurationPath,
+                        unavailableMessage: zh
+                            ? '尚未生成连接配置报告。'
+                            : 'No connection configuration report generated.',
+                        closeLabel: zh ? '关闭' : 'Close',
+                      ),
+            ),
+          ]),
+          if (saved ||
+              validated ||
+              loading ||
+              connectionConfigurationPath.isNotEmpty) ...[
             const SizedBox(height: 8),
             _RuntimeFeedbackBanner(
-              title: validated
-                  ? (zh ? '模型服务测试报告已生成' : 'Model service test report generated')
-                  : saved
-                      ? (zh ? '模型服务配置已保存' : 'Model service config saved')
-                      : (zh ? '正在加载配置' : 'Loading config'),
+              title: connectionConfigurationPath.isNotEmpty
+                  ? (zh ? '连接配置证据已生成' : 'Connection evidence generated')
+                  : validated
+                      ? (zh
+                          ? '模型服务测试报告已生成'
+                          : 'Model service test report generated')
+                      : saved
+                          ? (zh ? '模型服务配置已保存' : 'Model service config saved')
+                          : (zh ? '正在加载配置' : 'Loading config'),
               detail: [
                 if (savedPath.isNotEmpty) savedPath,
                 if (validationPath.isNotEmpty) validationPath,
+                if (connectionConfigurationPath.isNotEmpty)
+                  'acceptance/connection_configuration_summary.json',
                 zh
                     ? 'secret 仅保存掩码或环境变量引用'
                     : 'secrets are masked or env references only',

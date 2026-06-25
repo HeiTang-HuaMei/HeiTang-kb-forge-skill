@@ -9115,6 +9115,120 @@ void main() {
         isTrue);
   });
 
+  test('connection configuration writes audit evidence and reloads catalog',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.saveProviderRuntimeSettings(
+      llmProvider: 'env_configured',
+      modelId: 'connection-test-model',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'local_index',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: 'connection-test-input',
+    );
+    await controller.saveStorageProviderSettings(
+      redisHost: '127.0.0.1',
+      redisPort: 6379,
+      redisKeyPrefix: 'heitang:test:',
+      redisPassword: 'redis-test-input',
+      qdrantEndpoint: 'http://127.0.0.1:6333',
+      qdrantCollection: 'heitang_test_collection',
+      qdrantDimension: 1536,
+      qdrantApiKey: 'qdrant-test-input',
+    );
+
+    final summaryPath = await controller.runConnectionConfigurationAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('connection-test-input')));
+    expect(summaryText, isNot(contains('redis-test-input')));
+    expect(summaryText, isNot(contains('qdrant-test-input')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_connection_configuration_acceptance_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'connection_configuration');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['ui_blackbox_path'], contains('Settings -> Model Service'));
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'redis_vector_service_packaged_into_exe') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final buttonBindings =
+        (summary['button_bindings'] as List).cast<Map<String, dynamic>>();
+    expect(
+        buttonBindings.any((row) =>
+            row['automation_key'] ==
+                'connection-configuration-evidence-button' &&
+            row['action'] == 'runConnectionConfigurationAcceptance'),
+        isTrue);
+    final connectionRows =
+        (summary['connection_rows'] as List).cast<Map<String, dynamic>>();
+    expect(
+        connectionRows.any((row) =>
+            row['connection_id'] == 'redis_short_term_memory' &&
+            row['secret_masked'] == true),
+        isTrue);
+    expect(
+        connectionRows.any((row) =>
+            row['connection_id'] == 'qdrant_knowledge_memory' &&
+            row['dimension'] == 1536),
+        isTrue);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'connection_configuration_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'connection_configuration_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'connection_configuration_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'connection_configuration_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();

@@ -221,6 +221,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runConnectionConfigurationAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<Map<String, dynamic>> loadStorageProviderSettings() async => {
         'schema_version': 'heitang_storage_provider_settings.v1',
         'workspace': '',
