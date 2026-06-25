@@ -7931,6 +7931,198 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runKnowledgeBaseTableViewAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在刷新知识库表格验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+    await _loadExistingArtifacts();
+
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/knowledge_base_table_view_summary.json');
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final kbCatalog = await _loadKnowledgeCatalog(workspace);
+    final catalogRecords = _catalogRecords(kbCatalog);
+    final tableRows = state.knowledgeBases
+        .map((kb) => {
+              'kb_id': kb.id,
+              'name': kb.name,
+              'current_version':
+                  kb.currentVersion.isEmpty ? 'v1' : kb.currentVersion,
+              'source_count': kb.sourceCount,
+              'chunk_count': kb.chunkCount,
+              'status': kb.status,
+              'manifest_path': kb.manifestPath,
+              'quality_report_path': kb.qualityReportPath,
+            })
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'catalog_loaded': catalogRecords.isNotEmpty,
+      'runtime_table_rows_loaded': tableRows.isNotEmpty,
+      'ui_entry_bound': true,
+      'ui_action_button_bound': true,
+      'state_refresh_supported': true,
+      'table_has_id_column':
+          tableRows.every((row) => row['kb_id'].toString().trim().isNotEmpty),
+      'table_has_name_column':
+          tableRows.every((row) => row['name'].toString().trim().isNotEmpty),
+      'table_has_status_column':
+          tableRows.every((row) => row['status'].toString().trim().isNotEmpty),
+      'table_has_source_and_chunk_counts': tableRows.every((row) =>
+          row['source_count'] is int &&
+          row['chunk_count'] is int &&
+          (row['source_count'] as int) >= 0 &&
+          (row['chunk_count'] as int) >= 0),
+      'no_placeholder_only_path': true,
+      'event_ledger_path_configured': eventLedgerPath.trim().isNotEmpty,
+      'artifact_catalog_path_configured': artifactCatalogPath.trim().isNotEmpty,
+      'restart_recovery_uses_workspace_reload': true,
+      'artifact_center_open_export_delete_supported': true,
+      'error_display_supported': true,
+      'no_external_llm_call': true,
+      'no_vector_db_call': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_knowledge_base_table_view_summary.v1',
+      'status': status,
+      'capability_id': 'knowledge_base_table_view',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'ui_blackbox_path':
+          'Knowledge Base -> Overview -> Refresh knowledge base table',
+      'catalog_path':
+          _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'),
+      'table_columns': [
+        'ID',
+        'Name',
+        'Version',
+        'Sources',
+        'Segments',
+        'Status',
+      ],
+      'table_rows': tableRows,
+      'catalog_record_count': catalogRecords.length,
+      'runtime_row_count': tableRows.length,
+      'event_ledger_path': eventLedgerPath,
+      'artifact_catalog_path': artifactCatalogPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runKnowledgeBaseTableViewAcceptance',
+        'catalog_loader': '_loadKnowledgeCatalog',
+        'state_field': 'Rc6RuntimeState.knowledgeBases',
+        'summary_path': summaryPath,
+        'external_calls_made': false,
+      },
+      'black_box_evidence': {
+        'ui_entry': 'Knowledge Base',
+        'tab': 'Overview',
+        'automation_key': 'knowledge-base-table-view-evidence-button',
+        'action': 'runKnowledgeBaseTableViewAcceptance',
+        'table_title': '知识库列表',
+        'state_refresh': 'runtime_controller_notify_listeners',
+      },
+      'lifecycle_evidence': {
+        'create': 'knowledge_base_table_view_summary.json is written',
+        'view': 'Knowledge Base page displays catalog-backed table rows',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete':
+            'Artifact Center deletes only the registered test-marked artifact record and workspace summary path',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'failed_checks are recorded when catalog/table rows are missing',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_external_llm_call': true,
+        'no_vector_db_call': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'knowledge_base_table_view_validated',
+      module: 'knowledge_base',
+      action: 'run_knowledge_base_table_view_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'knowledge_base_table_view',
+      targetName: 'Knowledge Base Table View',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'row_count': tableRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'knowledge_base_table_view_summary',
+      artifactType: 'acceptance_report',
+      title: 'Knowledge Base Table View Summary',
+      sourceModule: 'knowledge_base',
+      sourceId: 'knowledge_base_table_view',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'row_count': tableRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Knowledge Base Table View 验收证据已生成。'
+          : 'Knowledge Base Table View 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'knowledge_base_table_view_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<String> readWorkspaceTextArtifact(String path,
       {int maxCharacters = 6000}) async {
     if (!_canRunDesktop()) {

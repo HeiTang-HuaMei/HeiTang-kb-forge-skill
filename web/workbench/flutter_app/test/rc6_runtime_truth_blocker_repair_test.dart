@@ -9525,6 +9525,171 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  test('knowledge base table view writes user blackbox evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    writeKnowledgeCanvasFixture(workspace);
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath = await controller.runKnowledgeBaseTableViewAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_knowledge_base_table_view_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'knowledge_base_table_view');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['runtime_row_count'], 1);
+    final rows = (summary['table_rows'] as List).cast<Map<String, dynamic>>();
+    expect(rows.single['kb_id'], 'K_CANVAS_TEST');
+    expect(rows.single['name'], 'Canvas Test KB');
+    expect(rows.single['source_count'], 1);
+    expect(rows.single['chunk_count'], 1);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'redis_vector_service_packaged_into_exe',
+        'real_user_data_deleted',
+        'secret_plaintext_written',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'knowledge_base_table_view_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'knowledge_base_table_view_summary' &&
+            row['status'] == 'completed' &&
+            (row['metadata'] as Map)['test_marked_artifact'] == true),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'knowledge_base_table_view_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'knowledge_base_table_view_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
+  testWidgets('knowledge base table view button refreshes catalog rows',
+      (tester) async {
+    late Directory testWorkspace;
+    await pumpWorkbench(
+      tester,
+      setupWorkspace: (workspace) async {
+        testWorkspace = workspace;
+        writeKnowledgeCanvasFixture(workspace);
+      },
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      initialSelectedIndex: 3,
+      surfaceSize: const Size(1440, 1000),
+      waitForRuntimeReady: true,
+    );
+
+    expect(find.byKey(const Key('knowledge-base-table-view-evidence-button')),
+        findsOneWidget);
+    await tester.ensureVisible(
+        find.byKey(const Key('knowledge-base-table-view-evidence-button')));
+    final tableButton = tester.widget<FilledButton>(
+      find.byKey(const Key('knowledge-base-table-view-evidence-button')),
+    );
+    expect(tableButton.onPressed, isNotNull);
+    final summaryFile = File(
+        '${testWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}knowledge_base_table_view_summary.json');
+    final eventLedgerFile = File(
+        '${testWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    final artifactCatalogFile = File(
+        '${testWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json');
+    final visibleTableButton = find.ancestor(
+      of: find.text('刷新知识库表格'),
+      matching: find.byType(FilledButton),
+    );
+    expect(visibleTableButton, findsOneWidget);
+    await tester.runAsync(() async {
+      await tester.tap(visibleTableButton);
+      for (var attempt = 0; attempt < 30; attempt += 1) {
+        if (summaryFile.existsSync() &&
+            eventLedgerFile.existsSync() &&
+            artifactCatalogFile.existsSync()) {
+          return;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+    });
+    await tester.pumpAndSettle();
+
+    expect(summaryFile.existsSync(), isTrue);
+    final summary =
+        jsonDecode(summaryFile.readAsStringSync()) as Map<String, dynamic>;
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'knowledge_base_table_view');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['runtime_row_count'], 1);
+    expect(find.text('知识库列表'), findsOneWidget);
+    expect(find.text('K_CANVAS_TEST'), findsOneWidget);
+    expect(find.text('Canvas Test KB'), findsOneWidget);
+
+    final eventRows = eventLedgerFile
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'knowledge_base_table_view_validated'),
+        isTrue);
+    final catalog =
+        jsonDecode(artifactCatalogFile.readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (catalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'knowledge_base_table_view_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   test('hot pluggable project config basic writes core evidence and reloads',
       () async {
     final workspace = await createWorkspace();

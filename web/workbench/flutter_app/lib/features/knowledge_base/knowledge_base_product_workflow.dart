@@ -662,6 +662,16 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       await rc6.runKnowledgeCanvasBasicAcceptance();
                     },
             ),
+            _PrimaryProductAction(
+              label: zh ? '刷新知识库表格' : 'Refresh KB Table',
+              icon: Icons.table_rows_outlined,
+              automationKey: 'knowledge-base-table-view-evidence-button',
+              onPressed: runtime.running || rc6 == null
+                  ? null
+                  : () async {
+                      await rc6.runKnowledgeBaseTableViewAcceptance();
+                    },
+            ),
             _MoreActionsButton(
               label: zh ? '更多知识库操作' : 'More KB actions',
               actions: [

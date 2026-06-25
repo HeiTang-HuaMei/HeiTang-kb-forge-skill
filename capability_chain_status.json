@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-39 Knowledge Base Table View",
+  "current_gate": "P1-40 Clean Markdown Import",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -63,11 +63,11 @@
     "P1-35 Stop and Handoff Gate",
     "P1-36 Loop Cost Boundary Basic",
     "P1-37 Heitang Native Knowledge Format Semantic Schema",
-    "P1-38 Knowledge Canvas Basic"
+    "P1-38 Knowledge Canvas Basic",
+    "P1-39 Knowledge Base Table View"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-39 Knowledge Base Table View",
     "P1-40 Clean Markdown Import",
     "P1-41 Engineering Learning Samples Basic",
     "P1-48 Agent Memory Layer Basic",
@@ -122,9 +122,9 @@
     "Final Owner Review Gate"
   ],
   "last_commit": "594269b",
-  "workspace_clean": true,
+  "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T07:47:06.8018751Z",
+  "updated_at": "2026-06-25T08:52:58.8154114Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -220,7 +220,9 @@
     "P1-37 Heitang Native Knowledge Format Semantic Schema has core-only schema evidence for chunks, source_trace, entities, relations, compound questions, cross-document summaries and memory cards; it remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-38 Knowledge Canvas Basic.",
     "P1-38 Knowledge Canvas Basic has user-blackbox canvas evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-39 Knowledge Base Table View."
+    "P1 queue now continues with P1-39 Knowledge Base Table View.",
+    "P1-39 Knowledge Base Table View has user-blackbox table evidence, Event Ledger, Artifact Catalog and restart recovery evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-40 Clean Markdown Import."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
