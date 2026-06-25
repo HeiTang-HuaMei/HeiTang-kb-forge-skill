@@ -9709,6 +9709,117 @@ void main() {
         isTrue);
   });
 
+  test('engineering learning samples writes core evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runEngineeringLearningSamplesAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('Authorization')));
+    expect(summaryText, isNot(contains('Bearer ')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_engineering_learning_samples_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'engineering_learning_samples');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['sample_count'], greaterThanOrEqualTo(3));
+
+    final manifest =
+        jsonDecode(File(summary['manifest_path'].toString()).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(manifest['status'], 'pass');
+    expect(manifest['external_project_runtime_loaded'], isFalse);
+    expect(manifest['external_dependency_added'], isFalse);
+    expect(manifest['user_visible_project_names'], isFalse);
+
+    final sampleCards = readJsonlFile(summary['sample_cards_path'].toString());
+    expect(sampleCards.map((row) => row['sample_id']),
+        contains('sample_clean_markdown_to_knowledge_package'));
+    expect(sampleCards.map((row) => row['user_visible_capability']),
+        contains('文档解析能力'));
+    expect(sampleCards.map((row) => row['user_visible_capability']),
+        isNot(contains('Provider')));
+
+    final traces = readJsonlFile(summary['source_trace_path'].toString());
+    expect(traces, hasLength(sampleCards.length));
+    expect(
+        traces.every((row) => row['source_trace_status'] == 'linked'), isTrue);
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'].toString())
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['status'], 'pass');
+    final validationChecks =
+        (validation['checks'] as Map).cast<String, dynamic>();
+    expect(validationChecks['all_samples_accepted'], isTrue);
+    expect(validationChecks['missing_sample_id_rejected'], isTrue);
+    expect(validationChecks['missing_expected_output_rejected'], isTrue);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'external_project_runtime_loaded',
+        'external_dependency_added',
+        'user_visible_project_names',
+        'redis_vector_service_packaged_into_exe',
+        'real_user_data_deleted',
+        'secret_plaintext_written',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'engineering_learning_samples_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'engineering_learning_samples_summary' &&
+            row['status'] == 'completed' &&
+            (row['metadata'] as Map)['test_marked_artifact'] == true),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'engineering_learning_samples_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'engineering_learning_samples_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   testWidgets('knowledge base table view button refreshes catalog rows',
       (tester) async {
     late Directory testWorkspace;

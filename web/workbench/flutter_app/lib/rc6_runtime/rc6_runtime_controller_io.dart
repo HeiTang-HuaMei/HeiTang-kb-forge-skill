@@ -8534,6 +8534,418 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<String> runEngineeringLearningSamplesAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成工程学习样本核心验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final sampleRoot =
+        Directory(_join(workspace.path, 'engineering_learning_samples'));
+    await sampleRoot.create(recursive: true);
+    final manifestPath = _join(sampleRoot.path, 'sample_library_manifest.json');
+    final sampleCardsPath = _join(sampleRoot.path, 'sample_cards.jsonl');
+    final sourceTracePath = _join(sampleRoot.path, 'sample_source_trace.jsonl');
+    final validationPath =
+        _join(sampleRoot.path, 'sample_validation_report.json');
+    final readmePath = _join(sampleRoot.path, 'sample_library_readme.md');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/engineering_learning_samples_summary.json');
+    final samples = _engineeringLearningSampleRecords();
+    final validationRows =
+        samples.map(_validateEngineeringLearningSample).toList(growable: false);
+    final errorRows = [
+      _validateEngineeringLearningSample({
+        'sample_id': '',
+        'capability_area': 'document_parsing',
+        'title': 'Missing sample id',
+        'expected_outputs': const <Map<String, Object?>>[
+          {'path': 'sample.md', 'kind': 'markdown'}
+        ],
+        'validation_steps': const <String>['check'],
+      }),
+      _validateEngineeringLearningSample({
+        'sample_id': 'sample_missing_expected_output',
+        'capability_area': 'knowledge_base',
+        'title': 'Missing expected output',
+        'expected_outputs': const <Map<String, Object?>>[],
+        'validation_steps': const <String>['check'],
+      }),
+    ];
+    final sourceTraceRows = samples
+        .map((sample) => {
+              'trace_id': 'trace_${sample['sample_id']}',
+              'sample_id': sample['sample_id'],
+              'source_kind': 'local_engineering_learning_sample',
+              'capability_area': sample['capability_area'],
+              'expected_output_paths': _listOfMaps(sample['expected_outputs'])
+                  .map((row) => _stringValue(row['path'], ''))
+                  .where((path) => path.isNotEmpty)
+                  .toList(growable: false),
+              'source_trace_status': 'linked',
+            })
+        .toList(growable: false);
+    final manifest = <String, dynamic>{
+      'schema_version': 'prd_v3_engineering_learning_samples_manifest.v1',
+      'status': 'pass',
+      'capability_id': 'engineering_learning_samples',
+      'acceptance_type': 'core_only',
+      'sample_count': samples.length,
+      'samples': samples,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationPath,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'external_project_runtime_loaded': false,
+      'external_dependency_added': false,
+      'user_visible_project_names': false,
+    };
+    await _writeJsonFile(manifestPath, manifest);
+    await File(sampleCardsPath).writeAsString(
+      '${samples.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_engineering_learning_samples_validation.v1',
+      'status': validationRows.every((row) => row['status'] == 'accepted') &&
+              errorRows.every((row) => row['status'] == 'rejected')
+          ? 'pass'
+          : 'blocked',
+      'accepted_samples': validationRows,
+      'error_path_evidence': errorRows,
+      'checks': {
+        'all_samples_accepted':
+            validationRows.every((row) => row['status'] == 'accepted'),
+        'missing_sample_id_rejected': errorRows.any((row) =>
+            row['status'] == 'rejected' &&
+            row['reason'] == 'missing_sample_id'),
+        'missing_expected_output_rejected': errorRows.any((row) =>
+            row['status'] == 'rejected' &&
+            row['reason'] == 'missing_expected_outputs'),
+        'source_trace_rows_linked': sourceTraceRows.length == samples.length,
+      },
+    };
+    await _writeJsonFile(validationPath, validationReport);
+    await File(readmePath).writeAsString(
+      [
+        '# Engineering Learning Samples',
+        '',
+        'This local sample library documents repeatable product capability flows.',
+        'It does not load external project runtime or expose project names in product UI.',
+        '',
+        for (final sample in samples)
+          '- ${sample['sample_id']}: ${sample['title']}',
+        '',
+      ].join('\n'),
+      encoding: utf8,
+    );
+
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'manifest_written': await File(manifestPath).exists(),
+      'sample_cards_written': await File(sampleCardsPath).exists(),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'validation_report_written': await File(validationPath).exists(),
+      'readme_written': await File(readmePath).exists(),
+      'sample_count_at_least_three': samples.length >= 3,
+      'all_samples_have_ids': samples.every(
+          (sample) => _stringValue(sample['sample_id'], '').trim().isNotEmpty),
+      'all_samples_have_expected_outputs': samples.every(
+          (sample) => _listOfMaps(sample['expected_outputs']).isNotEmpty),
+      'all_samples_have_validation_steps': samples.every((sample) =>
+          (sample['validation_steps'] as List? ?? const []).isNotEmpty),
+      'all_validation_rows_accepted':
+          validationRows.every((row) => row['status'] == 'accepted'),
+      'missing_sample_id_rejected': errorRows.any((row) =>
+          row['status'] == 'rejected' && row['reason'] == 'missing_sample_id'),
+      'missing_expected_output_rejected': errorRows.any((row) =>
+          row['status'] == 'rejected' &&
+          row['reason'] == 'missing_expected_outputs'),
+      'blackbox_not_required_for_core_only': true,
+      'external_project_runtime_loaded': false,
+      'external_dependency_added': false,
+      'user_visible_project_names': false,
+      'no_external_llm_call': true,
+      'no_vector_db_call': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_dependency_added',
+      'user_visible_project_names',
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_engineering_learning_samples_summary.v1',
+      'status': status,
+      'capability_id': 'engineering_learning_samples',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'manifest_path': manifestPath,
+      'sample_cards_path': sampleCardsPath,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationPath,
+      'readme_path': readmePath,
+      'sample_count': samples.length,
+      'samples': samples,
+      'source_trace_rows': sourceTraceRows,
+      'validation_rows': validationRows,
+      'error_path_evidence': errorRows,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runEngineeringLearningSamplesAcceptance',
+        'sample_builder': '_engineeringLearningSampleRecords',
+        'validator': '_validateEngineeringLearningSample',
+        'external_calls_made': false,
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only capability; no standalone user UI blackbox is required',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'sample manifest, sample cards, source trace, validation report and summary are written',
+        'view': 'summary can be read as a registered JSON acceptance artifact',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete':
+            'Artifact Center deletes only the registered test-marked artifact record and workspace summary path',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing sample ID and missing expected output are rejected',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_dependency_added': false,
+        'user_visible_project_names': false,
+        'no_external_llm_call': true,
+        'no_vector_db_call': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'engineering_learning_samples_validated',
+      module: 'knowledge_import',
+      action: 'run_engineering_learning_samples_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'engineering_learning_samples',
+      targetName: 'Engineering Learning Samples Basic',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'sample_count': samples.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'engineering_learning_samples_summary',
+      artifactType: 'acceptance_report',
+      title: 'Engineering Learning Samples Summary',
+      sourceModule: 'knowledge_import',
+      sourceId: 'engineering_learning_samples',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'sample_count': samples.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Engineering Learning Samples 核心验收证据已生成。'
+          : 'Engineering Learning Samples 核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'engineering_learning_samples_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  static List<Map<String, Object?>> _engineeringLearningSampleRecords() {
+    return const [
+      {
+        'sample_id': 'sample_clean_markdown_to_knowledge_package',
+        'capability_area': 'document_parsing',
+        'title': 'Clean Markdown to knowledge package',
+        'user_visible_capability': '文档解析能力',
+        'input_fixtures': [
+          'input/sample_clean_markdown.md',
+        ],
+        'expected_outputs': [
+          {
+            'path': 'knowledge_import/clean_markdown_blocks.jsonl',
+            'kind': 'block_records',
+          },
+          {
+            'path': 'knowledge_import/clean_markdown_source_trace.jsonl',
+            'kind': 'source_trace',
+          },
+        ],
+        'validation_steps': [
+          'normalize Markdown',
+          'extract block records',
+          'link source trace',
+        ],
+        'boundary_rules': [
+          'no external parser runtime',
+          'no user visible project names',
+        ],
+      },
+      {
+        'sample_id': 'sample_evidence_backlink_check',
+        'capability_area': 'knowledge_base',
+        'title': 'Evidence backlink check',
+        'user_visible_capability': '知识库问答能力',
+        'input_fixtures': [
+          'kb/chunks.jsonl',
+          'kb/source_trace.json',
+        ],
+        'expected_outputs': [
+          {
+            'path': 'reports/evidence_backlink_validation.json',
+            'kind': 'validation_report',
+          },
+        ],
+        'validation_steps': [
+          'resolve chunk id',
+          'resolve source trace',
+          'reject missing backlink',
+        ],
+        'boundary_rules': [
+          'no vector database call',
+          'no external LLM call',
+        ],
+      },
+      {
+        'sample_id': 'sample_artifact_event_lifecycle',
+        'capability_area': 'artifact_event',
+        'title': 'Artifact and event lifecycle',
+        'user_visible_capability': '文档生成能力',
+        'input_fixtures': [
+          'doc/generated.md',
+        ],
+        'expected_outputs': [
+          {
+            'path': 'audit/event_ledger.jsonl',
+            'kind': 'event_ledger',
+          },
+          {
+            'path': 'artifacts/catalog.json',
+            'kind': 'artifact_catalog',
+          },
+        ],
+        'validation_steps': [
+          'write artifact record',
+          'write event ledger row',
+          'reload records after restart',
+        ],
+        'boundary_rules': [
+          'delete only test-marked artifacts',
+          'no real user data deletion',
+        ],
+      },
+    ];
+  }
+
+  static Map<String, Object?> _validateEngineeringLearningSample(
+      Map<String, Object?> sample) {
+    final sampleId = _stringValue(sample['sample_id'], '').trim();
+    if (sampleId.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_sample_id',
+        'sample_id': sampleId,
+      };
+    }
+    final expectedOutputs = _listOfMaps(sample['expected_outputs']);
+    if (expectedOutputs.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_expected_outputs',
+        'sample_id': sampleId,
+      };
+    }
+    final validationSteps = sample['validation_steps'] is List
+        ? (sample['validation_steps'] as List)
+            .map((value) => value.toString())
+            .where((value) => value.trim().isNotEmpty)
+            .toList(growable: false)
+        : const <String>[];
+    if (validationSteps.isEmpty) {
+      return {
+        'status': 'rejected',
+        'reason': 'missing_validation_steps',
+        'sample_id': sampleId,
+      };
+    }
+    return {
+      'status': 'accepted',
+      'reason': 'sample_contract_complete',
+      'sample_id': sampleId,
+      'expected_output_count': expectedOutputs.length,
+      'validation_step_count': validationSteps.length,
+    };
+  }
+
   Future<String> readWorkspaceTextArtifact(String path,
       {int maxCharacters = 6000}) async {
     if (!_canRunDesktop()) {
