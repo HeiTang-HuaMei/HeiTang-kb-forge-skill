@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-31 Harness Adapter Spec",
+  "current_gate": "P1-32 Model Pool Router Basic",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -55,11 +55,11 @@
     "P1-27 Codex Execution Harness Enhancement",
     "P1-28 Workbench Agent Execution Harness Basic",
     "P1-29 Policy Governance Basic",
-    "P1-30 Credential Proxy Design"
+    "P1-30 Credential Proxy Design",
+    "P1-31 Harness Adapter Spec"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-31 Harness Adapter Spec",
     "P1-32 Model Pool Router Basic",
     "P1-33 Thinker / Worker / Verifier Role Protocol",
     "P1-34 Loop Runtime Basic",
@@ -121,10 +121,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "5cecf3d",
-  "workspace_clean": true,
+  "last_commit": "pending_current_gate_commit",
+  "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T03:38:10.0000000Z",
+  "updated_at": "2026-06-25T03:47:07.4871776Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -204,7 +204,9 @@
     "P1-29 Policy Governance Basic has governance evidence for required files, queue invariants, status vocabulary, blocker policy and forbidden-claim boundaries; it remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-30 Credential Proxy Design.",
     "P1-30 Credential Proxy Design has governance evidence for env-reference credential proxying, inline value rejection, masked reports and provider-security regression; it remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-31 Harness Adapter Spec."
+    "P1 queue now continues with P1-31 Harness Adapter Spec.",
+    "P1-31 Harness Adapter Spec has governance evidence for local adapter contract fields, allowed execution modes, boundary checks and report persistence; it remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-32 Model Pool Router Basic."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
