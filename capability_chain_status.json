@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-30 Credential Proxy Design",
+  "current_gate": "P1-31 Harness Adapter Spec",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -54,11 +54,11 @@
     "P1-26 Audit Report Enhancement",
     "P1-27 Codex Execution Harness Enhancement",
     "P1-28 Workbench Agent Execution Harness Basic",
-    "P1-29 Policy Governance Basic"
+    "P1-29 Policy Governance Basic",
+    "P1-30 Credential Proxy Design"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-30 Credential Proxy Design",
     "P1-31 Harness Adapter Spec",
     "P1-32 Model Pool Router Basic",
     "P1-33 Thinker / Worker / Verifier Role Protocol",
@@ -121,10 +121,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "67f7270",
-  "workspace_clean": true,
+  "last_commit": "pending_current_gate_commit",
+  "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T03:31:30.0000000Z",
+  "updated_at": "2026-06-25T03:35:12.4093786Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -202,7 +202,9 @@
     "P1-28 Workbench Agent Execution Harness Basic has core-only local agent tool harness evidence, trace output, error-path checks and remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-29 Policy Governance Basic.",
     "P1-29 Policy Governance Basic has governance evidence for required files, queue invariants, status vocabulary, blocker policy and forbidden-claim boundaries; it remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-30 Credential Proxy Design."
+    "P1 queue now continues with P1-30 Credential Proxy Design.",
+    "P1-30 Credential Proxy Design has governance evidence for env-reference credential proxying, inline value rejection, masked reports and provider-security regression; it remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-31 Harness Adapter Spec."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
