@@ -9862,6 +9862,137 @@ void main() {
         isTrue);
   });
 
+  test('p2 multi-agent rag deepening creates core evidence package', () async {
+    final workspace = await createWorkspace();
+    writeWorkgroupAgentSkillFixture(
+      workspace,
+      agentId: 'test_multi_agent_rag_agent',
+      agentName: '多助手检索深化测试助手',
+      description: '用于 P2-5 多助手检索深化验收。',
+      role: '处理当前检索深化任务',
+    );
+    writeResearchAnalysisQueryFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runMultiAgentRagDeepeningAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_multi_agent_rag_deepening_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'multi_agent_rag_deepening');
+    expect(summary['capability_gate'], 'P2-5 Multi-Agent RAG Deepening');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'],
+        'P2-6 Hot-Pluggable Project Config Industrial Isolation');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(3));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['trace_id'].toString().isNotEmpty &&
+            row['citation'].toString().isNotEmpty),
+        isTrue);
+    final agentViews =
+        readJsonlFile(summary['agent_retrieval_views_path'] as String);
+    expect(agentViews, hasLength(4));
+    expect(
+        agentViews.every((row) =>
+            row['status'] == 'completed' &&
+            (row['evidence_refs'] as List).length == 3),
+        isTrue);
+    final evidenceGraph =
+        jsonDecode(File(summary['evidence_graph_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(evidenceGraph['schema_version'],
+        'prd_v3_multi_agent_rag_evidence_graph.v1');
+    expect(evidenceGraph['anchor'], 'rag_trace_01');
+    expect((evidenceGraph['entities'] as List), hasLength(3));
+    expect((evidenceGraph['answer_contract'] as Map)['requires_answer'],
+        isTrue);
+    expect(
+        (evidenceGraph['answer_contract'] as Map)
+            ['missing_evidence_blocks_answer'],
+        isTrue);
+    final validation = jsonDecode(
+            File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_multi_agent_rag_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['retrieval_plan_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['synthesis_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'multi_agent_rag_deepening_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'multi_agent_rag_deepening_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'multi_agent_rag_synthesis' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

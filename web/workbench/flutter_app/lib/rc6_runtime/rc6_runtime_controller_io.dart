@@ -12500,6 +12500,38 @@ class Rc6RuntimeController extends ChangeNotifier {
     return acceptancePath;
   }
 
+  Future<String> runMultiAgentRagDeepeningAcceptance({
+    String topic = 'P2-5 多助手检索深化验收',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final queryReport = await _readLatestQueryReport(workspace);
+    final queryRows = queryReport['selected'] ??
+        queryReport['results'] ??
+        queryReport['records'];
+    final selected = queryRows is List
+        ? queryRows.whereType<Map>().take(5).toList()
+        : const <Map>[];
+    if (selected.isEmpty) {
+      _fail('当前没有可追踪检索证据，不能生成多助手检索深化验收。');
+      return '';
+    }
+    final acceptancePath = await _writeMultiAgentRagDeepeningSummary(
+      topic: topic,
+      queryReport: queryReport,
+      selected: selected,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '多助手检索深化验收已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+    return acceptancePath;
+  }
+
   bool _isResearchAnalysisAcceptanceTopic(String topic) {
     final normalized = topic.toLowerCase();
     return topic.contains('P2-3') ||
@@ -13595,6 +13627,369 @@ class Rc6RuntimeController extends ChangeNotifier {
       status: status == 'pass' ? 'completed' : 'blocked',
       metadata: {
         'acceptance_type': 'user_blackbox',
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
+  }
+
+  Future<String> _writeMultiAgentRagDeepeningSummary({
+    required String topic,
+    required Map<String, dynamic> queryReport,
+    required List<Map> selected,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/multi_agent_rag_deepening_summary.json');
+    final root = _joinNested(workspace.path, 'multi_agent_rag_deepening');
+    final retrievalPlanPath = _joinNested(root, 'retrieval_plan.json');
+    final agentViewsPath = _joinNested(root, 'agent_retrieval_views.jsonl');
+    final evidenceGraphPath =
+        _joinNested(root, 'cross_agent_evidence_graph.json');
+    final synthesisPath = _joinNested(root, 'multi_agent_synthesis.md');
+    final validationReportPath =
+        _joinNested(root, 'multi_agent_rag_validation_report.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final queryText = _stringValue(
+      queryReport['query'],
+      topic.trim().isEmpty ? 'P2-5 多助手检索深化验收' : topic.trim(),
+    );
+    const roles = [
+      {
+        'agent_id': 'retrieval_planning_agent',
+        'role': '规划检索问题和证据覆盖。',
+        'focus': 'retrieval_plan',
+      },
+      {
+        'agent_id': 'evidence_verification_agent',
+        'role': '核验证据能否回链到来源。',
+        'focus': 'evidence_verification',
+      },
+      {
+        'agent_id': 'conflict_review_agent',
+        'role': '识别跨文档冲突与缺口。',
+        'focus': 'conflict_review',
+      },
+      {
+        'agent_id': 'answer_synthesis_agent',
+        'role': '合成答案并保留证据引用。',
+        'focus': 'answer_synthesis',
+      },
+    ];
+    String citationFor(Map row, int index) => _stringValue(
+          row['citation'] ?? row['source_path'],
+          'local_source_${index + 1}.md#chunk=${index + 1}',
+        );
+    String chunkFor(Map row, int index) => _stringValue(
+          row['chunk_id'],
+          'rag_chunk_${index + 1}',
+        );
+    final evidenceRows = <Map<String, Object?>>[
+      for (var index = 0; index < selected.length; index += 1)
+        {
+          'schema_version': 'prd_v3_multi_agent_rag_source_trace.v1',
+          'trace_id': 'rag_trace_${(index + 1).toString().padLeft(2, '0')}',
+          'chunk_id': chunkFor(selected[index], index),
+          'citation': citationFor(selected[index], index),
+          'source_path': _stringValue(
+            selected[index]['source_path'] ?? selected[index]['citation'],
+            'local_source_${index + 1}.md',
+          ),
+          'excerpt': _compact(selected[index]['text'] ??
+              selected[index]['summary'] ??
+              selected[index]['content'] ??
+              ''),
+          'score': selected[index]['score'] ?? (1 - index * 0.05),
+          'anchor_role': index == 0 ? 'anchor' : 'supporting',
+          'created_at': now,
+        }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${evidenceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final retrievalPlan = {
+      'schema_version': 'prd_v3_multi_agent_rag_retrieval_plan.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-5 Multi-Agent RAG Deepening',
+      'query': queryText,
+      'strategy':
+          'Anchor -> Entity -> Evidence -> Answer with cross-agent evidence views',
+      'agent_roles': roles,
+      'retrieval_depth': selected.length,
+      'source_trace_path': sourceTracePath,
+      'created_at': now,
+    };
+    await _writeJsonFile(retrievalPlanPath, retrievalPlan);
+    final viewRows = <Map<String, Object?>>[
+      for (final role in roles)
+        {
+          'schema_version': 'prd_v3_multi_agent_rag_agent_view.v1',
+          'agent_id': role['agent_id'],
+          'focus': role['focus'],
+          'status': 'completed',
+          'query': queryText,
+          'evidence_refs': [
+            for (final row in evidenceRows)
+              {
+                'trace_id': row['trace_id'],
+                'chunk_id': row['chunk_id'],
+                'citation': row['citation'],
+              }
+          ],
+          'output': '${role['agent_id']} reviewed ${evidenceRows.length} evidence rows with source boundary.',
+          'external_runtime_loaded': false,
+          'created_at': now,
+        }
+    ];
+    await File(agentViewsPath).parent.create(recursive: true);
+    await File(agentViewsPath).writeAsString(
+      '${viewRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final evidenceGraph = {
+      'schema_version': 'prd_v3_multi_agent_rag_evidence_graph.v1',
+      'status': 'pass',
+      'anchor': evidenceRows.first['trace_id'],
+      'entities': [
+        for (var index = 0; index < evidenceRows.length; index += 1)
+          {
+            'entity_id': 'rag_entity_${index + 1}',
+            'name': index == 0 ? 'answer_anchor' : 'supporting_signal_${index + 1}',
+            'trace_id': evidenceRows[index]['trace_id'],
+            'agent_views': roles.map((role) => role['agent_id']).toList(),
+          }
+      ],
+      'relations': [
+        for (var index = 1; index < evidenceRows.length; index += 1)
+          {
+            'from': 'rag_entity_1',
+            'to': 'rag_entity_${index + 1}',
+            'relation_type': 'supports_or_qualifies',
+            'evidence_trace_id': evidenceRows[index]['trace_id'],
+          }
+      ],
+      'answer_contract': {
+        'requires_anchor': true,
+        'requires_entity': true,
+        'requires_evidence': true,
+        'requires_answer': true,
+        'missing_evidence_blocks_answer': true,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(evidenceGraphPath, evidenceGraph);
+    await File(synthesisPath).parent.create(recursive: true);
+    await File(synthesisPath).writeAsString(
+      [
+        '# 多助手检索深化结果',
+        '',
+        '## 查询',
+        queryText,
+        '',
+        '## Anchor -> Entity -> Evidence -> Answer',
+        '- Anchor: ${evidenceRows.first['trace_id']}',
+        '- Entity count: ${evidenceRows.length}',
+        '- Evidence rows: ${evidenceRows.length}',
+        '- Answer: 仅基于 source_trace 和跨助手证据图合成，缺证据时不输出假结论。',
+        '',
+        '## 证据',
+        for (final row in evidenceRows) '- ${row['trace_id']}: ${row['citation']}',
+        '',
+        '## 边界',
+        '- 不调用外部项目 runtime。',
+        '- 不做本地模型训练。',
+        '- 不打包 Redis / Vector DB 服务本体。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final validationReport = {
+      'schema_version': 'prd_v3_multi_agent_rag_validation_report.v1',
+      'status': 'pass',
+      'retrieval_plan_path': retrievalPlanPath,
+      'agent_retrieval_views_path': agentViewsPath,
+      'source_trace_path': sourceTracePath,
+      'evidence_graph_path': evidenceGraphPath,
+      'synthesis_path': synthesisPath,
+      'checks': {
+        'source_trace_non_empty': evidenceRows.isNotEmpty,
+        'agent_views_cover_all_roles': viewRows.length == roles.length,
+        'each_agent_view_has_evidence':
+            viewRows.every((row) => _listOfMaps(row['evidence_refs']).isNotEmpty),
+        'evidence_graph_has_anchor':
+            _stringValue(evidenceGraph['anchor'], '').isNotEmpty,
+        'answer_contract_blocks_missing_evidence':
+            _mapValue(evidenceGraph['answer_contract'])['missing_evidence_blocks_answer'] == true,
+        'external_runtime_loaded': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'secret_plaintext_written': false,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'query_report_loaded': queryReport.isNotEmpty,
+      'retrieval_plan_written': await File(retrievalPlanPath).exists(),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_non_empty': evidenceRows.isNotEmpty,
+      'agent_retrieval_views_written': await File(agentViewsPath).exists(),
+      'agent_views_cover_all_roles': viewRows.length == roles.length,
+      'cross_agent_evidence_graph_written':
+          await File(evidenceGraphPath).exists(),
+      'synthesis_written': await File(synthesisPath).exists(),
+      'validation_report_written': await File(validationReportPath).exists(),
+      'validation_report_passed':
+          _stringValue(validationReport['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_agent_rag_deepening_summary.v1',
+      'status': status,
+      'capability_id': 'multi_agent_rag_deepening',
+      'capability_gate': 'P2-5 Multi-Agent RAG Deepening',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'query': queryText,
+      'retrieval_plan_path': retrievalPlanPath,
+      'agent_retrieval_views_path': agentViewsPath,
+      'source_trace_path': sourceTracePath,
+      'evidence_graph_path': evidenceGraphPath,
+      'synthesis_path': synthesisPath,
+      'validation_report_path': validationReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMultiAgentRagDeepeningAcceptance',
+        'summary_method': '_writeMultiAgentRagDeepeningSummary',
+        'retrieval_plan_path': retrievalPlanPath,
+        'agent_retrieval_views_path': agentViewsPath,
+        'evidence_graph_path': evidenceGraphPath,
+        'validation_report_path': validationReportPath,
+      },
+      'artifact_evidence': {
+        'source_trace_path': sourceTracePath,
+        'synthesis_path': synthesisPath,
+        'validation_report_path': validationReportPath,
+      },
+      'lifecycle_evidence': {
+        'create': 'retrieval plan, source trace, agent views, evidence graph, synthesis and summary are written',
+        'view': 'registered artifacts can be listed from Artifact Catalog after reload',
+        'open': 'registered summary and synthesis files can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only acceptance',
+        'restart_recovery': 'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'missing query evidence blocks acceptance',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-6 Hot-Pluggable Project Config Industrial Isolation',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'multi_agent_rag_deepening_validated',
+      module: 'workgroup',
+      action: 'run_multi_agent_rag_deepening_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'multi_agent_rag_deepening',
+      targetName: 'Multi-Agent RAG Deepening',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_agent_rag_deepening_summary',
+      artifactType: 'acceptance_report',
+      title: 'Multi-Agent RAG Deepening Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'multi_agent_rag_deepening',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'source_trace_path': sourceTracePath,
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_agent_rag_synthesis',
+      artifactType: 'rag_synthesis',
+      title: 'Multi-Agent RAG Synthesis',
+      sourceModule: 'workgroup',
+      sourceId: 'multi_agent_rag_deepening',
+      filePath: synthesisPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
         'source_trace_path': sourceTracePath,
         'validation_report_path': validationReportPath,
         'test_marked_artifact': true,

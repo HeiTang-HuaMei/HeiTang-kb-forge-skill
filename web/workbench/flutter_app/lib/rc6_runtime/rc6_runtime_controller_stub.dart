@@ -622,6 +622,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runMultiAgentRagDeepeningAcceptance({
+    String topic = 'P2-5 Multi-Agent RAG Deepening',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];
