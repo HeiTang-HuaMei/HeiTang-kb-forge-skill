@@ -14,18 +14,32 @@ void main() {
 
   Future<Directory> createWorkspace() async {
     final dir = Directory.systemTemp.createTempSync('kb_forge_rc6_widget_');
-    addTearDown(() {
-      if (dir.existsSync()) {
-        dir.deleteSync(recursive: true);
+    addTearDown(() async {
+      for (var attempt = 0; attempt < 5; attempt += 1) {
+        if (!dir.existsSync()) return;
+        try {
+          dir.deleteSync(recursive: true);
+          return;
+        } on FileSystemException {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        }
       }
     });
     return dir;
   }
 
-  Future<void> pumpWorkbench(WidgetTester tester,
-      {Future<void> Function(Directory workspace)? setupWorkspace}) async {
-    await tester.binding.setSurfaceSize(const Size(1366, 768));
+  Future<void> pumpWorkbench(
+    WidgetTester tester, {
+    Future<void> Function(Directory workspace)? setupWorkspace,
+    LocalCoreBridge coreBridge = const LocalCoreBridge(),
+    int initialSelectedIndex = 0,
+    Size surfaceSize = const Size(1366, 768),
+    void Function(Directory workspace)? captureWorkspace,
+    bool waitForRuntimeReady = false,
+  }) async {
+    await tester.binding.setSurfaceSize(surfaceSize);
     final workspace = await createWorkspace();
+    captureWorkspace?.call(workspace);
     if (setupWorkspace != null) {
       await setupWorkspace(workspace);
     }
@@ -35,11 +49,17 @@ void main() {
         campaign6AgentRuntimeStatus: sampleCampaign6AgentRuntimeStatus,
         campaign7ConfigurationStatus: sampleCampaign7ConfigurationStatus,
         campaign9DesktopDeliveryStatus: sampleCampaign9DesktopDeliveryStatus,
+        coreBridge: coreBridge,
         isWebRuntime: false,
         enableLocalCoreActions: false,
         coreWorkspace: workspace.path,
+        initialSelectedIndex: initialSelectedIndex,
       ),
     );
+    if (waitForRuntimeReady) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 1000)));
+    }
     await tester.pumpAndSettle();
   }
 
@@ -983,6 +1003,83 @@ void main() {
     expect(buildLog.readAsStringSync(),
         contains('schema_version=prd_v2_kb_build_log.v1'));
     expect(errorLog.readAsStringSync().trim(), isNotEmpty);
+  }
+
+  void writeKnowledgeCanvasFixture(Directory workspace) {
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha source for knowledge canvas');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_source_manifest.v1',
+      'status': 'imported',
+      'source_path': input.path,
+      'source_name': 'input',
+      'source_count': 1,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_path': '${input.path}${Platform.pathSeparator}alpha.md',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+          'source_type': 'local_file',
+          'size_bytes': 33,
+        },
+      ],
+      'workspace': workspace.path,
+    }));
+    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'test_kb_manifest.v1',
+      'status': 'searchable',
+      'kb_id': 'current_kb',
+      'name': 'Canvas Test KB',
+    }));
+    File('${kb.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'chunk_id': 'chunk_alpha_001',
+        'source_path': '${input.path}${Platform.pathSeparator}alpha.md',
+        'text': 'alpha source for knowledge canvas',
+      },
+    ]));
+    File('${kb.path}${Platform.pathSeparator}quality_report.json')
+        .writeAsStringSync('{"status":"pass"}');
+    final catalogRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    final catalogKb =
+        Directory('${catalogRoot.path}${Platform.pathSeparator}K_CANVAS_TEST')
+          ..createSync(recursive: true);
+    File('${catalogKb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"status":"searchable"}');
+    File('${catalogKb.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'chunk_id': 'chunk_alpha_001',
+        'source_path': 'alpha.md',
+        'text': 'alpha source for knowledge canvas',
+      },
+    ]));
+    File('${catalogRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K_CANVAS_TEST',
+          'kb_name': 'Canvas Test KB',
+          'status': 'searchable',
+          'current_version': 'v1',
+          'source_documents': [
+            {'document_id': 'doc_alpha', 'source_name': 'alpha.md'}
+          ],
+          'chunk_count': 1,
+        },
+      ],
+    }));
   }
 
   testWidgets('rc7 document library shows product-owned document state',
@@ -9227,6 +9324,205 @@ void main() {
             record.artifactId == 'connection_configuration_summary' &&
             record.status == 'completed'),
         isTrue);
+  });
+
+  test('knowledge canvas basic writes user blackbox evidence and reloads',
+      () async {
+    final workspace = await createWorkspace();
+    writeKnowledgeCanvasFixture(workspace);
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath = await controller.runKnowledgeCanvasBasicAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        summary['schema_version'], 'prd_v3_knowledge_canvas_basic_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'knowledge_canvas_basic');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['ui_blackbox_path'], contains('Knowledge Base'));
+    expect(summary['anchor_entity_evidence_answer_path'],
+        ['Anchor', 'Entity', 'Evidence', 'Answer']);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if ({
+        'redis_vector_service_packaged_into_exe',
+        'real_user_data_deleted',
+        'secret_plaintext_written',
+      }.contains(entry.key)) {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+    final blackBox =
+        (summary['black_box_evidence'] as Map).cast<String, dynamic>();
+    expect(
+        blackBox['automation_key'], 'knowledge-canvas-basic-evidence-button');
+    expect((summary['canvas_nodes'] as List), hasLength(4));
+    expect((summary['canvas_edges'] as List), hasLength(3));
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'knowledge_canvas_basic_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'knowledge_canvas_basic_summary' &&
+            row['status'] == 'completed' &&
+            (row['metadata'] as Map)['test_marked_artifact'] == true),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any(
+            (record) => record.eventType == 'knowledge_canvas_basic_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'knowledge_canvas_basic_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
+  testWidgets('knowledge canvas basic button creates visible canvas evidence',
+      (tester) async {
+    late Directory testWorkspace;
+    await pumpWorkbench(
+      tester,
+      setupWorkspace: (workspace) async {
+        testWorkspace = workspace;
+        writeKnowledgeCanvasFixture(workspace);
+      },
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          if (request.actionId == 'knowledge_base_build') {
+            final output = Directory(request.outputPath!)
+              ..createSync(recursive: true);
+            File('${output.path}${Platform.pathSeparator}manifest.json')
+                .writeAsStringSync('{"status":"searchable"}');
+            File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                .writeAsStringSync(jsonl([
+              {
+                'chunk_id': 'chunk_alpha_001',
+                'source_path': 'alpha.md',
+                'text': 'alpha source for knowledge canvas',
+              },
+            ]));
+            File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                .writeAsStringSync('{"title":"canvas"}\n');
+            File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                .writeAsStringSync('{"question":"q","answer":"a"}\n');
+            File('${output.path}${Platform.pathSeparator}quality_report.json')
+                .writeAsStringSync('{"status":"pass"}');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      initialSelectedIndex: 3,
+      surfaceSize: const Size(1440, 1000),
+      waitForRuntimeReady: true,
+    );
+
+    expect(find.text('关系画布'), findsOneWidget);
+    final generateOrUpdate = find.byKey(
+      const Key('workbench.knowledge_base.generate_button'),
+    );
+    expect(generateOrUpdate, findsOneWidget);
+    final buildButton = tester.widget<FilledButton>(generateOrUpdate);
+    if (buildButton.onPressed != null) {
+      await tester.tap(generateOrUpdate, warnIfMissed: false);
+      await tester.pumpAndSettle();
+    }
+    expect(find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
+        findsOneWidget);
+    await tester.ensureVisible(
+        find.byKey(const Key('knowledge-canvas-basic-evidence-button')));
+    final canvasButton = tester.widget<FilledButton>(
+      find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
+    );
+    expect(canvasButton.onPressed, isNotNull);
+    final summaryFile = File(
+        '${testWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}knowledge_canvas_basic_summary.json');
+    final visibleCanvasButton = find.ancestor(
+      of: find.text('生成知识画布'),
+      matching: find.byType(FilledButton),
+    );
+    expect(visibleCanvasButton, findsOneWidget);
+    await tester.runAsync(() async {
+      await tester.tap(visibleCanvasButton);
+      for (var attempt = 0; attempt < 30; attempt += 1) {
+        if (summaryFile.existsSync()) return;
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+    });
+    await tester.pumpAndSettle();
+
+    expect(
+      summaryFile.existsSync(),
+      isTrue,
+      reason: Directory(testWorkspace.path)
+          .listSync(recursive: true)
+          .map((entry) => entry.path)
+          .join('\n'),
+    );
+    final summary =
+        jsonDecode(summaryFile.readAsStringSync()) as Map<String, dynamic>;
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'knowledge_canvas_basic');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['failed_checks'], isEmpty);
+    expect(find.text('已生成'), findsWidgets);
+
+    final eventRows = File(
+            '${testWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'knowledge_canvas_basic_validated'),
+        isTrue);
+    final catalog = jsonDecode(File(
+            '${testWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (catalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'knowledge_canvas_basic_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(tester.takeException(), isNull);
   });
 
   test('hot pluggable project config basic writes core evidence and reloads',

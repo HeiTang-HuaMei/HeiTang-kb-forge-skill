@@ -386,6 +386,11 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
         : capabilityAuditReady
             ? (zh ? '未连接时使用本地模式' : 'Falls back to local mode')
             : (zh ? '未配置专业检索服务' : 'Professional retrieval not configured');
+    final knowledgeCanvasSummary = _knowledgeCanvasSummaryRecord(runtime);
+    final knowledgeCanvasReady = knowledgeCanvasSummary != null;
+    final canvasInputReady = runtime.kbManifestPath.isNotEmpty ||
+        runtime.chunksPath.isNotEmpty ||
+        runtime.knowledgeBases.isNotEmpty;
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final builder = _FillProductPanel(
@@ -512,6 +517,34 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           ],
                         ],
                 ),
+                const SizedBox(height: _DesktopGrid.gutter),
+                _ProductTable(
+                  columns: zh
+                      ? ['知识画布', '状态', '说明']
+                      : ['Knowledge canvas', 'Status', 'Note'],
+                  rows: [
+                    [
+                      zh ? '关系画布' : 'Relation canvas',
+                      knowledgeCanvasReady
+                          ? (zh ? '已生成' : 'Generated')
+                          : (zh ? '待生成' : 'Waiting'),
+                      knowledgeCanvasReady
+                          ? _displayNameForPath(knowledgeCanvasSummary.filePath)
+                          : (zh
+                              ? '生成后可在成果中心查看、导出或删除'
+                              : 'After generation it can be viewed, exported, or deleted in Output Center'),
+                    ],
+                    [
+                      'Anchor -> Entity -> Evidence -> Answer',
+                      canvasInputReady
+                          ? (zh ? '可执行' : 'Ready')
+                          : (zh ? '需先生成知识库' : 'Build KB first'),
+                      zh
+                          ? '从知识库锚点进入实体、证据和回答路径'
+                          : 'Moves from KB anchor to entities, evidence, and answer path',
+                    ],
+                  ],
+                ),
                 if (sourceRecords.isNotEmpty) ...[
                   const SizedBox(height: _DesktopGrid.gutter),
                   _SectionCaption(zh ? '来源文档选择器' : 'Source document selector'),
@@ -617,6 +650,16 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       rc6.buildKnowledgeBase(
                           documentIds:
                               selectedSourceIds.toList(growable: false));
+                    },
+            ),
+            _PrimaryProductAction(
+              label: zh ? '生成知识画布' : 'Generate Knowledge Canvas',
+              icon: Icons.hub_outlined,
+              automationKey: 'knowledge-canvas-basic-evidence-button',
+              onPressed: runtime.running || rc6 == null
+                  ? null
+                  : () async {
+                      await rc6.runKnowledgeCanvasBasicAcceptance();
                     },
             ),
             _MoreActionsButton(
@@ -861,4 +904,14 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
         zh ? '质量报告' : 'Quality report',
         readyStatus: zh ? '通过' : 'Passed'),
   ];
+}
+
+Rc6ArtifactRecord? _knowledgeCanvasSummaryRecord(Rc6RuntimeState runtime) {
+  for (final record in runtime.artifactRecords) {
+    if (record.artifactId == 'knowledge_canvas_basic_summary' &&
+        record.isActive) {
+      return record;
+    }
+  }
+  return null;
 }

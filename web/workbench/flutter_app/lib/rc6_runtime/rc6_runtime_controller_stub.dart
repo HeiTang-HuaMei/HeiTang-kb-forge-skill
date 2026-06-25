@@ -139,6 +139,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runKnowledgeCanvasBasicAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<void> clearImportedSources() async => initialize();
   Future<void> clearKnowledgeBaseArtifacts() async => initialize();
   Future<void> clearParseArtifacts() async => initialize();

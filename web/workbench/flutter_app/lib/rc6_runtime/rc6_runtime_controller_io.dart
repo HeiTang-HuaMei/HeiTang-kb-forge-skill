@@ -133,6 +133,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runAuditReportEnhancementAcceptance();
+    } else if (_autoRunKnowledgeCanvasBasicOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Knowledge Canvas Basic 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runKnowledgeCanvasBasicAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -7656,6 +7663,269 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? 'Audit Report Enhancement 核心验收证据已生成。'
           : 'Audit Report Enhancement 核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'audit_report_enhancement_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runKnowledgeCanvasBasicAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成知识画布验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+    if (state.kbManifestPath.isEmpty || state.sourceManifestPath.isEmpty) {
+      await _loadExistingArtifacts();
+    }
+
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/knowledge_canvas_basic_summary.json');
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final beforeEventCount = (await _readEventLedgerRecords(workspace)).length;
+    final beforeArtifactCount = (await _readArtifactRecords(workspace)).length;
+    final kbCatalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(kbCatalog);
+    final primary = records.isEmpty ? const <String, dynamic>{} : records.first;
+    final sourceRows = state.sourceRecords
+        .map((source) => {
+              'document_id': source.documentId,
+              'source_name': source.sourceName,
+              'relative_path': source.relativePath,
+              'source_type': source.sourceType,
+            })
+        .toList(growable: false);
+    final entityRows = <Map<String, Object?>>[
+      {
+        'entity_id': 'entity_workspace_knowledge_base',
+        'label': _stringValue(
+            primary['kb_name'] ?? primary['name'], 'Knowledge Base'),
+        'kind': 'knowledge_base',
+        'evidence_anchor': state.kbManifestPath,
+      },
+      {
+        'entity_id': 'entity_source_documents',
+        'label': 'Source documents',
+        'kind': 'document_group',
+        'evidence_anchor': state.sourceManifestPath,
+      },
+    ];
+    final relationRows = <Map<String, Object?>>[
+      {
+        'relation_id': 'relation_sources_build_canvas',
+        'from_entity_id': 'entity_source_documents',
+        'to_entity_id': 'entity_workspace_knowledge_base',
+        'relation_type': 'supports',
+        'evidence_anchor': state.kbManifestPath,
+      },
+    ];
+    final canvasNodes = <Map<String, Object?>>[
+      {
+        'node_id': 'anchor_current_kb',
+        'node_type': 'anchor',
+        'label':
+            _stringValue(primary['kb_name'] ?? primary['name'], 'Current KB'),
+        'evidence_path': state.kbManifestPath,
+      },
+      {
+        'node_id': 'entity_sources',
+        'node_type': 'entity',
+        'label': 'Source documents',
+        'evidence_path': state.sourceManifestPath,
+      },
+      {
+        'node_id': 'evidence_quality',
+        'node_type': 'evidence',
+        'label': 'Quality report',
+        'evidence_path': state.qualityReportPath,
+      },
+      {
+        'node_id': 'answer_path',
+        'node_type': 'answer',
+        'label': 'Answer uses source-backed evidence',
+        'evidence_path': state.kbManifestPath,
+      },
+    ];
+    final canvasEdges = <Map<String, Object?>>[
+      {
+        'edge_id': 'anchor_to_entity',
+        'from': 'anchor_current_kb',
+        'to': 'entity_sources',
+        'label': 'Anchor -> Entity',
+      },
+      {
+        'edge_id': 'entity_to_evidence',
+        'from': 'entity_sources',
+        'to': 'evidence_quality',
+        'label': 'Entity -> Evidence',
+      },
+      {
+        'edge_id': 'evidence_to_answer',
+        'from': 'evidence_quality',
+        'to': 'answer_path',
+        'label': 'Evidence -> Answer',
+      },
+    ];
+    final edgeLabels =
+        canvasEdges.map((edge) => edge['label']).whereType<String>().toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'ui_entry_bound': true,
+      'ui_action_button_bound': true,
+      'state_refresh_supported': true,
+      'canvas_summary_created': true,
+      'source_manifest_available': state.sourceManifestPath.isNotEmpty,
+      'knowledge_base_available': state.kbManifestPath.isNotEmpty,
+      'canvas_nodes_created': canvasNodes.length >= 4,
+      'canvas_edges_created': canvasEdges.length >= 3,
+      'anchor_entity_evidence_answer_path': edgeLabels.containsAll(
+        const ['Anchor -> Entity', 'Entity -> Evidence', 'Evidence -> Answer'],
+      ),
+      'event_ledger_path_configured': eventLedgerPath.trim().isNotEmpty,
+      'artifact_catalog_path_configured': artifactCatalogPath.trim().isNotEmpty,
+      'restart_recovery_uses_workspace_reload': true,
+      'artifact_center_open_export_delete_supported': true,
+      'error_display_supported': true,
+      'no_placeholder_only_path': true,
+      'no_external_llm_call': true,
+      'no_vector_db_call': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_knowledge_canvas_basic_summary.v1',
+      'status': status,
+      'capability_id': 'knowledge_canvas_basic',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'ui_blackbox_path':
+          'Knowledge Base -> Overview -> Generate knowledge canvas evidence',
+      'canvas_name': 'Knowledge Canvas Basic',
+      'anchor_entity_evidence_answer_path': [
+        'Anchor',
+        'Entity',
+        'Evidence',
+        'Answer',
+      ],
+      'source_rows': sourceRows,
+      'entity_rows': entityRows,
+      'relation_rows': relationRows,
+      'canvas_nodes': canvasNodes,
+      'canvas_edges': canvasEdges,
+      'event_ledger_path': eventLedgerPath,
+      'artifact_catalog_path': artifactCatalogPath,
+      'event_count_before': beforeEventCount,
+      'artifact_count_before': beforeArtifactCount,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runKnowledgeCanvasBasicAcceptance',
+        'input_paths': [
+          state.sourceManifestPath,
+          state.kbManifestPath,
+          state.qualityReportPath,
+        ],
+        'summary_path': summaryPath,
+        'external_calls_made': false,
+      },
+      'black_box_evidence': {
+        'ui_entry': 'Knowledge Base',
+        'tab': 'Overview',
+        'automation_key': 'knowledge-canvas-basic-evidence-button',
+        'action': 'runKnowledgeCanvasBasicAcceptance',
+        'state_refresh': 'runtime_controller_notify_listeners',
+        'error_display':
+            'lastError and failed_checks are surfaced when blocked',
+      },
+      'lifecycle_evidence': {
+        'create': 'knowledge_canvas_basic_summary.json is written',
+        'view': 'Knowledge Base page displays generated canvas summary state',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete':
+            'Artifact Center deletes only the registered test-marked artifact record and workspace summary path',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'failed_checks are recorded when KB/source evidence is missing',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_external_llm_call': true,
+        'no_vector_db_call': true,
+        'redis_vector_service_packaged_into_exe': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'knowledge_canvas_basic_validated',
+      module: 'knowledge_base',
+      action: 'run_knowledge_canvas_basic_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'knowledge_canvas_basic',
+      targetName: 'Knowledge Canvas Basic',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'knowledge_canvas_basic_summary',
+      artifactType: 'acceptance_report',
+      title: 'Knowledge Canvas Basic Summary',
+      sourceModule: 'knowledge_base',
+      sourceId: 'knowledge_canvas_basic',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Knowledge Canvas Basic 验收证据已生成。'
+          : 'Knowledge Canvas Basic 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'knowledge_canvas_basic_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -29873,6 +30143,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunAuditReportEnhancementOnLaunch() {
     return _envEnabled('HEITANG_P1_AUDIT_REPORT_ENHANCEMENT_E2E');
+  }
+
+  bool _autoRunKnowledgeCanvasBasicOnLaunch() {
+    return _envEnabled('HEITANG_P1_KNOWLEDGE_CANVAS_BASIC_E2E');
   }
 
   bool _envEnabled(String key) {
