@@ -648,7 +648,11 @@ class _AgentConsoleResetWorkbench extends StatelessWidget {
                               onSend: onSend,
                               onClearDialogue: onClearDialogue,
                             ),
-                          1 => _AgentOrchestratorFlowPane(zh: zh),
+                          1 => _AgentOrchestratorFlowPane(
+                              zh: zh,
+                              runtime: runtime,
+                              rc6: rc6,
+                            ),
                           _ => _AgentConfigWorkbenchPane(
                               zh: zh,
                               workspace: workspace,
@@ -1208,9 +1212,15 @@ class _AgentImDialoguePane extends StatelessWidget {
 }
 
 class _AgentOrchestratorFlowPane extends StatelessWidget {
-  const _AgentOrchestratorFlowPane({required this.zh});
+  const _AgentOrchestratorFlowPane({
+    required this.zh,
+    required this.runtime,
+    required this.rc6,
+  });
 
   final bool zh;
+  final Rc6RuntimeState runtime;
+  final Rc6RuntimeController? rc6;
 
   @override
   Widget build(BuildContext context) {
@@ -1227,7 +1237,11 @@ class _AgentOrchestratorFlowPane extends StatelessWidget {
       child: _LocalScrollBox(
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: _AgentDiscussionProductView(zh: zh),
+          child: _AgentDiscussionProductView(
+            zh: zh,
+            runtime: runtime,
+            rc6: rc6,
+          ),
         ),
       ),
     );
@@ -3165,9 +3179,15 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
 }
 
 class _AgentDiscussionProductView extends StatefulWidget {
-  const _AgentDiscussionProductView({required this.zh});
+  const _AgentDiscussionProductView({
+    required this.zh,
+    required this.runtime,
+    required this.rc6,
+  });
 
   final bool zh;
+  final Rc6RuntimeState runtime;
+  final Rc6RuntimeController? rc6;
 
   @override
   State<_AgentDiscussionProductView> createState() =>
@@ -3189,6 +3209,14 @@ class _AgentDiscussionProductViewState
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = widget.rc6;
+    final runtime = widget.runtime;
+    final hasRunnableAgent = runtime.hasAgent || runtime.hasAgentProfiles;
+    final hasRunnableSkill = runtime.hasSkill ||
+        runtime.hasSkillOperationManifest ||
+        runtime.hasSkillVersionManifest;
+    final canRun =
+        rc6 != null && !runtime.running && hasRunnableAgent && hasRunnableSkill;
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
@@ -3200,7 +3228,7 @@ class _AgentDiscussionProductViewState
         TextField(
           key: const Key('a2a-topic-input'),
           controller: _topicController,
-          enabled: false,
+          enabled: canRun,
           decoration: InputDecoration(
             labelText: zh ? '协作任务输入' : 'Collaboration task input',
             helperText: zh
@@ -3228,9 +3256,16 @@ class _AgentDiscussionProductViewState
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PrimaryProductAction(
+          automationKey: 'workgroup-basic-runtime-evidence-button',
           label: zh ? '启动工作小组' : 'Start Work Group',
           icon: Icons.forum_outlined,
-          onPressed: null,
+          onPressed: canRun
+              ? () async {
+                  await rc6.runMultiAgentDiscussion(
+                    topic: _topicController.text.trim(),
+                  );
+                }
+              : null,
         ),
       ],
     );

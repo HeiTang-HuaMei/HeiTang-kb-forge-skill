@@ -588,11 +588,18 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<void> clearAgentDialogueHistory() async => initialize();
 
-  Future<void> runMultiAgentDiscussion({
+  Future<String> runMultiAgentDiscussion({
     String topic = '',
     List<String> participantAgentIds = const [],
   }) async =>
-      initialize();
+      '';
+  Future<String> runWorkgroupBasicRuntimeAcceptance({
+    String topic = 'P2-1 Workgroup Basic Runtime',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];

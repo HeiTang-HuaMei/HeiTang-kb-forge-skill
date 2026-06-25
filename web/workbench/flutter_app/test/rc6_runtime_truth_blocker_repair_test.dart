@@ -1243,6 +1243,192 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('p2 workgroup basic runtime button creates local evidence',
+      (tester) async {
+    late Directory workspace;
+    await pumpWorkbench(
+      tester,
+      initialSelectedIndex: 7,
+      surfaceSize: const Size(1440, 900),
+      captureWorkspace: (dir) => workspace = dir,
+      setupWorkspace: (workspace) async {
+        final skillDir = Directory(
+            '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+          ..createSync(recursive: true);
+        File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+            .writeAsStringSync('# Knowledge QA Skill\n');
+        final now = DateTime.now().toUtc().toIso8601String();
+        final agentDir = Directory(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+          ..createSync(recursive: true);
+        File('${agentDir.path}${Platform.pathSeparator}agents.json')
+            .writeAsStringSync(jsonEncode({
+          'schema_version': 'heitang_agent_catalog.v1',
+          'status': 'saved',
+          'agents': [
+            {
+              'id': 'test_workgroup_agent',
+              'name': '工作小组测试助手',
+              'description': '用于 P2-1 工作小组黑盒验收。',
+              'role': '处理当前工作区任务',
+              'status': 'available',
+              'created_at': now,
+              'updated_at': now,
+              'workspace_id': '默认工作本',
+              'primary_knowledge_base_id': 'K1',
+              'allowed_reference_kb_ids': [],
+              'kb_scope_mode': 'single',
+              'answer_policy_id': 'strict_evidence',
+              'ai_profile_id': 'ai_profile_default_local',
+              'bound_knowledge_base_ids': ['K1'],
+              'bound_skill_ids': ['primary_skill'],
+              'settings': {'reply_mode': 'local_fallback_until_configured'},
+            }
+          ],
+          'updated_at': now,
+        }));
+        final conversationDir = Directory(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_workgroup_agent')
+          ..createSync(recursive: true);
+        File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
+            .writeAsStringSync(jsonEncode({
+          'schema_version': 'heitang_agent_conversation.v1',
+          'conversation_id': 'conv_test_workgroup_agent',
+          'agent_id': 'test_workgroup_agent',
+          'messages': [],
+          'created_at': now,
+          'updated_at': now,
+        }));
+      },
+      waitForRuntimeReady: true,
+    );
+
+    expect(find.byKey(const Key('agent-primary-entry-switch')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('agent-primary-entry-工作小组')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    final button =
+        find.byKey(const Key('workgroup-basic-runtime-evidence-button'));
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (button.evaluate().isNotEmpty &&
+          tester.widget<FilledButton>(button).onPressed != null) {
+        break;
+      }
+    }
+    expect(button, findsOneWidget);
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      tester.widget<FilledButton>(button).onPressed?.call();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    });
+
+    final summaryPath =
+        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (File(summaryPath).existsSync()) {
+        break;
+      }
+    }
+    expect(tester.takeException(), isNull);
+    expect(File(summaryPath).existsSync(), isTrue);
+    final summary = jsonDecode(File(summaryPath).readAsStringSync()) as Map;
+    expect(summary['status'], 'pass');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['black_box_status'], 'passed');
+    expect(
+        summary['ui_blackbox_path'], 'Agent -> Work Group -> Start Work Group');
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+            .existsSync(),
+        isTrue);
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'workgroup_basic_runtime_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('p2 workgroup fixture loads agent profile and skill', () async {
+    final workspace = await createWorkspace();
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\n');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final agentDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+      ..createSync(recursive: true);
+    File('${agentDir.path}${Platform.pathSeparator}agents.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_catalog.v1',
+      'status': 'saved',
+      'agents': [
+        {
+          'id': 'test_workgroup_agent',
+          'name': '工作小组测试助手',
+          'description': '用于 P2-1 工作小组黑盒验收。',
+          'role': '处理当前工作区任务',
+          'status': 'available',
+          'created_at': now,
+          'updated_at': now,
+          'workspace_id': '默认工作本',
+          'primary_knowledge_base_id': 'K1',
+          'allowed_reference_kb_ids': [],
+          'kb_scope_mode': 'single',
+          'answer_policy_id': 'strict_evidence',
+          'ai_profile_id': 'ai_profile_default_local',
+          'bound_knowledge_base_ids': ['K1'],
+          'bound_skill_ids': ['primary_skill'],
+          'settings': {'reply_mode': 'local_fallback_until_configured'},
+        }
+      ],
+      'updated_at': now,
+    }));
+    final conversationDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_workgroup_agent')
+      ..createSync(recursive: true);
+    File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'heitang_agent_conversation.v1',
+      'conversation_id': 'conv_test_workgroup_agent',
+      'agent_id': 'test_workgroup_agent',
+      'messages': [],
+      'created_at': now,
+      'updated_at': now,
+    }));
+
+    final controller = Rc6RuntimeController(
+      coreBridge: const LocalCoreBridge(),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.initialize();
+
+    expect(controller.state.hasSkill, isTrue);
+    expect(controller.state.hasAgentProfiles, isTrue);
+    expect(controller.state.agentProfiles.single.name, '工作小组测试助手');
+  });
+
   test('rc6 full chain requires real import before execution', () async {
     final workspace = await createWorkspace();
     final requests = <CoreBridgeRequest>[];
@@ -11202,7 +11388,7 @@ void main() {
           contains(
               '"vector_config_id":"settings_agent_memory_vector_optional"'),
         ));
-    await controller.runMultiAgentDiscussion(
+    final workgroupSummaryPath = await controller.runMultiAgentDiscussion(
       topic: 'Owner 自定义 A2A 议题',
       participantAgentIds: const [
         'operation_conversion_agent',
@@ -11261,6 +11447,35 @@ void main() {
         orchestrationRecords.any((record) =>
             record['action'] == 'run_a2a_discussion' &&
             ((record['resources'] as Map)['topic'] == 'Owner 自定义 A2A 议题')),
+        isTrue);
+    final workgroupSummary =
+        jsonDecode(File(workgroupSummaryPath).readAsStringSync()) as Map;
+    expect(workgroupSummary['capability_gate'], 'P2-1 Workgroup Basic Runtime');
+    expect(workgroupSummary['acceptance_type'], 'user_blackbox');
+    expect(workgroupSummary['white_box_status'], 'passed');
+    expect(workgroupSummary['black_box_status'], 'passed');
+    expect(workgroupSummary['ui_blackbox_path'],
+        'Agent -> Work Group -> Start Work Group');
+    expect(workgroupSummary['p2_4_status'], 'not_closed_by_p2_1');
+    expect(
+        (workgroupSummary['boundary_evidence']
+            as Map)['external_project_name_user_visible'],
+        isFalse);
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'workgroup_basic_runtime_validated' &&
+            row['artifact_path'] == workgroupSummaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map;
+    final artifacts = (artifactCatalog['artifacts'] as List).cast<Map>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'workgroup_basic_runtime_summary' &&
+            row['file_path'] == workgroupSummaryPath),
         isTrue);
   });
 

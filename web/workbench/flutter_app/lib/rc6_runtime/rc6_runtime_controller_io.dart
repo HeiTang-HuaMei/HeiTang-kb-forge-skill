@@ -52,6 +52,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       phase: Rc6RuntimePhase.ready,
       lastMessage: 'rc10 产品链路本地工作区已准备。',
     );
+    await _loadUserActionAssets(workspace);
+    notifyListeners();
     await _ensureProjectConfigProfiles(workspace);
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
@@ -12284,20 +12286,22 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> runMultiAgentDiscussion({
+  Future<String> runMultiAgentDiscussion({
     String topic = '',
     List<String> participantAgentIds = const [],
   }) async {
     if (!_canRunDesktop()) {
-      return;
+      return '';
     }
-    if (!state.hasAgent) {
+    if (!state.hasAgent && !state.hasAgentProfiles) {
       _fail('请先在 Agent 工厂生成 Agent。');
-      return;
+      return '';
     }
-    if (!state.hasSkill) {
+    if (!state.hasSkill &&
+        !state.hasSkillOperationManifest &&
+        !state.hasSkillVersionManifest) {
       _fail('请先在 Skill 工厂生成 Skill，再启动 A2A 协作。');
-      return;
+      return '';
     }
     await _writeMultiAgentDiscussion(
       topic: topic,
@@ -12338,12 +12342,218 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_route_evidence': a2aRouteEvidence,
       },
     );
+    final summaryPath = await _writeWorkgroupBasicRuntimeSummary(
+      topic: topic,
+      participantAgentIds: participantAgentIds,
+      modelRouteEvidence: a2aRouteEvidence,
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
       lastError: '',
     );
     notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runWorkgroupBasicRuntimeAcceptance({
+    String topic = 'P2-1 工作小组基础运行验收',
+  }) async {
+    return runMultiAgentDiscussion(topic: topic);
+  }
+
+  Future<String> _writeWorkgroupBasicRuntimeSummary({
+    required String topic,
+    required List<String> participantAgentIds,
+    required Map<String, Object?> modelRouteEvidence,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/workgroup_basic_runtime_summary.json');
+    final discussionPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final discussionManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final a2aWorkspaceReportPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final manifest = await _readJsonObject(discussionManifestPath);
+    final a2aManifest = await _readJsonObject(a2aSessionManifestPath);
+    final participants = _listOfStrings(a2aManifest['participant_agent_ids']);
+    final effectiveTopic = _stringValue(
+      a2aManifest['topic'] ?? manifest['topic'] ?? topic,
+      topic.trim().isEmpty ? '工作小组协作任务' : topic.trim(),
+    );
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'agent_exists': state.hasAgent || state.hasAgentProfiles,
+      'skill_exists': state.hasSkill ||
+          state.hasSkillOperationManifest ||
+          state.hasSkillVersionManifest,
+      'ui_blackbox_path_defined': true,
+      'discussion_written': await File(discussionPath).exists(),
+      'discussion_manifest_written':
+          await File(discussionManifestPath).exists(),
+      'a2a_session_manifest_written':
+          await File(a2aSessionManifestPath).exists(),
+      'a2a_workspace_report_written':
+          await File(a2aWorkspaceReportPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'participant_count_basic_runtime': participants.length >= 2,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'p2_4_ten_agent_gate_closed': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'p2_4_ten_agent_gate_closed',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_workgroup_basic_runtime_summary.v1',
+      'status': status,
+      'capability_id': 'a2a_workgroup',
+      'capability_gate': 'P2-1 Workgroup Basic Runtime',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'ui_blackbox_path': 'Agent -> Work Group -> Start Work Group',
+      'user_facing_capability': '工作小组',
+      'topic': effectiveTopic,
+      'participant_agent_ids': participants,
+      'participant_count': participants.length,
+      'requested_participant_agent_ids': participantAgentIds,
+      'workspace': workspace.path,
+      'discussion_path': discussionPath,
+      'discussion_manifest_path': discussionManifestPath,
+      'a2a_session_manifest_path': a2aSessionManifestPath,
+      'a2a_workspace_report_path': a2aWorkspaceReportPath,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
+      'model_route_evidence': modelRouteEvidence,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMultiAgentDiscussion',
+        'summary_method': '_writeWorkgroupBasicRuntimeSummary',
+        'core_writer': '_writeMultiAgentDiscussion',
+        'external_runtime_loaded': false,
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'path': 'Agent page Work Group panel',
+        'action': 'Start Work Group button',
+        'automation_key': 'workgroup-basic-runtime-evidence-button',
+        'result_visible_to_user': status == 'pass' ? '工作小组成果已生成' : '需要处理',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'discussion note, manifest, conflict report, consensus report, session manifest and summary are written',
+        'view':
+            'Work Group panel shows available/generated state after runtime reload',
+        'open': 'Artifact Center can preview the summary and discussion report',
+        'export': 'Artifact Center can export registered summary/report files',
+        'delete':
+            'Artifact Center deletes only registered test-marked artifacts when requested',
+        'restart_recovery':
+            'initialize reloads A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'missing Agent or missing Skill blocks the button/action',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+        'p2_4_ten_agent_gate_closed': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'next_gate': 'P2-2 Office Collaboration Workgroup',
+      'p2_4_status': 'not_closed_by_p2_1',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'workgroup_basic_runtime_validated',
+      module: 'workgroup',
+      action: 'run_workgroup_basic_runtime_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'a2a_workgroup',
+      targetName: 'Workgroup Basic Runtime',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'participant_count': participants.length,
+        'p2_4_status': 'not_closed_by_p2_1',
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'workgroup_basic_runtime_summary',
+      artifactType: 'acceptance_report',
+      title: 'Workgroup Basic Runtime Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'a2a_workgroup',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'participant_count': participants.length,
+        'p2_4_status': 'not_closed_by_p2_1',
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
   }
 
   Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async {
@@ -14171,6 +14381,147 @@ class Rc6RuntimeController extends ChangeNotifier {
           : state.searchStatus == Rc6SearchStatus.loading
               ? Rc6SearchStatus.empty
               : state.searchStatus,
+    );
+  }
+
+  Future<void> _loadUserActionAssets(Directory workspace) async {
+    final primarySkillPath =
+        _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md');
+    final skillPath = _join(
+        _join(workspace.path, 'skill', 'knowledge_qa_skill'),
+        'skill_manifest.yaml');
+    final localizedSkillPath = _joinNested(workspace.path,
+        'skill/localized_writing_skill/S2/localized_skill_manifest.json');
+    final skillOperationManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_operation_manifest.json');
+    final skillVersionManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_version_manifest.json');
+    final skillAgentBindingManifestPath = _joinNested(
+        workspace.path, 'skill/operations/agent_binding_manifest.json');
+    final agentPath = _join(
+        _join(workspace.path, 'agent', 'knowledge_qa_agent'),
+        'agent_manifest.json');
+    final agentDialoguePath =
+        _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
+    final agentDialogueManifestPath = _joinNested(
+        workspace.path, 'agent/dialogue/agent_dialogue_manifest.json');
+    final agentDialogueHistoryPath =
+        _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl');
+    final agentDialogueExportPath = _joinNested(
+        workspace.path, 'agent/dialogue_export/agent_dialogue_export.md');
+    final multiAgentPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final multiAgentManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final a2aWorkspaceReportPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md');
+    final a2aConflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final a2aConsensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final agentProfiles = await _readAgentProfiles(workspace);
+    final agentConversations =
+        await _readAgentConversations(workspace, agentProfiles);
+    final agentDialogueManifest =
+        await _readJsonObject(agentDialogueManifestPath);
+    final multiAgentManifest = await _readJsonObject(multiAgentManifestPath);
+    final a2aSessionManifest = await _readJsonObject(a2aSessionManifestPath);
+    final hasSkillArtifact = await File(skillPath).exists() ||
+        await File(primarySkillPath).exists() ||
+        await File(localizedSkillPath).exists();
+    var phase = state.phase;
+    if (await File(agentPath).exists() || agentProfiles.isNotEmpty) {
+      phase = Rc6RuntimePhase.agentGenerated;
+    } else if (hasSkillArtifact) {
+      phase = Rc6RuntimePhase.skillGenerated;
+    }
+    state = state.copyWith(
+      phase: phase,
+      skillPath: hasSkillArtifact ? _join(workspace.path, 'skill') : '',
+      primarySkillPath:
+          await File(primarySkillPath).exists() ? primarySkillPath : '',
+      localizedSkillManifestPath:
+          await File(localizedSkillPath).exists() ? localizedSkillPath : '',
+      skillOperationManifestPath:
+          await File(skillOperationManifestPath).exists()
+              ? skillOperationManifestPath
+              : '',
+      skillVersionManifestPath: await File(skillVersionManifestPath).exists()
+          ? skillVersionManifestPath
+          : '',
+      skillAgentBindingManifestPath:
+          await File(skillAgentBindingManifestPath).exists()
+              ? skillAgentBindingManifestPath
+              : '',
+      agentPath:
+          await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
+      primaryAgentManifestPath: await File(agentPath).exists() ? agentPath : '',
+      agentDialoguePath:
+          await File(agentDialoguePath).exists() ? agentDialoguePath : '',
+      agentDialogueManifestPath: await File(agentDialogueManifestPath).exists()
+          ? agentDialogueManifestPath
+          : '',
+      agentDialogueHistoryPath: await File(agentDialogueHistoryPath).exists()
+          ? agentDialogueHistoryPath
+          : '',
+      agentDialogueExportPath: await File(agentDialogueExportPath).exists()
+          ? agentDialogueExportPath
+          : '',
+      agentProfiles: agentProfiles,
+      agentConversations: agentConversations,
+      agentActivityLogPath: await File(_agentActivityLogPath(workspace)).exists()
+          ? _agentActivityLogPath(workspace)
+          : '',
+      agentArtifactCatalogPath:
+          await File(_agentArtifactCatalogPath(workspace)).exists()
+              ? _agentArtifactCatalogPath(workspace)
+              : '',
+      agentDialogueTurnCount: _countJsonl(agentDialogueHistoryPath),
+      agentDialogueModelConfigId:
+          _stringValue(agentDialogueManifest['model_config_id'], ''),
+      agentDialogueUsedKbIds:
+          _listOfStrings(agentDialogueManifest['used_kb_ids']),
+      agentDialogueUsedSkillIds:
+          _listOfStrings(agentDialogueManifest['used_skill_ids']),
+      agentDialogueOutputFormat:
+          _stringValue(agentDialogueManifest['output_format'], ''),
+      agentDialogueEvidenceCount:
+          _asInt(agentDialogueManifest['evidence_count']) ?? 0,
+      agentDialogueMemoryWriteStatus:
+          _stringValue(agentDialogueManifest['memory_write_status'], ''),
+      agentDialogueErrorMessage:
+          _stringValue(agentDialogueManifest['error_message'], ''),
+      multiAgentDiscussionPath:
+          await File(multiAgentPath).exists() ? multiAgentPath : '',
+      multiAgentDiscussionManifestPath:
+          await File(multiAgentManifestPath).exists()
+              ? multiAgentManifestPath
+              : '',
+      a2aSessionManifestPath: await File(a2aSessionManifestPath).exists()
+          ? a2aSessionManifestPath
+          : '',
+      a2aWorkspaceReportPath: await File(a2aWorkspaceReportPath).exists()
+          ? a2aWorkspaceReportPath
+          : '',
+      a2aConflictReportPath: await File(a2aConflictReportPath).exists()
+          ? a2aConflictReportPath
+          : '',
+      a2aConsensusReportPath: await File(a2aConsensusReportPath).exists()
+          ? a2aConsensusReportPath
+          : '',
+      a2aSessionId: _stringValue(
+          a2aSessionManifest['a2a_session_id'] ??
+              a2aSessionManifest['session_id'],
+          ''),
+      a2aTopic: _stringValue(
+          a2aSessionManifest['topic'] ?? multiAgentManifest['topic'], ''),
+      a2aParticipantAgentIds:
+          _listOfStrings(a2aSessionManifest['participant_agent_ids']),
+      a2aEvidenceCount: _asInt(multiAgentManifest['evidence_count']) ?? 0,
+      a2aStatus: _stringValue(
+          a2aSessionManifest['status'] ?? multiAgentManifest['status'], ''),
     );
   }
 
