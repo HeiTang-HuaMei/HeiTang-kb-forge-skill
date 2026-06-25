@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-34 Loop Runtime Basic",
+  "current_gate": "P1-35 Stop and Handoff Gate",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -58,12 +58,11 @@
     "P1-30 Credential Proxy Design",
     "P1-31 Harness Adapter Spec",
     "P1-32 Model Pool Router Basic",
-    "P1-33 Thinker / Worker / Verifier Role Protocol"
+    "P1-33 Thinker / Worker / Verifier Role Protocol",
+    "P1-34 Loop Runtime Basic"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-33 Thinker / Worker / Verifier Role Protocol",
-    "P1-34 Loop Runtime Basic",
     "P1-35 Stop and Handoff Gate",
     "P1-36 Loop Cost Boundary Basic",
     "P1-37 Heitang Native Knowledge Format Semantic Schema",
@@ -122,10 +121,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "pending_current_gate_commit",
+  "last_commit": "d32dc5e",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-25T04:10:06.6673536Z",
+  "updated_at": "2026-06-25T04:35:00.0000000Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -211,7 +210,9 @@
     "P1-32 Model Pool Router Basic has core-only metadata routing evidence for offline candidate selection, preferred provider routing, default network blocking and missing-capability errors; it remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-33 Thinker / Worker / Verifier Role Protocol.",
     "P1-33 Thinker / Worker / Verifier Role Protocol has core-only role protocol evidence for required roles, explicit handoff contract, approval rules and boundary drift rejection; it remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-34 Loop Runtime Basic."
+    "P1 queue now continues with P1-34 Loop Runtime Basic.",
+    "P1-34 Loop Runtime Basic has core-only loop runtime evidence for deterministic gate steps, blocked and owner-review branches, missing gate failures and boundary drift rejection; it remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-35 Stop and Handoff Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
