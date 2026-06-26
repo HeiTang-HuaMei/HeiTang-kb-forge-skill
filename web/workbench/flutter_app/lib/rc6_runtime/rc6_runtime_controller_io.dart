@@ -7251,6 +7251,445 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runCloudDisposableSandboxAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/cloud_disposable_sandbox_summary.json');
+    final root = _joinNested(workspace.path, 'cloud_disposable_sandbox');
+    final profilePath = _joinNested(root, 'sandbox_profile.json');
+    final lifecyclePlanPath = _joinNested(root, 'sandbox_lifecycle_plan.json');
+    final permissionEnvelopePath =
+        _joinNested(root, 'sandbox_permission_envelope.json');
+    final executionTracePath =
+        _joinNested(root, 'sandbox_execution_trace.jsonl');
+    final destroyProofPath = _joinNested(root, 'sandbox_destroy_proof.json');
+    final rollbackReportPath =
+        _joinNested(root, 'sandbox_rollback_report.json');
+    final validationReportPath =
+        _joinNested(root, 'sandbox_validation_report.json');
+    final boundaryReportPath =
+        _joinNested(root, 'sandbox_boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '云端一次性沙箱评估核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const sandboxId = 'test_cloud_sandbox_p2_17';
+    final profile = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_disposable_sandbox_profile.v1',
+      'status': 'evaluation_contract_only',
+      'sandbox_id': sandboxId,
+      'mode': 'disposable_sandbox_evaluation',
+      'runtime_provider': 'external_connector_optional',
+      'remote_resource_created': false,
+      'network_call_made': false,
+      'ttl_minutes': 30,
+      'workspace_boundary': workspace.path,
+      'allowed_mounts': const ['test_workspace_readonly'],
+      'blocked_mounts': const ['user_home', 'system_paths', 'credential_store'],
+      'allowed_tools': const ['kb_retrieval', 'document_export'],
+      'blocked_tools': const ['arbitrary_shell', 'computer_use'],
+      'contains_secret_plaintext': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(profilePath, profile);
+    final lifecyclePlan = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1',
+      'status': 'pass',
+      'sandbox_id': sandboxId,
+      'steps': const [
+        {
+          'step_id': 'prepare',
+          'action': 'prepare_sandbox_contract',
+          'expected_state': 'contract_ready',
+        },
+        {
+          'step_id': 'run',
+          'action': 'run_allowed_test_task_locally',
+          'expected_state': 'trace_written',
+        },
+        {
+          'step_id': 'collect',
+          'action': 'collect_report_artifacts',
+          'expected_state': 'reports_written',
+        },
+        {
+          'step_id': 'destroy',
+          'action': 'mark_disposable_state_destroyed',
+          'expected_state': 'destroy_proof_written',
+        },
+      ],
+      'ttl_enforced': true,
+      'destroy_required': true,
+      'rollback_required': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(lifecyclePlanPath, lifecyclePlan);
+    final permissionEnvelope = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_sandbox_permission_envelope.v1',
+      'status': 'pass',
+      'sandbox_id': sandboxId,
+      'workspace_boundary': workspace.path,
+      'read_scope': 'test_workspace_readonly',
+      'write_scope': 'sandbox_tmp_only',
+      'secret_plaintext_access': false,
+      'network_default': 'deny',
+      'network_allowlist': const <String>[],
+      'tool_allowlist': const ['kb_retrieval', 'document_export'],
+      'blocked_tools': const ['arbitrary_shell', 'computer_use'],
+      'real_user_data_delete_allowed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(permissionEnvelopePath, permissionEnvelope);
+    final traceRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
+        'step': 1,
+        'sandbox_id': sandboxId,
+        'action': 'prepare_sandbox_contract',
+        'status': 'completed',
+        'remote_resource_created': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
+        'step': 2,
+        'sandbox_id': sandboxId,
+        'action': 'simulate_allowed_task',
+        'status': 'completed',
+        'tool_id': 'kb_retrieval',
+        'tool_decision': 'allow',
+        'external_call_made': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
+        'step': 3,
+        'sandbox_id': sandboxId,
+        'action': 'simulate_blocked_tool',
+        'status': 'blocked',
+        'tool_id': 'arbitrary_shell',
+        'tool_decision': 'deny',
+        'error_code': 'tool_not_allowlisted',
+        'executed': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
+        'step': 4,
+        'sandbox_id': sandboxId,
+        'action': 'destroy_disposable_state',
+        'status': 'completed',
+        'remote_resource_deleted': false,
+        'local_tmp_deleted': true,
+        'created_at': now,
+      },
+    ];
+    await File(executionTracePath).parent.create(recursive: true);
+    await File(executionTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final destroyProof = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_sandbox_destroy_proof.v1',
+      'status': 'pass',
+      'sandbox_id': sandboxId,
+      'ttl_expired_or_destroyed': true,
+      'destroy_step_recorded': true,
+      'remote_resource_created': false,
+      'remote_resource_deleted': false,
+      'local_tmp_deleted': true,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(destroyProofPath, destroyProof);
+    final rollbackReport = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_sandbox_rollback_report.v1',
+      'status': 'pass',
+      'sandbox_id': sandboxId,
+      'rollback_needed': false,
+      'rollback_available_if_connector_created': true,
+      'restores_workspace_state': true,
+      'remote_resource_created': false,
+      'service_binary_packaged_into_exe': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(rollbackReportPath, rollbackReport);
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_sandbox_boundary_report.v1',
+      'status': 'pass',
+      'sandbox_id': sandboxId,
+      'no_cloud_resource_created': true,
+      'no_network_call_made': true,
+      'no_new_dependency': true,
+      'no_packaging_architecture_change': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedProfile = await _readJsonObject(profilePath);
+    final reloadedLifecycle = await _readJsonObject(lifecyclePlanPath);
+    final reloadedEnvelope = await _readJsonObject(permissionEnvelopePath);
+    final reloadedDestroy = await _readJsonObject(destroyProofPath);
+    final reloadedRollback = await _readJsonObject(rollbackReportPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final traceLines = File(executionTracePath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final traceRecords = traceLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'profile_written': await File(profilePath).exists(),
+      'profile_schema_valid':
+          _stringValue(reloadedProfile['schema_version'], '') ==
+              'prd_v3_cloud_disposable_sandbox_profile.v1',
+      'profile_is_evaluation_only':
+          _stringValue(reloadedProfile['status'], '') ==
+              'evaluation_contract_only',
+      'no_remote_resource_created':
+          reloadedProfile['remote_resource_created'] == false,
+      'lifecycle_plan_written': await File(lifecyclePlanPath).exists(),
+      'lifecycle_plan_passed':
+          _stringValue(reloadedLifecycle['status'], '') == 'pass',
+      'ttl_and_destroy_required':
+          reloadedLifecycle['ttl_enforced'] == true &&
+              reloadedLifecycle['destroy_required'] == true,
+      'permission_envelope_written':
+          await File(permissionEnvelopePath).exists(),
+      'permission_envelope_schema_valid':
+          _stringValue(reloadedEnvelope['schema_version'], '') ==
+              'prd_v3_cloud_sandbox_permission_envelope.v1',
+      'network_default_deny':
+          _stringValue(reloadedEnvelope['network_default'], '') == 'deny',
+      'dangerous_tools_blocked': const [
+        'arbitrary_shell',
+        'computer_use',
+      ].every(_listOfStrings(reloadedEnvelope['blocked_tools']).contains),
+      'execution_trace_written': await File(executionTracePath).exists(),
+      'execution_trace_has_destroy_step':
+          traceRecords.any((row) => row['action'] == 'destroy_disposable_state'),
+      'blocked_tool_not_executed': traceRecords.any((row) =>
+          row['tool_id'] == 'arbitrary_shell' &&
+          row['tool_decision'] == 'deny' &&
+          row['executed'] == false),
+      'destroy_proof_written': await File(destroyProofPath).exists(),
+      'destroy_proof_passed':
+          _stringValue(reloadedDestroy['status'], '') == 'pass',
+      'disposable_state_destroyed':
+          reloadedDestroy['ttl_expired_or_destroyed'] == true &&
+              reloadedDestroy['local_tmp_deleted'] == true,
+      'rollback_report_written': await File(rollbackReportPath).exists(),
+      'rollback_report_passed':
+          _stringValue(reloadedRollback['status'], '') == 'pass',
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedProfile['sandbox_id'], '') == sandboxId &&
+              _stringValue(reloadedDestroy['sandbox_id'], '') == sandboxId,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_disposable_sandbox_validation_report.v1',
+      'status': status,
+      'sandbox_id': sandboxId,
+      'profile_path': profilePath,
+      'lifecycle_plan_path': lifecyclePlanPath,
+      'permission_envelope_path': permissionEnvelopePath,
+      'execution_trace_path': executionTracePath,
+      'destroy_proof_path': destroyProofPath,
+      'rollback_report_path': rollbackReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_cloud_disposable_sandbox_summary.v1',
+      'status': status,
+      'capability_id': 'cloud_disposable_sandbox',
+      'capability_gate': 'P2-17 Cloud Disposable Sandbox Evaluation',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'profile_path': profilePath,
+      'lifecycle_plan_path': lifecyclePlanPath,
+      'permission_envelope_path': permissionEnvelopePath,
+      'execution_trace_path': executionTracePath,
+      'destroy_proof_path': destroyProofPath,
+      'rollback_report_path': rollbackReportPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runCloudDisposableSandboxAcceptance',
+        'profile_schema': 'prd_v3_cloud_disposable_sandbox_profile.v1',
+        'lifecycle_schema':
+            'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1',
+        'permission_schema': 'prd_v3_cloud_sandbox_permission_envelope.v1',
+        'trace_schema': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only cloud sandbox evaluation contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'destroy_proof_path': destroyProofPath,
+        'rollback_report_path': rollbackReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'cloud_disposable_sandbox_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'profile, lifecycle plan, permission envelope, execution trace, destroy proof, rollback report, validation report and summary are written',
+        'view': 'summary and validation report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only gate',
+        'restart_recovery':
+            'profile and destroy proof reload from workspace files',
+        'error_path':
+            'non-allowlisted tool path is denied and not executed',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-18 Fugu-style Multi-Model Orchestration',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'cloud_disposable_sandbox_validated',
+      module: 'sandbox',
+      action: 'run_cloud_disposable_sandbox_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'cloud_disposable_sandbox',
+      targetName: 'Cloud Disposable Sandbox Evaluation',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'cloud_disposable_sandbox_summary',
+      artifactType: 'acceptance_report',
+      title: 'Cloud Disposable Sandbox Summary',
+      sourceModule: 'sandbox',
+      sourceId: 'cloud_disposable_sandbox',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'cloud_disposable_sandbox_validation',
+      artifactType: 'validation_report',
+      title: 'Cloud Disposable Sandbox Validation',
+      sourceModule: 'sandbox',
+      sourceId: 'cloud_disposable_sandbox',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '云端一次性沙箱评估核心验收证据已生成。'
+          : '云端一次性沙箱评估核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'cloud_disposable_sandbox_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

@@ -11055,6 +11055,183 @@ void main() {
         isTrue);
   });
 
+  test('p2 cloud disposable sandbox creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runCloudDisposableSandboxAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_cloud_disposable_sandbox_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'cloud_disposable_sandbox');
+    expect(summary['capability_gate'],
+        'P2-17 Cloud Disposable Sandbox Evaluation');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-18 Fugu-style Multi-Model Orchestration');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final profile = jsonDecode(
+        File(summary['profile_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(profile['schema_version'],
+        'prd_v3_cloud_disposable_sandbox_profile.v1');
+    expect(profile['status'], 'evaluation_contract_only');
+    expect(profile['remote_resource_created'], isFalse);
+    expect(profile['network_call_made'], isFalse);
+    expect(profile['contains_secret_plaintext'], isFalse);
+    expect(profile['blocked_mounts'],
+        containsAll(['user_home', 'system_paths', 'credential_store']));
+    final lifecyclePlan = jsonDecode(
+        File(summary['lifecycle_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(lifecyclePlan['schema_version'],
+        'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1');
+    expect(lifecyclePlan['status'], 'pass');
+    expect(lifecyclePlan['ttl_enforced'], isTrue);
+    expect(lifecyclePlan['destroy_required'], isTrue);
+    expect(lifecyclePlan['rollback_required'], isTrue);
+    final permissionEnvelope = jsonDecode(
+        File(summary['permission_envelope_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(permissionEnvelope['schema_version'],
+        'prd_v3_cloud_sandbox_permission_envelope.v1');
+    expect(permissionEnvelope['status'], 'pass');
+    expect(permissionEnvelope['network_default'], 'deny');
+    expect(permissionEnvelope['secret_plaintext_access'], isFalse);
+    expect(permissionEnvelope['blocked_tools'],
+        containsAll(['arbitrary_shell', 'computer_use']));
+    final traceRows =
+        readJsonlFile(summary['execution_trace_path'] as String);
+    expect(traceRows, hasLength(4));
+    expect(
+        traceRows.any((row) =>
+            row['tool_id'] == 'arbitrary_shell' &&
+            row['tool_decision'] == 'deny' &&
+            row['executed'] == false),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['action'] == 'destroy_disposable_state' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        traceRows.every((row) => row['network_call_made'] != true),
+        isTrue);
+    final destroyProof = jsonDecode(
+        File(summary['destroy_proof_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(destroyProof['schema_version'],
+        'prd_v3_cloud_sandbox_destroy_proof.v1');
+    expect(destroyProof['status'], 'pass');
+    expect(destroyProof['ttl_expired_or_destroyed'], isTrue);
+    expect(destroyProof['real_user_data_deleted'], isFalse);
+    expect(destroyProof['secret_plaintext_written'], isFalse);
+    final rollbackReport = jsonDecode(
+        File(summary['rollback_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollbackReport['schema_version'],
+        'prd_v3_cloud_sandbox_rollback_report.v1');
+    expect(rollbackReport['status'], 'pass');
+    expect(rollbackReport['service_binary_packaged_into_exe'], isFalse);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_cloud_disposable_sandbox_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_cloud_sandbox_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['no_cloud_resource_created'], isTrue);
+    expect(boundaryReport['no_network_call_made'], isTrue);
+    expect(boundaryReport['no_new_dependency'], isTrue);
+    expect(boundaryReport['no_packaging_architecture_change'], isTrue);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training_used'], isFalse);
+    expect(boundaryReport['gpu_training_used'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'cloud_disposable_sandbox_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cloud_disposable_sandbox_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cloud_disposable_sandbox_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
