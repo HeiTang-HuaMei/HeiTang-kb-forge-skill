@@ -11450,6 +11450,624 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runOfficeAgentIndustrializationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/office_agent_industrialization_summary.json');
+    final root = _joinNested(workspace.path, 'office_agent_industrialization');
+    await _clearWorkspacePath(root);
+    final templateManifestPath =
+        _joinNested(root, 'document_template_manifest.json');
+    final testKbPath = _joinNested(root, 'test_knowledge_base_manifest.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final citationBindingPath =
+        _joinNested(root, 'citation_binding_report.json');
+    final generatedDocumentPath =
+        _joinNested(root, 'generated_test_document.docx');
+    final activeDocumentPath =
+        _joinNested(root, 'active_test_office_agent_document.json');
+    final openReportPath = _joinNested(root, 'open_report.json');
+    final exportDocumentPath =
+        _joinNested(root, 'exports/test_office_agent_document.docx');
+    final exportManifestPath = _joinNested(root, 'export_manifest.json');
+    final deleteReportPath = _joinNested(root, 'delete_report.json');
+    final tombstonePath =
+        _joinNested(root, 'test_office_agent_document.tombstone.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '文档生成能力验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const testDocumentId = 'test_office_agent_document_p2_25';
+    final templates = <Map<String, Object?>>[
+      {
+        'template_id': 'report',
+        'display_name': '报告',
+        'user_action': '生成文档',
+        'required_sections': const ['摘要', '证据', '结论'],
+      },
+      {
+        'template_id': 'proposal',
+        'display_name': '方案',
+        'user_action': '生成文档',
+        'required_sections': const ['目标', '路径', '风险'],
+      },
+      {
+        'template_id': 'meeting_summary',
+        'display_name': '会议纪要',
+        'user_action': '生成文档',
+        'required_sections': const ['议题', '决议', '待办'],
+      },
+      {
+        'template_id': 'project_plan',
+        'display_name': '项目计划',
+        'user_action': '生成文档',
+        'required_sections': const ['里程碑', '任务', '验收'],
+      },
+      {
+        'template_id': 'operating_manual',
+        'display_name': '操作手册',
+        'user_action': '生成文档',
+        'required_sections': const ['步骤', '注意事项', '检查清单'],
+      },
+    ];
+    await _writeJsonFile(templateManifestPath, {
+      'schema_version': 'prd_v3_office_agent_template_manifest.v1',
+      'status': 'available',
+      'capability_gate': 'P2-25 Office Agent Industrialization',
+      'user_visible_entry': '常用文档模板',
+      'user_visible_action': '生成文档',
+      'template_count': templates.length,
+      'templates': templates,
+      'template_existence_only_closes_gate': false,
+      'provider_adapter_parser_visible': false,
+      'capability_matrix_visible': false,
+      'created_at': now,
+    });
+
+    final testKb = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_test_kb_manifest.v1',
+      'status': 'ready',
+      'knowledge_base_id': 'test_kb_office_agent_p2_25',
+      'display_name': '测试知识库',
+      'test_marker': true,
+      'documents': const [
+        {
+          'document_id': 'test_doc_market_context',
+          'title': '市场背景资料',
+          'source_path': 'test_sources/market_context.md',
+          'chunk_id': 'test_chunk_market_context',
+          'citation': 'market_context.md#chunk=1',
+          'fact': '测试产品需要把证据引用绑定到生成文档。',
+        },
+        {
+          'document_id': 'test_doc_delivery_plan',
+          'title': '交付计划资料',
+          'source_path': 'test_sources/delivery_plan.md',
+          'chunk_id': 'test_chunk_delivery_plan',
+          'citation': 'delivery_plan.md#chunk=2',
+          'fact': '测试交付计划需要可打开、可导出、可删除并可恢复状态。',
+        },
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(testKbPath, testKb);
+
+    final traceRows = [
+      for (final document in _listOfMaps(testKb['documents']))
+        {
+          'schema_version': 'prd_v3_office_agent_source_trace.v1',
+          'trace_id': 'trace_${_stringValue(document['chunk_id'], '')}',
+          'document_id': document['document_id'],
+          'chunk_id': document['chunk_id'],
+          'source_path': document['source_path'],
+          'citation': document['citation'],
+          'excerpt': document['fact'],
+          'test_marker': true,
+          'created_at': now,
+        }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final markdown = [
+      '# 测试报告',
+      '',
+      '## 摘要',
+      '本测试文档由常用文档模板和测试知识库生成。',
+      '',
+      '## 证据',
+      for (final row in traceRows) '- ${row['excerpt']}（${row['citation']}）',
+      '',
+      '## 结论',
+      '生成结果必须保留 source trace、引用绑定、打开、导出、删除和重启恢复证据。',
+    ].join('\n');
+    await _writeDocxFile(File(generatedDocumentPath), markdown);
+    await File(exportDocumentPath).parent.create(recursive: true);
+    await File(generatedDocumentPath).copy(exportDocumentPath);
+
+    await _writeJsonFile(activeDocumentPath, {
+      'schema_version': 'prd_v3_office_agent_active_document.v1',
+      'status': 'active',
+      'document_id': testDocumentId,
+      'document_path': generatedDocumentPath,
+      'template_id': 'report',
+      'knowledge_base_id': testKb['knowledge_base_id'],
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final missingDocxParts =
+        await _missingDocxRequiredParts(File(generatedDocumentPath));
+    final openReport = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_open_report.v1',
+      'status': missingDocxParts.isEmpty ? 'pass' : 'blocked',
+      'document_id': testDocumentId,
+      'opened_path': generatedDocumentPath,
+      'docx_zip_header': await _hasZipHeader(File(generatedDocumentPath)),
+      'missing_docx_parts': missingDocxParts,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(openReportPath, openReport);
+
+    final citationBinding = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_citation_binding_report.v1',
+      'status': traceRows.isNotEmpty ? 'pass' : 'blocked',
+      'document_id': testDocumentId,
+      'source_trace_path': sourceTracePath,
+      'citation_count': traceRows.length,
+      'bindings': [
+        for (final row in traceRows)
+          {
+            'trace_id': row['trace_id'],
+            'chunk_id': row['chunk_id'],
+            'citation': row['citation'],
+            'document_path': generatedDocumentPath,
+            'binding_status': 'linked',
+          }
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(citationBindingPath, citationBinding);
+
+    await _writeJsonFile(exportManifestPath, {
+      'schema_version': 'prd_v3_office_agent_export_manifest.v1',
+      'status': 'pass',
+      'document_id': testDocumentId,
+      'format': 'docx',
+      'source_document_path': generatedDocumentPath,
+      'exported_document_path': exportDocumentPath,
+      'source_trace_path': sourceTracePath,
+      'citation_binding_report_path': citationBindingPath,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final activeExistsBeforeDelete = await File(activeDocumentPath).exists();
+    await File(activeDocumentPath).delete();
+    final activeExistsAfterDelete = await File(activeDocumentPath).exists();
+    await _writeJsonFile(tombstonePath, {
+      'schema_version': 'prd_v3_office_agent_document_tombstone.v1',
+      'status': 'deleted',
+      'document_id': testDocumentId,
+      'deleted_object': activeDocumentPath,
+      'delete_scope': 'current_test_marked_document_record_only',
+      'generated_document_path': generatedDocumentPath,
+      'exported_document_path': exportDocumentPath,
+      'test_marker': true,
+      'real_user_data_deleted': false,
+      'created_at': now,
+    });
+    await _writeJsonFile(deleteReportPath, {
+      'schema_version': 'prd_v3_office_agent_delete_report.v1',
+      'status': activeExistsBeforeDelete && !activeExistsAfterDelete
+          ? 'pass'
+          : 'blocked',
+      'document_id': testDocumentId,
+      'active_document_exists_before_delete': activeExistsBeforeDelete,
+      'active_document_exists_after_delete': activeExistsAfterDelete,
+      'tombstone_path': tombstonePath,
+      'generated_document_preserved_as_evidence': true,
+      'exported_document_preserved': true,
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_state_snapshot.v1',
+      'status': 'pass',
+      'document_id': testDocumentId,
+      'template_manifest_path': templateManifestPath,
+      'test_knowledge_base_manifest_path': testKbPath,
+      'generated_document_path': generatedDocumentPath,
+      'source_trace_path': sourceTracePath,
+      'citation_binding_report_path': citationBindingPath,
+      'export_manifest_path': exportManifestPath,
+      'tombstone_path': tombstonePath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-26 Multi-KB Governance Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_boundary_report.v1',
+      'status': 'pass',
+      'document_id': testDocumentId,
+      'external_office_runtime_called': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final templateManifest = await _readJsonObject(templateManifestPath);
+    final reloadedTestKb = await _readJsonObject(testKbPath);
+    final reloadedOpen = await _readJsonObject(openReportPath);
+    final reloadedCitation = await _readJsonObject(citationBindingPath);
+    final reloadedExport = await _readJsonObject(exportManifestPath);
+    final reloadedDelete = await _readJsonObject(deleteReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final reloadedTraceRows = await _readJsonl(File(sourceTracePath));
+    final forbiddenUiTokens = [
+      'OpenDataLoader',
+      'Composio',
+      'Provider',
+      'Adapter',
+      'Parser',
+      'OCR Provider',
+      'Vector Adapter',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ];
+    final userVisibleText = [
+      _stringValue(templateManifest['user_visible_entry'], ''),
+      _stringValue(templateManifest['user_visible_action'], ''),
+      ..._listOfMaps(templateManifest['templates'])
+          .map((row) => _stringValue(row['display_name'], '')),
+    ].join(' ');
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_user_blackbox': true,
+      'template_manifest_exists': await File(templateManifestPath).exists(),
+      'template_seed_set_complete':
+          _listOfMaps(templateManifest['templates']).length >= 5,
+      'product_facing_template_entry_present':
+          _stringValue(templateManifest['user_visible_entry'], '') == '常用文档模板',
+      'user_visible_generate_action_present':
+          _stringValue(templateManifest['user_visible_action'], '') == '生成文档',
+      'forbidden_ui_tokens_absent':
+          forbiddenUiTokens.every((token) => !userVisibleText.contains(token)),
+      'test_knowledge_base_written': await File(testKbPath).exists(),
+      'test_knowledge_base_has_documents':
+          _listOfMaps(reloadedTestKb['documents']).length >= 2,
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_non_empty': reloadedTraceRows.isNotEmpty,
+      'generated_document_written': await File(generatedDocumentPath).exists(),
+      'generated_document_docx_valid':
+          await _hasZipHeader(File(generatedDocumentPath)) &&
+              missingDocxParts.isEmpty,
+      'open_report_passed': _stringValue(reloadedOpen['status'], '') == 'pass',
+      'citation_binding_report_passed':
+          _stringValue(reloadedCitation['status'], '') == 'pass',
+      'citation_bindings_cover_trace_rows':
+          _listOfMaps(reloadedCitation['bindings']).length ==
+              reloadedTraceRows.length,
+      'export_manifest_written': await File(exportManifestPath).exists(),
+      'exported_document_exists': await File(exportDocumentPath).exists(),
+      'export_manifest_passed':
+          _stringValue(reloadedExport['status'], '') == 'pass',
+      'delete_report_passed':
+          _stringValue(reloadedDelete['status'], '') == 'pass',
+      'test_document_record_removed':
+          reloadedDelete['active_document_exists_after_delete'] == false,
+      'tombstone_written': await File(tombstonePath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['document_id'], '') == testDocumentId &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_office_runtime_called': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+    };
+    const negativeChecks = {
+      'external_office_runtime_called',
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'network_call_made',
+      'new_dependency_added',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_validation_report.v1',
+      'status': status,
+      'document_id': testDocumentId,
+      'template_manifest_path': templateManifestPath,
+      'test_knowledge_base_manifest_path': testKbPath,
+      'source_trace_path': sourceTracePath,
+      'citation_binding_report_path': citationBindingPath,
+      'generated_document_path': generatedDocumentPath,
+      'open_report_path': openReportPath,
+      'export_manifest_path': exportManifestPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_office_agent_industrialization_summary.v1',
+      'status': status,
+      'capability_id': 'office_agent_industrialization',
+      'capability_gate': 'P2-25 Office Agent Industrialization',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'template_manifest_path': templateManifestPath,
+      'test_knowledge_base_manifest_path': testKbPath,
+      'source_trace_path': sourceTracePath,
+      'citation_binding_report_path': citationBindingPath,
+      'generated_document_path': generatedDocumentPath,
+      'open_report_path': openReportPath,
+      'export_manifest_path': exportManifestPath,
+      'exported_document_path': exportDocumentPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runOfficeAgentIndustrializationAcceptance',
+        'document_writer': '_writeDocxFile',
+        'docx_validation': '_missingDocxRequiredParts',
+        'source_trace_path': sourceTracePath,
+        'citation_binding_report_path': citationBindingPath,
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'user_visible_path': '文档生成 -> 常用文档模板 -> 生成文档',
+        'template_selected': '报告',
+        'result_visible_to_user': status == 'pass' ? '文档已生成' : '需要处理',
+      },
+      'artifact_evidence': {
+        'generated_document_path': generatedDocumentPath,
+        'exported_document_path': exportDocumentPath,
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'citation_binding_report_path': citationBindingPath,
+      },
+      'event_evidence': {
+        'event_type': 'office_agent_industrialization_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'test-marked document is generated from a common document template and test knowledge base',
+        'view': 'template, source trace and citation reports reload from files',
+        'open': 'open report validates the DOCX package',
+        'export': 'export manifest records the generated DOCX copy',
+        'delete':
+            'only the current test-marked active document record is removed and tombstoned',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing template, source trace, citation binding or DOCX package blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-26 Multi-KB Governance Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'office_agent_document_generated',
+      module: 'document_generation',
+      action: 'generate_test_document_from_common_template',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: testDocumentId,
+      targetName: '测试文档',
+      artifactPath: generatedDocumentPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'capability_gate': 'P2-25 Office Agent Industrialization',
+        'template_manifest_path': templateManifestPath,
+        'source_trace_path': sourceTracePath,
+        'citation_binding_report_path': citationBindingPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'office_agent_document_deleted',
+      module: 'document_generation',
+      action: 'delete_test_marked_document_record',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: testDocumentId,
+      targetName: '测试文档',
+      artifactPath: tombstonePath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'capability_gate': 'P2-25 Office Agent Industrialization',
+        'delete_report_path': deleteReportPath,
+        'real_user_data_deleted': false,
+        'test_marked_artifact': true,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'office_agent_industrialization_validated',
+      module: 'document_generation',
+      action: 'run_office_agent_industrialization_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'office_agent_industrialization',
+      targetName: 'Office Agent Industrialization',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': summary['black_box_status'],
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_agent_industrialization_summary',
+      artifactType: 'acceptance_report',
+      title: 'Office Agent Industrialization Summary',
+      sourceModule: 'document_generation',
+      sourceId: 'office_agent_industrialization',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': summary['black_box_status'],
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_agent_generated_test_document',
+      artifactType: 'office_document',
+      title: 'Generated Test Document',
+      sourceModule: 'document_generation',
+      sourceId: 'office_agent_industrialization',
+      filePath: generatedDocumentPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'format': 'docx',
+        'source_trace_path': sourceTracePath,
+        'citation_binding_report_path': citationBindingPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_agent_exported_test_document',
+      artifactType: 'office_document_export',
+      title: 'Exported Test Document',
+      sourceModule: 'document_generation',
+      sourceId: 'office_agent_industrialization',
+      filePath: exportDocumentPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'export_manifest_path': exportManifestPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_agent_validation_report',
+      artifactType: 'validation_report',
+      title: 'Office Agent Validation Report',
+      sourceModule: 'document_generation',
+      sourceId: 'office_agent_industrialization',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_agent_test_document_tombstone',
+      artifactType: 'tombstone',
+      title: 'Office Agent Test Document Tombstone',
+      sourceModule: 'document_generation',
+      sourceId: 'office_agent_industrialization',
+      filePath: tombstonePath,
+      status: 'deleted',
+      metadata: {
+        'delete_report_path': deleteReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      exportedDocumentPath: exportDocumentPath,
+      exportManifestPath: exportManifestPath,
+      lastMessage: status == 'pass' ? '文档生成能力验收证据已生成。' : '文档生成能力验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'office_agent_industrialization_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

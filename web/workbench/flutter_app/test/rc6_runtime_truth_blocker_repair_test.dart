@@ -12669,6 +12669,195 @@ void main() {
         isTrue);
   });
 
+  test('p2 office agent industrialization creates template document evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runOfficeAgentIndustrializationAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_office_agent_industrialization_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'office_agent_industrialization');
+    expect(summary['capability_gate'], 'P2-25 Office Agent Industrialization');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-26 Multi-KB Governance Industrial');
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_office_runtime_called' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'new_dependency_added' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final templateManifest = jsonDecode(
+        File(summary['template_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(templateManifest['schema_version'],
+        'prd_v3_office_agent_template_manifest.v1');
+    expect(templateManifest['user_visible_entry'], '常用文档模板');
+    expect(templateManifest['user_visible_action'], '生成文档');
+    expect(templateManifest['template_count'], 5);
+    final templateText = jsonEncode(templateManifest);
+    for (final token in [
+      'OpenDataLoader',
+      'Composio',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ]) {
+      expect(templateText.contains(token), isFalse, reason: token);
+    }
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(2));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['schema_version'] == 'prd_v3_office_agent_source_trace.v1' &&
+            row['test_marker'] == true),
+        isTrue);
+    final citation = jsonDecode(
+        File(summary['citation_binding_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(citation['schema_version'],
+        'prd_v3_office_agent_citation_binding_report.v1');
+    expect(citation['status'], 'pass');
+    expect(citation['citation_count'], sourceTraceRows.length);
+    expect((citation['bindings'] as List), hasLength(sourceTraceRows.length));
+
+    final generatedDocument =
+        File(summary['generated_document_path'] as String);
+    expect(generatedDocument.existsSync(), isTrue);
+    expect(generatedDocument.readAsBytesSync().take(4).toList(),
+        [0x50, 0x4b, 0x03, 0x04]);
+    final openReport = jsonDecode(
+            File(summary['open_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(openReport['status'], 'pass');
+    expect(openReport['missing_docx_parts'], isEmpty);
+    final exportManifest = jsonDecode(
+            File(summary['export_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(exportManifest['schema_version'],
+        'prd_v3_office_agent_export_manifest.v1');
+    expect(exportManifest['status'], 'pass');
+    expect(
+        File(summary['exported_document_path'] as String).existsSync(), isTrue);
+    final deleteReport = jsonDecode(
+            File(summary['delete_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deleteReport['status'], 'pass');
+    expect(deleteReport['active_document_exists_before_delete'], isTrue);
+    expect(deleteReport['active_document_exists_after_delete'], isFalse);
+    expect(deleteReport['real_user_data_deleted'], isFalse);
+    expect(File(summary['tombstone_path'] as String).existsSync(), isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_office_agent_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        boundary['schema_version'], 'prd_v3_office_agent_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_office_runtime_called'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'office_agent_industrialization_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'office_agent_document_deleted' &&
+            row['metadata']['real_user_data_deleted'] == false),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_agent_industrialization_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_agent_generated_test_document' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_agent_validation_report' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_agent_test_document_tombstone' &&
+            row['status'] == 'deleted'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
