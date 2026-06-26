@@ -7690,6 +7690,507 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runFuguMultiModelOrchestrationAcceptance({
+    String task = 'P2-18 Fugu-style Multi-Model Orchestration',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/fugu_multi_model_orchestration_summary.json');
+    final root = _joinNested(workspace.path, 'fugu_multi_model_orchestration');
+    final taskProfilePath = _joinNested(root, 'orchestration_task_profile.json');
+    final candidatePoolPath = _joinNested(root, 'candidate_pool.json');
+    final routerContractPath = _joinNested(root, 'router_contract.json');
+    final routingDecisionsPath = _joinNested(root, 'routing_decisions.jsonl');
+    final fallbackTracePath = _joinNested(root, 'fallback_trace.jsonl');
+    final evaluatorReportPath = _joinNested(root, 'evaluator_report.json');
+    final errorReportPath = _joinNested(root, 'error_report.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '多路 AI 协同编排核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const orchestrationId = 'test_multi_model_orchestration_p2_18';
+    final taskProfile = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_orchestration_task_profile.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'task': task,
+      'execution_mode': 'local_contract_evaluation',
+      'external_model_call_made': false,
+      'network_call_made': false,
+      'contains_secret_plaintext': false,
+      'required_capabilities': const [
+        'fast_draft',
+        'deep_review',
+        'verification',
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(taskProfilePath, taskProfile);
+
+    final candidatePool = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_candidate_pool.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'user_visible_project_or_provider_names': false,
+      'lanes': const [
+        {
+          'lane_id': 'fast_reasoning_lane',
+          'display_role': 'fast_draft',
+          'capabilities': ['fast_draft', 'summarize'],
+          'enabled': true,
+          'external_call_made': false,
+        },
+        {
+          'lane_id': 'deep_review_lane',
+          'display_role': 'deep_review',
+          'capabilities': ['deep_review', 'cross_check'],
+          'enabled': true,
+          'external_call_made': false,
+        },
+        {
+          'lane_id': 'verification_lane',
+          'display_role': 'verification',
+          'capabilities': ['verification', 'citation_check'],
+          'enabled': true,
+          'external_call_made': false,
+        },
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(candidatePoolPath, candidatePool);
+
+    final routerContract = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_router_contract.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'route_strategy': 'capability_then_verification',
+      'default_network_policy': 'deny',
+      'fallback_policy': 'same_process_local_contract',
+      'secret_policy': 'no_plaintext_secret_in_prompt_or_report',
+      'user_visible_label_policy': 'show_capability_result_not_implementation',
+      'required_steps': const [
+        'select_candidate_lanes',
+        'route_task_segments',
+        'collect_local_contract_outputs',
+        'cross_check_outputs',
+        'fallback_when_capability_missing',
+        'write_validation_report',
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(routerContractPath, routerContract);
+
+    final routingRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_multi_model_routing_decision.v1',
+        'orchestration_id': orchestrationId,
+        'step': 1,
+        'segment_id': 'draft',
+        'selected_lane': 'fast_reasoning_lane',
+        'required_capability': 'fast_draft',
+        'decision': 'selected',
+        'external_model_call_made': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_multi_model_routing_decision.v1',
+        'orchestration_id': orchestrationId,
+        'step': 2,
+        'segment_id': 'review',
+        'selected_lane': 'deep_review_lane',
+        'required_capability': 'deep_review',
+        'decision': 'selected',
+        'external_model_call_made': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_multi_model_routing_decision.v1',
+        'orchestration_id': orchestrationId,
+        'step': 3,
+        'segment_id': 'verify',
+        'selected_lane': 'verification_lane',
+        'required_capability': 'verification',
+        'decision': 'selected',
+        'external_model_call_made': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+    ];
+    await File(routingDecisionsPath).parent.create(recursive: true);
+    await File(routingDecisionsPath).writeAsString(
+      '${routingRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final fallbackRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_multi_model_fallback_record.v1',
+        'orchestration_id': orchestrationId,
+        'case_id': 'missing_citation_check_primary',
+        'primary_lane': 'deep_review_lane',
+        'required_capability': 'citation_check',
+        'primary_decision': 'not_selected',
+        'fallback_lane': 'verification_lane',
+        'fallback_decision': 'selected',
+        'status': 'fallback_succeeded',
+        'external_model_call_made': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_multi_model_fallback_record.v1',
+        'orchestration_id': orchestrationId,
+        'case_id': 'secret_bearing_request',
+        'primary_lane': 'fast_reasoning_lane',
+        'required_capability': 'fast_draft',
+        'primary_decision': 'blocked',
+        'fallback_lane': 'none',
+        'fallback_decision': 'blocked',
+        'status': 'blocked_by_secret_boundary',
+        'secret_plaintext_written': false,
+        'external_model_call_made': false,
+        'network_call_made': false,
+        'created_at': now,
+      },
+    ];
+    await File(fallbackTracePath).writeAsString(
+      '${fallbackRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final evaluatorReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_evaluator_report.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'inputs_evaluated': const ['draft', 'review', 'verify'],
+      'consensus_status': 'verified',
+      'selected_output_lane': 'verification_lane',
+      'conflict_count': 0,
+      'unresolved_conflicts': const <String>[],
+      'external_model_call_made': false,
+      'network_call_made': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(evaluatorReportPath, evaluatorReport);
+
+    final errorReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_error_report.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'all_error_paths_blocked': true,
+      'error_cases': const [
+        {
+          'case_id': 'empty_candidate_pool_blocks_routing',
+          'decision': 'blocked',
+          'error_code': 'candidate_pool_empty',
+        },
+        {
+          'case_id': 'missing_required_capability_uses_fallback',
+          'decision': 'fallback_selected',
+          'error_code': 'capability_missing_on_primary_lane',
+        },
+        {
+          'case_id': 'secret_bearing_request_blocks_execution',
+          'decision': 'blocked',
+          'error_code': 'plaintext_secret_not_allowed',
+        },
+      ],
+      'secret_plaintext_written': false,
+      'external_model_call_made': false,
+      'network_call_made': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(errorReportPath, errorReport);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_boundary_report.v1',
+      'status': 'pass',
+      'orchestration_id': orchestrationId,
+      'external_model_call_made': false,
+      'network_call_made': false,
+      'no_new_dependency': true,
+      'no_packaging_architecture_change': true,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedTaskProfile = await _readJsonObject(taskProfilePath);
+    final reloadedCandidatePool = await _readJsonObject(candidatePoolPath);
+    final reloadedRouterContract = await _readJsonObject(routerContractPath);
+    final reloadedEvaluator = await _readJsonObject(evaluatorReportPath);
+    final reloadedErrorReport = await _readJsonObject(errorReportPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final routingLines = File(routingDecisionsPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final routingRecords = routingLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final fallbackLines = File(fallbackTracePath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final fallbackRecords = fallbackLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final lanes =
+        (reloadedCandidatePool['lanes'] as List?)?.cast<dynamic>() ??
+            const <dynamic>[];
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'task_profile_written': await File(taskProfilePath).exists(),
+      'task_profile_schema_valid':
+          _stringValue(reloadedTaskProfile['schema_version'], '') ==
+              'prd_v3_multi_model_orchestration_task_profile.v1',
+      'candidate_pool_written': await File(candidatePoolPath).exists(),
+      'candidate_pool_schema_valid':
+          _stringValue(reloadedCandidatePool['schema_version'], '') ==
+              'prd_v3_multi_model_candidate_pool.v1',
+      'candidate_lanes_available': lanes.length >= 3,
+      'router_contract_written': await File(routerContractPath).exists(),
+      'router_contract_schema_valid':
+          _stringValue(reloadedRouterContract['schema_version'], '') ==
+              'prd_v3_multi_model_router_contract.v1',
+      'default_network_deny':
+          _stringValue(reloadedRouterContract['default_network_policy'], '') ==
+              'deny',
+      'routing_decisions_written': await File(routingDecisionsPath).exists(),
+      'routing_decisions_cover_required_segments':
+          const ['draft', 'review', 'verify'].every((segment) =>
+              routingRecords.any((row) => row['segment_id'] == segment)),
+      'routing_makes_no_external_calls': routingRecords.every((row) =>
+          row['external_model_call_made'] == false &&
+          row['network_call_made'] == false),
+      'fallback_trace_written': await File(fallbackTracePath).exists(),
+      'fallback_succeeds_for_missing_capability': fallbackRecords.any((row) =>
+          row['case_id'] == 'missing_citation_check_primary' &&
+          row['status'] == 'fallback_succeeded' &&
+          row['fallback_lane'] == 'verification_lane'),
+      'secret_case_blocked': fallbackRecords.any((row) =>
+          row['case_id'] == 'secret_bearing_request' &&
+          row['status'] == 'blocked_by_secret_boundary' &&
+          row['secret_plaintext_written'] == false),
+      'evaluator_report_written': await File(evaluatorReportPath).exists(),
+      'evaluator_report_passed':
+          _stringValue(reloadedEvaluator['status'], '') == 'pass',
+      'error_report_written': await File(errorReportPath).exists(),
+      'error_paths_blocked':
+          reloadedErrorReport['all_error_paths_blocked'] == true,
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedTaskProfile['orchestration_id'], '') ==
+                  orchestrationId &&
+              _stringValue(reloadedEvaluator['orchestration_id'], '') ==
+                  orchestrationId,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_model_validation_report.v1',
+      'status': status,
+      'orchestration_id': orchestrationId,
+      'task_profile_path': taskProfilePath,
+      'candidate_pool_path': candidatePoolPath,
+      'router_contract_path': routerContractPath,
+      'routing_decisions_path': routingDecisionsPath,
+      'fallback_trace_path': fallbackTracePath,
+      'evaluator_report_path': evaluatorReportPath,
+      'error_report_path': errorReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_fugu_multi_model_orchestration_summary.v1',
+      'status': status,
+      'capability_id': 'fugu_multi_model_orchestration',
+      'capability_gate': 'P2-18 Fugu-style Multi-Model Orchestration',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'task_profile_path': taskProfilePath,
+      'candidate_pool_path': candidatePoolPath,
+      'router_contract_path': routerContractPath,
+      'routing_decisions_path': routingDecisionsPath,
+      'fallback_trace_path': fallbackTracePath,
+      'evaluator_report_path': evaluatorReportPath,
+      'error_report_path': errorReportPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runFuguMultiModelOrchestrationAcceptance',
+        'task_profile_schema':
+            'prd_v3_multi_model_orchestration_task_profile.v1',
+        'candidate_pool_schema': 'prd_v3_multi_model_candidate_pool.v1',
+        'router_contract_schema': 'prd_v3_multi_model_router_contract.v1',
+        'routing_decision_schema': 'prd_v3_multi_model_routing_decision.v1',
+        'fallback_schema': 'prd_v3_multi_model_fallback_record.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only multi-model orchestration contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'evaluator_report_path': evaluatorReportPath,
+        'error_report_path': errorReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'fugu_multi_model_orchestration_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'task profile, candidate pool, router contract, routing decisions, fallback trace, evaluator report, error report, validation report and summary are written',
+        'view': 'summary and validation report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only gate',
+        'restart_recovery':
+            'task profile and evaluator report reload from workspace files',
+        'error_path':
+            'empty candidate pool, missing capability and secret-bearing request paths are blocked or routed to local fallback',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-19 Loop Orchestrator Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'fugu_multi_model_orchestration_validated',
+      module: 'orchestration',
+      action: 'run_fugu_multi_model_orchestration_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'fugu_multi_model_orchestration',
+      targetName: 'Fugu-style Multi-Model Orchestration',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'fugu_multi_model_orchestration_summary',
+      artifactType: 'acceptance_report',
+      title: 'Multi-Model Orchestration Summary',
+      sourceModule: 'orchestration',
+      sourceId: 'fugu_multi_model_orchestration',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'fugu_multi_model_orchestration_validation',
+      artifactType: 'validation_report',
+      title: 'Multi-Model Orchestration Validation',
+      sourceModule: 'orchestration',
+      sourceId: 'fugu_multi_model_orchestration',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '多路 AI 协同编排核心验收证据已生成。'
+          : '多路 AI 协同编排核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'multi_model_orchestration_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

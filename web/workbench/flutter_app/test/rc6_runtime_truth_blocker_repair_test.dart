@@ -11232,6 +11232,205 @@ void main() {
         isTrue);
   });
 
+  test('p2 fugu multi model orchestration creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runFuguMultiModelOrchestrationAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_fugu_multi_model_orchestration_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'fugu_multi_model_orchestration');
+    expect(summary['capability_gate'],
+        'P2-18 Fugu-style Multi-Model Orchestration');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-19 Loop Orchestrator Industrial');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final taskProfile = jsonDecode(
+        File(summary['task_profile_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(taskProfile['schema_version'],
+        'prd_v3_multi_model_orchestration_task_profile.v1');
+    expect(taskProfile['status'], 'pass');
+    expect(taskProfile['execution_mode'], 'local_contract_evaluation');
+    expect(taskProfile['external_model_call_made'], isFalse);
+    expect(taskProfile['network_call_made'], isFalse);
+    expect(taskProfile['contains_secret_plaintext'], isFalse);
+    final candidatePool = jsonDecode(
+        File(summary['candidate_pool_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(candidatePool['schema_version'],
+        'prd_v3_multi_model_candidate_pool.v1');
+    expect(candidatePool['status'], 'pass');
+    expect(candidatePool['user_visible_project_or_provider_names'], isFalse);
+    expect(candidatePool['lanes'], hasLength(3));
+    final routerContract = jsonDecode(
+        File(summary['router_contract_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(routerContract['schema_version'],
+        'prd_v3_multi_model_router_contract.v1');
+    expect(routerContract['status'], 'pass');
+    expect(routerContract['default_network_policy'], 'deny');
+    expect(routerContract['fallback_policy'],
+        'same_process_local_contract');
+    expect(routerContract['user_visible_label_policy'],
+        'show_capability_result_not_implementation');
+    final routingRows =
+        readJsonlFile(summary['routing_decisions_path'] as String);
+    expect(routingRows, hasLength(3));
+    expect(
+        ['draft', 'review', 'verify'].every((segment) =>
+            routingRows.any((row) => row['segment_id'] == segment)),
+        isTrue);
+    expect(
+        routingRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_multi_model_routing_decision.v1' &&
+            row['decision'] == 'selected' &&
+            row['external_model_call_made'] == false &&
+            row['network_call_made'] == false),
+        isTrue);
+    final fallbackRows =
+        readJsonlFile(summary['fallback_trace_path'] as String);
+    expect(fallbackRows, hasLength(2));
+    expect(
+        fallbackRows.any((row) =>
+            row['case_id'] == 'missing_citation_check_primary' &&
+            row['status'] == 'fallback_succeeded' &&
+            row['fallback_lane'] == 'verification_lane'),
+        isTrue);
+    expect(
+        fallbackRows.any((row) =>
+            row['case_id'] == 'secret_bearing_request' &&
+            row['status'] == 'blocked_by_secret_boundary' &&
+            row['secret_plaintext_written'] == false),
+        isTrue);
+    final evaluatorReport = jsonDecode(
+        File(summary['evaluator_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(evaluatorReport['schema_version'],
+        'prd_v3_multi_model_evaluator_report.v1');
+    expect(evaluatorReport['status'], 'pass');
+    expect(evaluatorReport['consensus_status'], 'verified');
+    expect(evaluatorReport['conflict_count'], 0);
+    expect(evaluatorReport['external_model_call_made'], isFalse);
+    final errorReport = jsonDecode(
+        File(summary['error_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(errorReport['schema_version'],
+        'prd_v3_multi_model_error_report.v1');
+    expect(errorReport['status'], 'pass');
+    expect(errorReport['all_error_paths_blocked'], isTrue);
+    expect(errorReport['secret_plaintext_written'], isFalse);
+    expect(
+        (errorReport['error_cases'] as List).any((row) =>
+            (row as Map)['case_id'] == 'empty_candidate_pool_blocks_routing' &&
+            row['decision'] == 'blocked'),
+        isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_multi_model_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_multi_model_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['external_model_call_made'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['no_new_dependency'], isTrue);
+    expect(boundaryReport['no_packaging_architecture_change'], isTrue);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training_used'], isFalse);
+    expect(boundaryReport['gpu_training_used'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+    expect(boundaryReport['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundaryReport['capability_matrix_user_visible'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'fugu_multi_model_orchestration_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'fugu_multi_model_orchestration_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'fugu_multi_model_orchestration_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

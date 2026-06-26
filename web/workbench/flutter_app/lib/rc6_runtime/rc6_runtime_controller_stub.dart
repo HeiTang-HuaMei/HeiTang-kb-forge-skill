@@ -694,6 +694,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runFuguMultiModelOrchestrationAcceptance({
+    String task = 'P2-18 Fugu-style Multi-Model Orchestration',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];
