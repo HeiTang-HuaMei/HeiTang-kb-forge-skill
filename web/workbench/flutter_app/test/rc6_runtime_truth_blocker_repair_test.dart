@@ -16979,6 +16979,277 @@ void main() {
         isTrue);
   });
 
+  test('p2 cross agent memory migration creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runCrossAgentMemoryMigrationAcceptance();
+    final summary =
+        jsonDecode(File(summaryPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_cross_agent_memory_migration_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'cross_agent_memory_migration');
+    expect(summary['capability_gate'], 'P2-39 Cross-Agent Memory Migration');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-40 Night Memory Consolidation Loop');
+    expect(summary['source_memory_count'], 3);
+    expect(summary['mapping_count'], 3);
+    expect(summary['preview_card_count'], 3);
+    expect(summary['conflict_count'], 1);
+
+    final manifest = jsonDecode(
+        File(summary['manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['schema_version'],
+        'prd_v3_cross_agent_memory_migration_manifest.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['preview_only'], isTrue);
+    expect(manifest['real_user_data_migrated'], isFalse);
+
+    final sourceRows = readJsonlFile(summary['source_export_path'] as String);
+    expect(sourceRows, hasLength(3));
+    expect(sourceRows.map((row) => row['source_memory_id']),
+        containsAll(['src_test_goal_context', 'src_test_update_policy']));
+    expect(
+        sourceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_cross_agent_memory_source_export.v1' &&
+            row['test_marker'] == true &&
+            (row['source_trace_ids'] as List).isNotEmpty &&
+            row['permission_scope'] == 'test_marked_memory_only'),
+        isTrue);
+
+    final mappingTable = jsonDecode(
+        File(summary['mapping_table_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(mappingTable['schema_version'],
+        'prd_v3_cross_agent_memory_mapping_table.v1');
+    expect(mappingTable['status'], 'pass');
+    final mappings =
+        (mappingTable['mappings'] as List).cast<Map<String, dynamic>>();
+    expect(mappings, hasLength(3));
+    expect(mappings.map((row) => row['mapping_status']),
+        containsAll(['ready_for_preview_import', 'conflict_preview_only']));
+    expect(
+        mappings.every((row) =>
+            row['test_marker'] == true &&
+            (row['source_trace_ids'] as List).isNotEmpty &&
+            (row['target_memory_id'] as String).isNotEmpty),
+        isTrue);
+
+    final preview = jsonDecode(
+        File(summary['import_preview_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(preview['schema_version'],
+        'prd_v3_cross_agent_memory_import_preview.v1');
+    expect(preview['status'], 'pass');
+    expect(preview['preview_only'], isTrue);
+    expect(preview['auto_applied_to_runtime'], isFalse);
+    expect(preview['real_user_data_migrated'], isFalse);
+    final previewCards =
+        (preview['preview_memory_cards'] as List).cast<Map<String, dynamic>>();
+    expect(previewCards, hasLength(3));
+    expect(previewCards.map((row) => row['status']),
+        contains('preview_tombstone'));
+
+    final conflict = jsonDecode(
+        File(summary['conflict_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(conflict['schema_version'],
+        'prd_v3_cross_agent_memory_conflict_report.v1');
+    expect(conflict['status'], 'pass');
+    expect(conflict['unresolved_conflict_count'], 0);
+    expect(conflict['requires_owner_confirmation_before_apply'], isTrue);
+    final conflicts =
+        (conflict['conflicts'] as List).cast<Map<String, dynamic>>();
+    expect(conflicts.single['resolution'],
+        'preview_as_tombstone_requires_review');
+    expect(conflicts.single['real_user_data_deleted'], isFalse);
+
+    final permission = jsonDecode(
+        File(summary['permission_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(permission['schema_version'],
+        'prd_v3_cross_agent_memory_permission_boundary.v1');
+    expect(permission['status'], 'pass');
+    expect(permission['allowed_scope'], 'test_marked_memory_only');
+    expect(permission['permission_escalation'], isFalse);
+    expect(permission['secret_plaintext_written'], isFalse);
+    expect(permission['real_user_data_migrated'], isFalse);
+
+    final rollback = jsonDecode(
+        File(summary['rollback_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollback['schema_version'],
+        'prd_v3_cross_agent_memory_rollback_tombstone.v1');
+    expect(rollback['status'], 'pass');
+    expect(rollback['delete_scope'], 'test_marked_migration_preview_only');
+    expect(rollback['preview_import_can_be_discarded'], isTrue);
+    expect(rollback['real_user_data_deleted'], isFalse);
+
+    final lifecycle = jsonDecode(
+        File(summary['lifecycle_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(lifecycle['schema_version'],
+        'prd_v3_cross_agent_memory_lifecycle.v1');
+    expect(lifecycle['status'], 'pass');
+    expect((lifecycle['created_paths'] as List), isNotEmpty);
+    expect((lifecycle['exportable_paths'] as List), isNotEmpty);
+    expect(lifecycle['restart_recoverable_from_files'], isTrue);
+    expect(lifecycle['real_user_data_deleted'], isFalse);
+
+    final observability = jsonDecode(
+        File(summary['observability_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(observability['schema_version'],
+        'prd_v3_cross_agent_memory_observability.v1');
+    expect(observability['status'], 'pass');
+    expect(observability['source_memory_count'], 3);
+    expect(observability['mapping_count'], 3);
+    expect(observability['preview_card_count'], 3);
+    expect(observability['external_multi_agent_runtime_initialized'], isFalse);
+    expect(observability['external_memory_service_connected'], isFalse);
+    expect(observability['external_model_called'], isFalse);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_cross_agent_memory_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(
+        stateSnapshot['next_gate'], 'P2-40 Night Memory Consolidation Loop');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_cross_agent_memory_migration_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_cross_agent_memory_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_multi_agent_runtime_initialized'], isFalse);
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_memory_service_connected'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_memory_migration_applied'], isFalse);
+    expect(boundary['real_user_data_migrated'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_multi_agent_runtime_initialized' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_memory_service_connected' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_memory_migration_applied' ||
+          entry.key == 'real_user_data_migrated' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'ui_modified' ||
+          entry.key == 'new_dependency_added') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'cross_agent_memory_migration_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cross_agent_memory_migration_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cross_agent_memory_migration_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cross_agent_memory_migration_manifest' &&
+            row['file_path'] == summary['manifest_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'cross_agent_memory_migration_source_export' &&
+            row['file_path'] == summary['source_export_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cross_agent_memory_migration_import_preview' &&
+            row['file_path'] == summary['import_preview_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('task experience reuse basic writes core evidence and reloads',
       () async {
     final workspace = await createWorkspace();

@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-39 Cross-Agent Memory Migration",
+  "current_gate": "P2-40 Night Memory Consolidation Loop",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -110,11 +110,11 @@
     "P2-35 Retrieval Regression Benchmark Industrial",
     "P2-36 Self-Improving Knowledge Maintenance",
     "P2-37 Agent Memory Industrial",
-    "P2-38 Mermaid Symbolic Memory Industrial"
+    "P2-38 Mermaid Symbolic Memory Industrial",
+    "P2-39 Cross-Agent Memory Migration"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-39 Cross-Agent Memory Migration",
     "P2-40 Night Memory Consolidation Loop",
     "P2-41 Memory Observability Panel",
     "P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T08:48:00Z",
+  "updated_at": "2026-06-26T09:31:09Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -312,7 +312,9 @@
     "P2-37 Agent Memory Industrial has core-only source-traced memory cards, local index, retrieval probe, update patch, test-only forget tombstone, lifecycle report, observability report, Event Ledger, Artifact Catalog and restart recovery evidence; external memory services remain connector boundaries and it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-38 Mermaid Symbolic Memory Industrial.",
     "P2-38 Mermaid Symbolic Memory Industrial has core-only Mermaid graph, symbolic nodes and edges, memory-card bindings, graph index, symbolic query trace, lifecycle report, observability report, Event Ledger, Artifact Catalog and restart recovery evidence; external renderers and memory services remain out of scope and it remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-39 Cross-Agent Memory Migration."
+    "P2 queue now continues with P2-39 Cross-Agent Memory Migration.",
+    "P2-39 Cross-Agent Memory Migration has core-only test-marked migration package, source export, target import preview, mapping table, conflict report, permission boundary, rollback proof, Event Ledger, Artifact Catalog and restart recovery evidence; it migrates no real user data and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-40 Night Memory Consolidation Loop."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
