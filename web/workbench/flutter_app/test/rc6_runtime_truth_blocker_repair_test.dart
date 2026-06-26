@@ -13536,6 +13536,226 @@ void main() {
         isTrue);
   });
 
+  test('p2 human review console creates governance evidence package', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runHumanReviewConsoleAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'], 'prd_v3_human_review_console_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'human_review_console');
+    expect(summary['capability_gate'], 'P2-29 Human Review Console');
+    expect(summary['acceptance_type'], 'governance');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['governance_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-30 Reliability Score Industrial');
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'ui_modified' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final queue = jsonDecode(
+            File(summary['review_queue_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(queue['schema_version'], 'prd_v3_human_review_console_queue.v1');
+    expect(queue['status'], 'pass');
+    expect(queue['current_gate'], 'P2-29 Human Review Console');
+    expect(queue['next_gate'], 'P2-30 Reliability Score Industrial');
+    final queueItems =
+        (queue['queue_items'] as List).cast<Map<String, dynamic>>();
+    expect(queueItems, hasLength(3));
+    expect(
+        queueItems.map((row) => row['required_action']),
+        containsAll([
+          'accept_evidence',
+          'request_fix_and_retest',
+          'stop_with_checkpoint',
+        ]));
+    expect(queueItems.every((row) => row['test_marker'] == true), isTrue);
+
+    final decisionRows = readJsonlFile(summary['decision_log_path'] as String);
+    expect(decisionRows, hasLength(3));
+    expect(decisionRows.map((row) => row['decision']),
+        containsAll(['accepted', 'fix_requested', 'hard_blocker_escalated']));
+    expect(
+        decisionRows.any((row) =>
+            row['requires_checkpoint'] == true &&
+            row['decision'] == 'hard_blocker_escalated'),
+        isTrue);
+    expect(
+        decisionRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_human_review_console_decision.v1' &&
+            row['contains_secret_plaintext'] == false),
+        isTrue);
+
+    final checklist = jsonDecode(
+        File(summary['reviewer_checklist_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(checklist['schema_version'],
+        'prd_v3_human_review_console_checklist.v1');
+    expect(checklist['status'], 'pass');
+    expect(checklist['all_required_checks_present'], isTrue);
+    expect(checklist['required_checks'],
+        containsAll(['release_gate_not_skipped', 'close_allowed_not_overclaimed']));
+
+    final evidence = jsonDecode(
+            File(summary['evidence_packet_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(evidence['schema_version'],
+        'prd_v3_human_review_console_evidence_packet.v1');
+    expect(evidence['status'], 'pass');
+    expect(evidence['validation_report_required'], isTrue);
+
+    final handoff = jsonDecode(
+            File(summary['owner_handoff_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        handoff['schema_version'], 'prd_v3_human_review_console_owner_handoff.v1');
+    expect(handoff['status'], 'pass');
+    expect(handoff['p2_release_gate_still_required'], isTrue);
+    expect(handoff['final_owner_review_still_queued'], isTrue);
+    expect(handoff['handoff_status'], 'owner_review_not_current_gate');
+
+    final vocabulary = jsonDecode(
+        File(summary['status_vocabulary_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(vocabulary['schema_version'],
+        'prd_v3_human_review_console_status_vocabulary.v1');
+    expect(vocabulary['status'], 'pass');
+    expect(vocabulary['unknown_status_count'], 0);
+    expect(vocabulary['allowed_statuses'],
+        containsAll(['queued_for_review', 'fix_requested']));
+
+    final invariant = jsonDecode(
+        File(summary['queue_invariant_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(invariant['schema_version'],
+        'prd_v3_human_review_console_queue_invariant.v1');
+    expect(invariant['status'], 'pass');
+    expect(invariant['global_goal_complete'], isFalse);
+    expect(invariant['remaining_gates_non_empty'], isTrue);
+    expect(invariant['p2_release_gate_still_queued'], isTrue);
+    expect(invariant['final_owner_review_still_queued'], isTrue);
+
+    final forbidden = jsonDecode(
+        File(summary['forbidden_claims_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(forbidden['schema_version'],
+        'prd_v3_human_review_console_forbidden_claims.v1');
+    expect(forbidden['status'], 'pass');
+    expect(forbidden['final_readiness_claims_absent'], isTrue);
+    expect(forbidden['single_gate_not_treated_as_global_completion'], isTrue);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_human_review_console_state_snapshot.v1');
+    expect(stateSnapshot['queue_item_count'], 3);
+    expect(stateSnapshot['decision_count'], 3);
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'], 'P2-30 Reliability Score Industrial');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_human_review_console_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_human_review_console_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['ui_modified'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+    expect(boundary['stage_chain_mutated'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'human_review_console_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'human_review_console_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'human_review_console_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'human_review_console_decision_log' &&
+            row['file_path'] == summary['decision_log_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

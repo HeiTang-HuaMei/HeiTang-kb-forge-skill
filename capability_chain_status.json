@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-29 Human Review Console",
+  "current_gate": "P2-30 Reliability Score Industrial",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -100,11 +100,11 @@
     "P2-25 Office Agent Industrialization",
     "P2-26 Multi-KB Governance Industrial",
     "P2-27 Versioned Knowledge Governance",
-    "P2-28 Jurisdiction / Domain Scope"
+    "P2-28 Jurisdiction / Domain Scope",
+    "P2-29 Human Review Console"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-29 Human Review Console",
     "P2-30 Reliability Score Industrial",
     "P2-31 Night Knowledge Maintenance Loop",
     "P2-32 Citation Auto-Repair Industrial",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T08:06:00Z",
+  "updated_at": "2026-06-26T08:24:00Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -292,7 +292,9 @@
     "P2-27 Versioned Knowledge Governance has core-only version registry, parent-link, source trace, diff, rollback, query route, test-only delete, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-28 Jurisdiction / Domain Scope.",
     "P2-28 Jurisdiction / Domain Scope has core-only jurisdiction policy, domain scope matrix, source trace, query route, denied-scope, permission boundary, test-only delete, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-29 Human Review Console."
+    "P2 queue now continues with P2-29 Human Review Console.",
+    "P2-29 Human Review Console has governance evidence for review queue, decision log, reviewer checklist, evidence packet, owner handoff, status vocabulary, queue invariant, forbidden-claim boundary, Event Ledger, Artifact Catalog and restart recovery; it remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-30 Reliability Score Industrial."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

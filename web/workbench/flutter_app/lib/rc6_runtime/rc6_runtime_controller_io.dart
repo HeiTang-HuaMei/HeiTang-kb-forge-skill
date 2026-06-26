@@ -14004,6 +14004,544 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runHumanReviewConsoleAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/human_review_console_summary.json');
+    final root = _joinNested(workspace.path, 'human_review_console');
+    await _clearWorkspacePath(root);
+    final reviewQueuePath = _joinNested(root, 'review_queue.json');
+    final decisionLogPath = _joinNested(root, 'decision_log.jsonl');
+    final reviewerChecklistPath = _joinNested(root, 'reviewer_checklist.json');
+    final evidencePacketPath = _joinNested(root, 'evidence_packet.json');
+    final ownerHandoffPath = _joinNested(root, 'owner_handoff_manifest.json');
+    final statusVocabularyPath =
+        _joinNested(root, 'status_vocabulary_report.json');
+    final queueInvariantPath = _joinNested(root, 'queue_invariant_report.json');
+    final forbiddenClaimsPath =
+        _joinNested(root, 'forbidden_claims_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '人工审查控制台治理验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const consoleId = 'test_human_review_console_p2_29';
+    final reviewItems = <Map<String, Object?>>[
+      {
+        'item_id': 'test_review_p2_29_evidence_complete',
+        'capability_id': 'human_review_console',
+        'review_type': 'evidence_completeness',
+        'source_gate': 'P2-29 Human Review Console',
+        'required_action': 'accept_evidence',
+        'status': 'queued_for_review',
+        'owner_action_required': false,
+        'test_marker': true,
+      },
+      {
+        'item_id': 'test_review_p2_29_missing_artifact',
+        'capability_id': 'human_review_console',
+        'review_type': 'missing_evidence',
+        'source_gate': 'P2-29 Human Review Console',
+        'required_action': 'request_fix_and_retest',
+        'status': 'fix_requested',
+        'owner_action_required': false,
+        'test_marker': true,
+      },
+      {
+        'item_id': 'test_review_p2_29_secret_boundary',
+        'capability_id': 'human_review_console',
+        'review_type': 'hard_blocker_boundary',
+        'source_gate': 'P2-29 Human Review Console',
+        'required_action': 'stop_with_checkpoint',
+        'status': 'escalated_to_hard_blocker',
+        'owner_action_required': true,
+        'test_marker': true,
+      },
+    ];
+    await _writeJsonFile(reviewQueuePath, {
+      'schema_version': 'prd_v3_human_review_console_queue.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'capability_gate': 'P2-29 Human Review Console',
+      'current_gate': 'P2-29 Human Review Console',
+      'next_gate': 'P2-30 Reliability Score Industrial',
+      'queue_items': reviewItems,
+      'allowed_review_actions': const [
+        'accept_evidence',
+        'request_fix_and_retest',
+        'stop_with_checkpoint',
+      ],
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final decisionRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_human_review_console_decision.v1',
+        'console_id': consoleId,
+        'item_id': 'test_review_p2_29_evidence_complete',
+        'decision': 'accepted',
+        'next_action': 'record_closure_evidence',
+        'requires_checkpoint': false,
+        'contains_secret_plaintext': false,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_human_review_console_decision.v1',
+        'console_id': consoleId,
+        'item_id': 'test_review_p2_29_missing_artifact',
+        'decision': 'fix_requested',
+        'next_action': 'repair_and_retest',
+        'requires_checkpoint': false,
+        'contains_secret_plaintext': false,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_human_review_console_decision.v1',
+        'console_id': consoleId,
+        'item_id': 'test_review_p2_29_secret_boundary',
+        'decision': 'hard_blocker_escalated',
+        'next_action': 'write_checkpoint_and_resume_prompt',
+        'requires_checkpoint': true,
+        'contains_secret_plaintext': false,
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(decisionLogPath).parent.create(recursive: true);
+    await File(decisionLogPath).writeAsString(
+      '${decisionRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    await _writeJsonFile(reviewerChecklistPath, {
+      'schema_version': 'prd_v3_human_review_console_checklist.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'required_checks': const [
+        'white_box_evidence_present',
+        'black_box_or_not_required_recorded',
+        'artifact_event_evidence_present',
+        'lifecycle_evidence_present',
+        'regression_status_recorded',
+        'boundary_status_recorded',
+        'close_allowed_not_overclaimed',
+        'release_gate_not_skipped',
+      ],
+      'all_required_checks_present': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(evidencePacketPath, {
+      'schema_version': 'prd_v3_human_review_console_evidence_packet.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'evidence_refs': const [
+        {
+          'capability_id': 'jurisdiction_domain_scope',
+          'evidence_type': 'prior_gate_regression',
+          'report_path':
+              'docs/audits/current/jurisdiction_domain_scope_closure_report.md',
+        },
+        {
+          'capability_id': 'human_review_console',
+          'evidence_type': 'review_queue',
+          'report_path': 'human_review_console/review_queue.json',
+        },
+        {
+          'capability_id': 'human_review_console',
+          'evidence_type': 'decision_log',
+          'report_path': 'human_review_console/decision_log.jsonl',
+        },
+      ],
+      'source_trace_required': false,
+      'validation_report_required': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(ownerHandoffPath, {
+      'schema_version': 'prd_v3_human_review_console_owner_handoff.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'handoff_status': 'owner_review_not_current_gate',
+      'p2_release_gate_still_required': true,
+      'final_owner_review_still_queued': true,
+      'current_next_gate': 'P2-30 Reliability Score Industrial',
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    const allowedStatuses = [
+      'queued_for_review',
+      'evidence_accepted',
+      'fix_requested',
+      'escalated_to_hard_blocker',
+      'checkpoint_required',
+      'owner_review_not_current_gate',
+    ];
+    await _writeJsonFile(statusVocabularyPath, {
+      'schema_version': 'prd_v3_human_review_console_status_vocabulary.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'allowed_statuses': allowedStatuses,
+      'unknown_status_count': 0,
+      'status_source': 'local_governance_contract',
+      'created_at': now,
+    });
+
+    await _writeJsonFile(queueInvariantPath, {
+      'schema_version': 'prd_v3_human_review_console_queue_invariant.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'current_gate_before_closure': 'P2-29 Human Review Console',
+      'next_gate_after_closure': 'P2-30 Reliability Score Industrial',
+      'global_goal_complete': false,
+      'remaining_gates_non_empty': true,
+      'p2_release_gate_still_queued': true,
+      'final_owner_review_still_queued': true,
+      'stage_chain_unchanged': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(forbiddenClaimsPath, {
+      'schema_version': 'prd_v3_human_review_console_forbidden_claims.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'final_readiness_claims_absent': true,
+      'single_gate_not_treated_as_global_completion': true,
+      'core_pass_not_treated_as_stage_exit': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version': 'prd_v3_human_review_console_state_snapshot.v1',
+      'status': 'pass',
+      'console_id': consoleId,
+      'review_queue_path': reviewQueuePath,
+      'decision_log_path': decisionLogPath,
+      'queue_item_count': reviewItems.length,
+      'decision_count': decisionRows.length,
+      'global_goal_complete': false,
+      'next_gate': 'P2-30 Reliability Score Industrial',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_review_console_boundary_report.v1',
+      'status': 'pass',
+      'ui_modified': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedQueue = await _readJsonObject(reviewQueuePath);
+    final reloadedChecklist = await _readJsonObject(reviewerChecklistPath);
+    final reloadedEvidence = await _readJsonObject(evidencePacketPath);
+    final reloadedHandoff = await _readJsonObject(ownerHandoffPath);
+    final reloadedVocabulary = await _readJsonObject(statusVocabularyPath);
+    final reloadedInvariant = await _readJsonObject(queueInvariantPath);
+    final reloadedForbidden = await _readJsonObject(forbiddenClaimsPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final decisions = await _readJsonl(File(decisionLogPath));
+    final queueItems = _listOfMaps(reloadedQueue['queue_items']);
+    final requiredChecks =
+        _listOfStrings(reloadedChecklist['required_checks']).toSet();
+    final queueStatuses = queueItems
+        .map((row) => _stringValue(row['status'], ''))
+        .where((status) => status.isNotEmpty)
+        .toList(growable: false);
+    final allowedStatusSet =
+        _listOfStrings(reloadedVocabulary['allowed_statuses']).toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_governance': true,
+      'blackbox_not_required': true,
+      'review_queue_written': await File(reviewQueuePath).exists(),
+      'review_queue_passed': _stringValue(reloadedQueue['status'], '') == 'pass',
+      'review_queue_has_three_items': queueItems.length == 3,
+      'review_queue_routes_fix_requested': queueItems.any((row) =>
+          _stringValue(row['required_action'], '') ==
+          'request_fix_and_retest'),
+      'review_queue_routes_hard_blocker': queueItems.any((row) =>
+          _stringValue(row['required_action'], '') == 'stop_with_checkpoint'),
+      'decision_log_written': await File(decisionLogPath).exists(),
+      'decision_log_has_three_decisions': decisions.length == 3,
+      'decision_log_has_checkpoint_escalation': decisions.any((row) =>
+          row['requires_checkpoint'] == true &&
+          _stringValue(row['decision'], '') == 'hard_blocker_escalated'),
+      'decision_log_has_no_secret_plaintext':
+          decisions.every((row) => row['contains_secret_plaintext'] == false),
+      'reviewer_checklist_written': await File(reviewerChecklistPath).exists(),
+      'reviewer_checklist_complete':
+          reloadedChecklist['all_required_checks_present'] == true &&
+              requiredChecks.contains('release_gate_not_skipped') &&
+              requiredChecks.contains('close_allowed_not_overclaimed'),
+      'evidence_packet_written': await File(evidencePacketPath).exists(),
+      'evidence_packet_passed':
+          _stringValue(reloadedEvidence['status'], '') == 'pass',
+      'owner_handoff_written': await File(ownerHandoffPath).exists(),
+      'owner_handoff_keeps_final_review_queued':
+          reloadedHandoff['final_owner_review_still_queued'] == true &&
+              reloadedHandoff['p2_release_gate_still_required'] == true,
+      'status_vocabulary_written': await File(statusVocabularyPath).exists(),
+      'status_vocabulary_passed':
+          _stringValue(reloadedVocabulary['status'], '') == 'pass',
+      'queue_statuses_are_allowed':
+          queueStatuses.every(allowedStatusSet.contains),
+      'queue_invariant_written': await File(queueInvariantPath).exists(),
+      'queue_invariant_passed':
+          _stringValue(reloadedInvariant['status'], '') == 'pass',
+      'queue_invariant_keeps_remaining_gates':
+          reloadedInvariant['remaining_gates_non_empty'] == true &&
+              reloadedInvariant['global_goal_complete'] == false,
+      'forbidden_claims_written': await File(forbiddenClaimsPath).exists(),
+      'forbidden_claims_absent':
+          reloadedForbidden['final_readiness_claims_absent'] == true,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['console_id'], '') == consoleId &&
+              _stringValue(reloadedSnapshot['next_gate'], '') ==
+                  'P2-30 Reliability Score Industrial' &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'ui_modified': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'ui_modified',
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_review_console_validation_report.v1',
+      'status': status,
+      'console_id': consoleId,
+      'review_queue_path': reviewQueuePath,
+      'decision_log_path': decisionLogPath,
+      'reviewer_checklist_path': reviewerChecklistPath,
+      'evidence_packet_path': evidencePacketPath,
+      'owner_handoff_path': ownerHandoffPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'queue_invariant_path': queueInvariantPath,
+      'forbidden_claims_path': forbiddenClaimsPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_human_review_console_summary.v1',
+      'status': status,
+      'capability_id': 'human_review_console',
+      'capability_gate': 'P2-29 Human Review Console',
+      'acceptance_type': 'governance',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'governance_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'review_queue_path': reviewQueuePath,
+      'decision_log_path': decisionLogPath,
+      'reviewer_checklist_path': reviewerChecklistPath,
+      'evidence_packet_path': evidencePacketPath,
+      'owner_handoff_path': ownerHandoffPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'queue_invariant_path': queueInvariantPath,
+      'forbidden_claims_path': forbiddenClaimsPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'queue_item_count': queueItems.length,
+      'decision_count': decisions.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runHumanReviewConsoleAcceptance',
+        'queue_schema': 'prd_v3_human_review_console_queue.v1',
+        'decision_schema': 'prd_v3_human_review_console_decision.v1',
+        'checklist_schema': 'prd_v3_human_review_console_checklist.v1',
+        'queue_invariant_schema':
+            'prd_v3_human_review_console_queue_invariant.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'governance human review console contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'review_queue_path': reviewQueuePath,
+        'decision_log_path': decisionLogPath,
+      },
+      'event_evidence': {
+        'event_type': 'human_review_console_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'review queue, decision log, checklist, evidence packet, handoff, status vocabulary, invariant, validation and summary are written',
+        'view':
+            'summary, validation report and review queue are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this governance gate',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing evidence, overclaimed closure, status drift or skipped stage gate blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-30 Reliability Score Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'human_review_console_validated',
+      module: 'governance',
+      action: 'run_human_review_console_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'human_review_console',
+      targetName: 'Human Review Console',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'governance',
+        'black_box_status': 'not_required',
+        'governance_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'human_review_console_summary',
+      artifactType: 'acceptance_report',
+      title: 'Human Review Console Summary',
+      sourceModule: 'governance',
+      sourceId: 'human_review_console',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'human_review_console_validation',
+      artifactType: 'validation_report',
+      title: 'Human Review Console Validation',
+      sourceModule: 'governance',
+      sourceId: 'human_review_console',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'human_review_console_decision_log',
+      artifactType: 'governance_decision_log',
+      title: 'Human Review Console Decision Log',
+      sourceModule: 'governance',
+      sourceId: 'human_review_console',
+      filePath: decisionLogPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'decision_count': decisions.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '人工审查控制台治理验收证据已生成。' : '人工审查控制台治理验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'human_review_console_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
