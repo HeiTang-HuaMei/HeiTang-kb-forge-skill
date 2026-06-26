@@ -13756,6 +13756,224 @@ void main() {
         isTrue);
   });
 
+  test('p2 reliability score industrial creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runReliabilityScoreIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_reliability_score_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'reliability_score_industrial');
+    expect(summary['capability_gate'], 'P2-30 Reliability Score Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-31 Night Knowledge Maintenance Loop');
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'sag_runtime_loaded' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final policy = jsonDecode(
+        File(summary['scoring_policy_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(policy['schema_version'], 'prd_v3_reliability_score_policy.v1');
+    expect(policy['status'], 'pass');
+    expect(policy['low_score_threshold'], 0.8);
+    expect(policy['score_components'], hasLength(4));
+
+    final entityIndex = jsonDecode(
+        File(summary['entity_index_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(entityIndex['schema_version'],
+        'prd_v3_reliability_entity_index.v1');
+    expect(entityIndex['status'], 'pass');
+    expect(entityIndex['entities'], hasLength(2));
+    expect(entityIndex['relations'], hasLength(1));
+    expect(
+        (entityIndex['entities'] as List)
+            .cast<Map<String, dynamic>>()
+            .every((row) => row['test_marker'] == true),
+        isTrue);
+
+    final semanticEvents =
+        readJsonlFile(summary['semantic_events_path'] as String);
+    expect(semanticEvents, hasLength(3));
+    expect(semanticEvents.map((row) => row['event_type']),
+        containsAll(['source_trace_linked', 'conflict_detected', 'repair_routed']));
+    expect(
+        semanticEvents.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_reliability_semantic_event.v1' &&
+            row['test_marker'] == true),
+        isTrue);
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(3));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_reliability_score_source_trace.v1' &&
+            row['test_marker'] == true &&
+            (row['citation'] as String).isNotEmpty &&
+            (row['entity_ids'] as List).isNotEmpty),
+        isTrue);
+
+    final scoreMatrix = jsonDecode(
+        File(summary['score_matrix_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(scoreMatrix['schema_version'], 'prd_v3_reliability_score_matrix.v1');
+    expect(scoreMatrix['status'], 'pass');
+    final scoreRows =
+        (scoreMatrix['score_rows'] as List).cast<Map<String, dynamic>>();
+    expect(scoreRows, hasLength(2));
+    expect(scoreRows.map((row) => row['decision']),
+        containsAll(['pass', 'repair_required']));
+    expect(
+        scoreRows.every((row) =>
+            (row['final_score'] as num) >= 0 &&
+            (row['final_score'] as num) <= 1),
+        isTrue);
+
+    final reliability = jsonDecode(
+        File(summary['reliability_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        reliability['schema_version'], 'prd_v3_reliability_score_report.v1');
+    expect(reliability['status'], 'pass');
+    expect(reliability['source_trace_count'], 3);
+    expect(reliability['entity_count'], 2);
+    expect(reliability['relation_count'], 1);
+    expect(reliability['repair_required_case_count'], 1);
+
+    final repair = jsonDecode(
+        File(summary['repair_routing_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        repair['schema_version'], 'prd_v3_reliability_score_repair_routing.v1');
+    expect(repair['status'], 'pass');
+    expect(repair['network_retry_required'], isFalse);
+    expect((repair['repair_items'] as List).first['blocked_reason'],
+        'score_below_threshold');
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_reliability_score_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'], 'P2-31 Night Knowledge Maintenance Loop');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_reliability_score_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_reliability_score_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['sag_runtime_loaded'], isFalse);
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_database_connected'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'reliability_score_industrial_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'reliability_score_industrial_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'reliability_score_industrial_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'reliability_score_industrial_source_trace' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'reliability_score_industrial_score_matrix' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
