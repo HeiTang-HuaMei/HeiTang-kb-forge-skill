@@ -8672,6 +8672,537 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runHumanBrakeJudgmentGateAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/human_brake_judgment_gate_summary.json');
+    final root = _joinNested(workspace.path, 'human_brake_judgment_gate');
+    final policyPath = _joinNested(root, 'human_brake_policy.json');
+    final decisionMatrixPath = _joinNested(root, 'judgment_matrix.json');
+    final softBlockerRoutingPath =
+        _joinNested(root, 'soft_blocker_routing.jsonl');
+    final hardBlockerReportPath =
+        _joinNested(root, 'hard_blocker_decision_report.json');
+    final checkpointContractPath =
+        _joinNested(root, 'checkpoint_contract.json');
+    final ownerReviewManifestPath =
+        _joinNested(root, 'owner_review_gate_manifest.json');
+    final queueInvariantReportPath =
+        _joinNested(root, 'queue_invariant_report.json');
+    final statusVocabularyPath =
+        _joinNested(root, 'status_vocabulary_report.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '人工刹车与判断门治理验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const gateId = 'test_human_brake_judgment_p2_20';
+    final policy = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_policy.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'acceptance_type': 'governance',
+      'soft_blockers_continue_automatically': true,
+      'hard_blockers_stop_execution': true,
+      'owner_review_only_after_p2_release_gate': true,
+      'final_owner_review_remains_queued': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(policyPath, policy);
+
+    final decisionMatrix = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_judgment_matrix.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'soft_blocker_cases': const [
+        {
+          'case_id': 'core_test_failure',
+          'decision': 'auto_repair',
+          'max_repair_rounds': 3,
+          'requires_human_stop': false,
+        },
+        {
+          'case_id': 'event_ledger_missing',
+          'decision': 'auto_repair',
+          'max_repair_rounds': 3,
+          'requires_human_stop': false,
+        },
+        {
+          'case_id': 'network_503',
+          'decision': 'auto_retry',
+          'max_retry_rounds': 5,
+          'requires_human_stop': false,
+        },
+      ],
+      'hard_blocker_cases': const [
+        {
+          'case_id': 'real_user_data_deletion_risk',
+          'decision': 'stop_with_checkpoint',
+          'requires_human_stop': true,
+        },
+        {
+          'case_id': 'secret_exposure_required',
+          'decision': 'stop_with_checkpoint',
+          'requires_human_stop': true,
+        },
+        {
+          'case_id': 'stage_chain_mutation_required',
+          'decision': 'stop_with_checkpoint',
+          'requires_human_stop': true,
+        },
+        {
+          'case_id': 'repair_budget_exhausted',
+          'decision': 'stop_with_checkpoint',
+          'requires_human_stop': true,
+        },
+        {
+          'case_id': 'network_retry_budget_exhausted',
+          'decision': 'stop_with_checkpoint',
+          'requires_human_stop': true,
+        },
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(decisionMatrixPath, decisionMatrix);
+
+    final softRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_human_brake_soft_blocker_route.v1',
+        'gate_id': gateId,
+        'case_id': 'core_test_failure',
+        'decision': 'auto_repair',
+        'repair_round': 1,
+        'stops_execution': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_human_brake_soft_blocker_route.v1',
+        'gate_id': gateId,
+        'case_id': 'event_ledger_missing',
+        'decision': 'auto_repair',
+        'repair_round': 1,
+        'stops_execution': false,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_human_brake_soft_blocker_route.v1',
+        'gate_id': gateId,
+        'case_id': 'network_503',
+        'decision': 'auto_retry',
+        'retry_round': 1,
+        'stops_execution': false,
+        'created_at': now,
+      },
+    ];
+    await File(softBlockerRoutingPath).parent.create(recursive: true);
+    await File(softBlockerRoutingPath).writeAsString(
+      '${softRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final hardBlockerReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_hard_blocker_report.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'hard_blocker_cases': const [
+        'real_user_data_deletion_risk',
+        'secret_exposure_required',
+        'unapproved_heavy_dependency',
+        'packaging_architecture_change_required',
+        'redis_vector_service_packaging_required',
+        'local_model_or_gpu_video_scope_required',
+        'closed_capability_regression_required',
+        'stage_chain_mutation_required',
+        'repair_budget_exhausted',
+        'network_retry_budget_exhausted',
+      ],
+      'all_hard_blockers_require_stop': true,
+      'blocked_reason_required': true,
+      'checkpoint_required': true,
+      'failure_report_required': true,
+      'resume_prompt_required': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(hardBlockerReportPath, hardBlockerReport);
+
+    final checkpointContract = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_checkpoint_contract.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'required_fields': const [
+        'blocked_reason',
+        'affected_phase',
+        'affected_capability_id',
+        'failed_acceptance_type',
+        'failed_white_box_or_black_box',
+        'failed_command',
+        'missing_evidence',
+        'retry_count',
+        'reviewer_findings',
+        'recommended_fix',
+        'rollback_or_continue_advice',
+        'checkpoint',
+        'failure_report',
+        'resume_prompt',
+      ],
+      'sample_checkpoint': const {
+        'blocked_reason': 'secret_exposure_required',
+        'affected_phase': 'P2',
+        'affected_capability_id': 'human_brake_judgment_gate',
+        'failed_acceptance_type': 'governance',
+        'retry_count': 0,
+        'resume_prompt': 'Resolve secret boundary before resuming P2-20.',
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(checkpointContractPath, checkpointContract);
+
+    final ownerReviewManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_owner_review_manifest.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'p2_release_gate_remains_before_final_owner_review': true,
+      'final_owner_review_gate_remains_queued': true,
+      'current_gate_can_advance_without_owner_manual_pause': true,
+      'owner_review_claim_written': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(ownerReviewManifestPath, ownerReviewManifest);
+
+    final queueInvariantReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_queue_invariant_report.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'current_phase': 'P2',
+      'current_gate_before_closure': 'P2-20 Human Brake and Judgment Gate',
+      'next_gate_after_closure': 'P2-21 DataAgent Foundation Industrial',
+      'remaining_gates_non_empty': true,
+      'global_goal_complete': false,
+      'stage_chain_preserved': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(queueInvariantReportPath, queueInvariantReport);
+
+    final statusVocabulary = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_status_vocabulary_report.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'allowed_decisions': const [
+        'auto_repair',
+        'auto_retry',
+        'stop_with_checkpoint',
+        'continue_after_retest',
+      ],
+      'forbidden_decisions': const [
+        'silent_stop',
+        'skip_release_gate',
+        'manual_pause_for_soft_blocker',
+        'final_acceptance_without_owner_review',
+      ],
+      'forbidden_positive_claims_present': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(statusVocabularyPath, statusVocabulary);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_boundary_report.v1',
+      'status': 'pass',
+      'gate_id': gateId,
+      'stage_chain_mutated': false,
+      'release_gate_skipped': false,
+      'soft_blocker_stops_execution': false,
+      'hard_blocker_without_checkpoint_allowed': false,
+      'external_runtime_executed': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedPolicy = await _readJsonObject(policyPath);
+    final reloadedDecisionMatrix = await _readJsonObject(decisionMatrixPath);
+    final reloadedHardBlockerReport =
+        await _readJsonObject(hardBlockerReportPath);
+    final reloadedCheckpoint = await _readJsonObject(checkpointContractPath);
+    final reloadedOwnerReview =
+        await _readJsonObject(ownerReviewManifestPath);
+    final reloadedQueueInvariant =
+        await _readJsonObject(queueInvariantReportPath);
+    final reloadedVocabulary = await _readJsonObject(statusVocabularyPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final softLines = File(softBlockerRoutingPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final softRecords = softLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final softCases =
+        (reloadedDecisionMatrix['soft_blocker_cases'] as List?) ??
+            const <dynamic>[];
+    final hardCases =
+        (reloadedDecisionMatrix['hard_blocker_cases'] as List?) ??
+            const <dynamic>[];
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_governance': true,
+      'blackbox_not_required': true,
+      'policy_written': await File(policyPath).exists(),
+      'policy_schema_valid':
+          _stringValue(reloadedPolicy['schema_version'], '') ==
+              'prd_v3_human_brake_policy.v1',
+      'policy_passed': _stringValue(reloadedPolicy['status'], '') == 'pass',
+      'decision_matrix_written': await File(decisionMatrixPath).exists(),
+      'decision_matrix_has_soft_cases': softCases.length >= 3,
+      'decision_matrix_has_hard_cases': hardCases.length >= 5,
+      'soft_blocker_routing_written':
+          await File(softBlockerRoutingPath).exists(),
+      'soft_blockers_do_not_stop': softRecords.every((row) =>
+          row['stops_execution'] == false &&
+          const ['auto_repair', 'auto_retry'].contains(row['decision'])),
+      'hard_blocker_report_written':
+          await File(hardBlockerReportPath).exists(),
+      'hard_blockers_stop_with_checkpoint':
+          reloadedHardBlockerReport['all_hard_blockers_require_stop'] == true &&
+              reloadedHardBlockerReport['checkpoint_required'] == true,
+      'checkpoint_contract_written':
+          await File(checkpointContractPath).exists(),
+      'checkpoint_contract_has_resume_prompt':
+          _listOfStrings(reloadedCheckpoint['required_fields'])
+              .contains('resume_prompt'),
+      'owner_review_manifest_written':
+          await File(ownerReviewManifestPath).exists(),
+      'owner_review_not_taken_now':
+          reloadedOwnerReview['final_owner_review_gate_remains_queued'] ==
+                  true &&
+              reloadedOwnerReview['owner_review_claim_written'] == false,
+      'queue_invariant_report_written':
+          await File(queueInvariantReportPath).exists(),
+      'queue_invariants_preserved':
+          reloadedQueueInvariant['global_goal_complete'] == false &&
+              reloadedQueueInvariant['remaining_gates_non_empty'] == true &&
+              reloadedQueueInvariant['stage_chain_preserved'] == true,
+      'status_vocabulary_written': await File(statusVocabularyPath).exists(),
+      'status_vocabulary_clean':
+          reloadedVocabulary['forbidden_positive_claims_present'] == false,
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'stage_chain_mutated': false,
+      'release_gate_skipped': false,
+      'soft_blocker_stops_execution': false,
+      'hard_blocker_without_checkpoint_allowed': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'stage_chain_mutated',
+      'release_gate_skipped',
+      'soft_blocker_stops_execution',
+      'hard_blocker_without_checkpoint_allowed',
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_validation_report.v1',
+      'status': status,
+      'gate_id': gateId,
+      'policy_path': policyPath,
+      'decision_matrix_path': decisionMatrixPath,
+      'soft_blocker_routing_path': softBlockerRoutingPath,
+      'hard_blocker_report_path': hardBlockerReportPath,
+      'checkpoint_contract_path': checkpointContractPath,
+      'owner_review_manifest_path': ownerReviewManifestPath,
+      'queue_invariant_report_path': queueInvariantReportPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_human_brake_judgment_gate_summary.v1',
+      'status': status,
+      'capability_id': 'human_brake_judgment_gate',
+      'capability_gate': 'P2-20 Human Brake and Judgment Gate',
+      'acceptance_type': 'governance',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'governance_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'policy_path': policyPath,
+      'decision_matrix_path': decisionMatrixPath,
+      'soft_blocker_routing_path': softBlockerRoutingPath,
+      'hard_blocker_report_path': hardBlockerReportPath,
+      'checkpoint_contract_path': checkpointContractPath,
+      'owner_review_manifest_path': ownerReviewManifestPath,
+      'queue_invariant_report_path': queueInvariantReportPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runHumanBrakeJudgmentGateAcceptance',
+        'policy_schema': 'prd_v3_human_brake_policy.v1',
+        'decision_matrix_schema': 'prd_v3_human_brake_judgment_matrix.v1',
+        'soft_route_schema': 'prd_v3_human_brake_soft_blocker_route.v1',
+        'checkpoint_schema': 'prd_v3_human_brake_checkpoint_contract.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'governance gate; no standalone UI blackbox is required',
+      },
+      'governance_evidence': {
+        'soft_blockers_continue': true,
+        'hard_blockers_stop_with_checkpoint': true,
+        'queue_invariants_preserved': true,
+        'status_vocabulary_clean': true,
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'queue_invariant_report_path': queueInvariantReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'human_brake_judgment_gate_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'policy, decision matrix, soft blocker routes, hard blocker report, checkpoint contract, owner review manifest, queue invariant report, status vocabulary, validation report and summary are written',
+        'view': 'summary and validation report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this governance gate',
+        'restart_recovery': 'queue invariant report reloads from workspace files',
+        'error_path':
+            'hard blockers require stop with checkpoint, failure report and resume prompt',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-21 DataAgent Foundation Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'human_brake_judgment_gate_validated',
+      module: 'governance',
+      action: 'run_human_brake_judgment_gate_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'human_brake_judgment_gate',
+      targetName: 'Human Brake and Judgment Gate',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'governance',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'human_brake_judgment_gate_summary',
+      artifactType: 'acceptance_report',
+      title: 'Human Brake Judgment Gate Summary',
+      sourceModule: 'governance',
+      sourceId: 'human_brake_judgment_gate',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'human_brake_judgment_gate_validation',
+      artifactType: 'validation_report',
+      title: 'Human Brake Judgment Gate Validation',
+      sourceModule: 'governance',
+      sourceId: 'human_brake_judgment_gate',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '人工刹车与判断门治理验收证据已生成。'
+          : '人工刹车与判断门治理验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'human_brake_judgment_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

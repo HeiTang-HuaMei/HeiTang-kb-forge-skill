@@ -11632,6 +11632,196 @@ void main() {
         isTrue);
   });
 
+  test('p2 human brake judgment gate creates governance evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runHumanBrakeJudgmentGateAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_human_brake_judgment_gate_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'human_brake_judgment_gate');
+    expect(summary['capability_gate'], 'P2-20 Human Brake and Judgment Gate');
+    expect(summary['acceptance_type'], 'governance');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['governance_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-21 DataAgent Foundation Industrial');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'stage_chain_mutated' ||
+          entry.key == 'release_gate_skipped' ||
+          entry.key == 'soft_blocker_stops_execution' ||
+          entry.key == 'hard_blocker_without_checkpoint_allowed' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final policy = jsonDecode(
+        File(summary['policy_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(policy['schema_version'], 'prd_v3_human_brake_policy.v1');
+    expect(policy['status'], 'pass');
+    expect(policy['soft_blockers_continue_automatically'], isTrue);
+    expect(policy['hard_blockers_stop_execution'], isTrue);
+    expect(policy['final_owner_review_remains_queued'], isTrue);
+    final decisionMatrix = jsonDecode(
+        File(summary['decision_matrix_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(decisionMatrix['schema_version'],
+        'prd_v3_human_brake_judgment_matrix.v1');
+    expect(decisionMatrix['status'], 'pass');
+    expect(decisionMatrix['soft_blocker_cases'], hasLength(3));
+    expect(decisionMatrix['hard_blocker_cases'], hasLength(5));
+    final softRows =
+        readJsonlFile(summary['soft_blocker_routing_path'] as String);
+    expect(softRows, hasLength(3));
+    expect(
+        softRows.every((row) =>
+            row['stops_execution'] == false &&
+            (row['decision'] == 'auto_repair' ||
+                row['decision'] == 'auto_retry')),
+        isTrue);
+    final hardBlockerReport = jsonDecode(
+        File(summary['hard_blocker_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(hardBlockerReport['schema_version'],
+        'prd_v3_human_brake_hard_blocker_report.v1');
+    expect(hardBlockerReport['status'], 'pass');
+    expect(hardBlockerReport['all_hard_blockers_require_stop'], isTrue);
+    expect(hardBlockerReport['checkpoint_required'], isTrue);
+    expect(hardBlockerReport['failure_report_required'], isTrue);
+    expect(hardBlockerReport['resume_prompt_required'], isTrue);
+    expect(hardBlockerReport['hard_blocker_cases'],
+        contains('secret_exposure_required'));
+    final checkpoint = jsonDecode(
+        File(summary['checkpoint_contract_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(checkpoint['schema_version'],
+        'prd_v3_human_brake_checkpoint_contract.v1');
+    expect(checkpoint['status'], 'pass');
+    expect(checkpoint['required_fields'], contains('blocked_reason'));
+    expect(checkpoint['required_fields'], contains('failure_report'));
+    expect(checkpoint['required_fields'], contains('resume_prompt'));
+    final ownerReview = jsonDecode(
+        File(summary['owner_review_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(ownerReview['schema_version'],
+        'prd_v3_human_brake_owner_review_manifest.v1');
+    expect(ownerReview['status'], 'pass');
+    expect(ownerReview['p2_release_gate_remains_before_final_owner_review'],
+        isTrue);
+    expect(ownerReview['final_owner_review_gate_remains_queued'], isTrue);
+    expect(ownerReview['owner_review_claim_written'], isFalse);
+    final queueInvariant = jsonDecode(
+        File(summary['queue_invariant_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(queueInvariant['schema_version'],
+        'prd_v3_human_brake_queue_invariant_report.v1');
+    expect(queueInvariant['status'], 'pass');
+    expect(queueInvariant['global_goal_complete'], isFalse);
+    expect(queueInvariant['remaining_gates_non_empty'], isTrue);
+    expect(queueInvariant['stage_chain_preserved'], isTrue);
+    final statusVocabulary = jsonDecode(
+        File(summary['status_vocabulary_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(statusVocabulary['schema_version'],
+        'prd_v3_human_brake_status_vocabulary_report.v1');
+    expect(statusVocabulary['status'], 'pass');
+    expect(statusVocabulary['forbidden_positive_claims_present'], isFalse);
+    expect(statusVocabulary['forbidden_decisions'],
+        contains('skip_release_gate'));
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_human_brake_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_human_brake_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['stage_chain_mutated'], isFalse);
+    expect(boundaryReport['release_gate_skipped'], isFalse);
+    expect(boundaryReport['soft_blocker_stops_execution'], isFalse);
+    expect(boundaryReport['hard_blocker_without_checkpoint_allowed'], isFalse);
+    expect(boundaryReport['external_runtime_executed'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'human_brake_judgment_gate_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'human_brake_judgment_gate_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'human_brake_judgment_gate_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
