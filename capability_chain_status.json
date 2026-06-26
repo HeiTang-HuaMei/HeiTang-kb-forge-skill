@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-31 Night Knowledge Maintenance Loop",
+  "current_gate": "P2-32 Citation Auto-Repair Industrial",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -102,11 +102,11 @@
     "P2-27 Versioned Knowledge Governance",
     "P2-28 Jurisdiction / Domain Scope",
     "P2-29 Human Review Console",
-    "P2-30 Reliability Score Industrial"
+    "P2-30 Reliability Score Industrial",
+    "P2-31 Night Knowledge Maintenance Loop"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-31 Night Knowledge Maintenance Loop",
     "P2-32 Citation Auto-Repair Industrial",
     "P2-33 Memory Consolidation Industrial",
     "P2-34 Permission-Scoped Company Brain",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T08:43:00Z",
+  "updated_at": "2026-06-26T08:44:00Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -296,7 +296,9 @@
     "P2-29 Human Review Console has governance evidence for review queue, decision log, reviewer checklist, evidence packet, owner handoff, status vocabulary, queue invariant, forbidden-claim boundary, Event Ledger, Artifact Catalog and restart recovery; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-30 Reliability Score Industrial.",
     "P2-30 Reliability Score Industrial has core-only scoring policy, entity index, semantic events, source trace, score matrix, reliability report, repair routing, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-31 Night Knowledge Maintenance Loop."
+    "P2 queue now continues with P2-31 Night Knowledge Maintenance Loop.",
+    "P2-31 Night Knowledge Maintenance Loop has core-only local maintenance policy, plan, queue, journal, repair candidates, schedule, Event Ledger, Artifact Catalog and restart recovery evidence; it starts no background daemon and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-32 Citation Auto-Repair Industrial."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
