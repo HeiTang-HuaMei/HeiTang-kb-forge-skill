@@ -13308,6 +13308,234 @@ void main() {
         isTrue);
   });
 
+  test('p2 jurisdiction domain scope creates core evidence package', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runJurisdictionDomainScopeAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_jurisdiction_domain_scope_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'jurisdiction_domain_scope');
+    expect(summary['capability_gate'], 'P2-28 Jurisdiction / Domain Scope');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-29 Human Review Console');
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_database_connected' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'new_dependency_added' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final policy = jsonDecode(
+        File(summary['jurisdiction_policy_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(policy['schema_version'], 'prd_v3_jurisdiction_domain_policy.v1');
+    expect(policy['status'], 'pass');
+    expect(policy['user_visible_entry'], '知识范围规则');
+    final rules = (policy['rules'] as List).cast<Map<String, dynamic>>();
+    expect(rules.any((row) => row['decision'] == 'allow'), isTrue);
+    expect(rules.any((row) => row['decision'] == 'block'), isTrue);
+    final userVisibleText = jsonEncode({
+      'entry': policy['user_visible_entry'],
+      'actions': policy['user_visible_actions'],
+    });
+    for (final token in [
+      'OpenDataLoader',
+      'Composio',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ]) {
+      expect(userVisibleText.contains(token), isFalse, reason: token);
+    }
+
+    final scope = jsonDecode(File(summary['domain_scope_matrix_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        scope['schema_version'], 'prd_v3_jurisdiction_domain_scope_matrix.v1');
+    expect(scope['status'], 'pass');
+    expect(scope['active_jurisdiction'], 'cn_mainland');
+    expect(scope['active_domain'], 'company_policy');
+    expect(
+        scope['allowed_knowledge_base_ids'],
+        containsAll(
+            ['test_kb_policy_cn_p2_28', 'test_kb_research_public_p2_28']));
+    expect(scope['blocked_knowledge_base_ids'],
+        contains('real_user_finance_kb_not_test'));
+
+    final manifest = jsonDecode(
+        File(summary['test_knowledge_base_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(manifest['schema_version'],
+        'prd_v3_jurisdiction_domain_kb_manifest.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['test_knowledge_base_count'], 2);
+    expect(manifest['blocked_non_test_knowledge_base_count'], 1);
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(2));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_jurisdiction_domain_source_trace.v1' &&
+            row['test_marker'] == true &&
+            (row['jurisdiction'] as String).isNotEmpty &&
+            (row['domain'] as String).isNotEmpty &&
+            (row['citation'] as String).isNotEmpty),
+        isTrue);
+
+    final queryRoute = jsonDecode(
+        File(summary['query_answer_route_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(queryRoute['schema_version'],
+        'prd_v3_jurisdiction_domain_query_answer_route_report.v1');
+    expect(queryRoute['status'], 'pass');
+    expect(queryRoute['route'], 'Anchor -> Entity -> Evidence -> Answer');
+    expect(
+        queryRoute['used_knowledge_base_ids'],
+        containsAll(
+            ['test_kb_policy_cn_p2_28', 'test_kb_research_public_p2_28']));
+    expect(queryRoute['blocked_knowledge_base_ids'],
+        contains('real_user_finance_kb_not_test'));
+
+    final denied = jsonDecode(
+        File(summary['denied_scope_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(denied['schema_version'],
+        'prd_v3_jurisdiction_domain_denied_scope_report.v1');
+    expect(denied['status'], 'pass');
+    expect(denied['blocked_actions'],
+        contains('read_out_of_scope_knowledge_base'));
+    expect(denied['real_user_data_deleted'], isFalse);
+
+    final permission = jsonDecode(
+        File(summary['permission_matrix_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(permission['schema_version'],
+        'prd_v3_jurisdiction_domain_permission_matrix.v1');
+    expect(permission['status'], 'pass');
+    final deniedActions =
+        (permission['denied_actions'] as Map).cast<String, dynamic>();
+    expect(deniedActions['test_scope_reviewer'],
+        contains('delete_real_user_finance_kb_not_test'));
+    expect(permission['real_user_data_deleted'], isFalse);
+    expect(permission['secret_plaintext_written'], isFalse);
+
+    final deleteReport = jsonDecode(
+            File(summary['delete_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deleteReport['schema_version'],
+        'prd_v3_jurisdiction_domain_delete_report.v1');
+    expect(deleteReport['status'], 'pass');
+    expect(deleteReport['active_record_exists_before_delete'], isTrue);
+    expect(deleteReport['active_record_exists_after_delete'], isFalse);
+    expect(deleteReport['real_user_data_deleted'], isFalse);
+    expect(File(summary['tombstone_path'] as String).existsSync(), isTrue);
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_jurisdiction_domain_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_jurisdiction_domain_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_database_connected'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'jurisdiction_domain_scope_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'jurisdiction_domain_scope_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'jurisdiction_domain_scope_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'jurisdiction_domain_scope_source_trace' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'jurisdiction_domain_scope_tombstone' &&
+            row['status'] == 'deleted'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
