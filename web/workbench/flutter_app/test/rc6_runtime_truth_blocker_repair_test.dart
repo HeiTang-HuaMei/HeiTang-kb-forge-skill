@@ -10747,6 +10747,165 @@ void main() {
         isTrue);
   });
 
+  test('p2 sandbox tool permission creates governance evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runSandboxToolPermissionAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_sandbox_tool_permission_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'sandbox_tool_permission');
+    expect(summary['capability_gate'],
+        'P2-15 Sandbox and Tool Permission Industrialization');
+    expect(summary['acceptance_type'], 'governance');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['governance_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-16 Session Share / Fork / Replay');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final permissionMatrix = jsonDecode(
+        File(summary['workspace_permission_matrix_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(permissionMatrix['schema_version'],
+        'prd_v3_agent_workspace_permission_matrix.v1');
+    expect(permissionMatrix['status'], 'pass');
+    expect(permissionMatrix['violations'], isEmpty);
+    expect(permissionMatrix['blocked_capabilities'],
+        containsAll(['arbitrary_shell', 'computer_use']));
+    final permissionAudit = jsonDecode(
+        File(summary['permission_audit_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(permissionAudit['schema_version'],
+        'prd_v2_agent_permission_audit.v1');
+    expect(permissionAudit['status'], 'pass');
+    expect(permissionAudit['secret_display'], 'masked');
+    expect(permissionAudit['checks'],
+        containsAll(['tool_allowlist_enforced', 'no_cross_agent_secret_access']));
+    final authRows =
+        readJsonlFile(summary['authorization_runtime_audit_path'] as String);
+    expect(authRows, hasLength(greaterThanOrEqualTo(5)));
+    expect(
+        authRows.every((row) =>
+            row['expected_decision'] == row['decision'] &&
+            row['secret_plaintext_written'] == false),
+        isTrue);
+    expect(
+        authRows.any((row) =>
+            row['error_code'] == 'tool_not_allowlisted' &&
+            row['decision'] == 'deny'),
+        isTrue);
+    expect(
+        authRows.any((row) =>
+            row['error_code'] == 'plaintext_secret_access_denied' &&
+            row['decision'] == 'deny'),
+        isTrue);
+    final blockReport = jsonDecode(
+        File(summary['unauthorized_access_block_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(blockReport['schema_version'],
+        'prd_v3_agent_unauthorized_access_block_report.v1');
+    expect(blockReport['status'], 'pass');
+    expect(blockReport['unauthorized_resources_selectable'], isFalse);
+    expect(blockReport['blocked_resource_types'],
+        containsAll(['unauthorized_kb', 'non_allowlisted_tool']));
+    final toolRegistry = jsonDecode(
+        File(summary['tool_registry_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(toolRegistry['schema_version'], 'prd_v3_tool_registry.v1');
+    expect(toolRegistry['allowlist'],
+        containsAll(['kb_retrieval', 'document_export']));
+    expect(toolRegistry['blocked_tools'],
+        containsAll(['video.generate', 'arbitrary_shell', 'computer_use']));
+    final governanceReport = jsonDecode(
+        File(summary['governance_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(governanceReport['schema_version'],
+        'prd_v3_sandbox_tool_permission_governance_report.v1');
+    expect(governanceReport['status'], 'pass');
+    expect(governanceReport['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_sandbox_tool_permission_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'sandbox_tool_permission_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'sandbox_tool_permission_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'sandbox_tool_permission_governance_report' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

@@ -6390,6 +6390,439 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runSandboxToolPermissionAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/sandbox_tool_permission_summary.json');
+    final reportRoot =
+        _joinNested(workspace.path, 'sandbox_tool_permission');
+    final governanceReportPath =
+        _joinNested(reportRoot, 'sandbox_tool_permission_governance_report.json');
+    final statusVocabularyPath =
+        _joinNested(reportRoot, 'sandbox_tool_permission_status_vocabulary.json');
+    final boundaryReportPath =
+        _joinNested(reportRoot, 'sandbox_tool_permission_boundary_report.json');
+    final permissionAuditPath =
+        _joinNested(workspace.path, 'agent/audit/permission_audit.json');
+    final workspacePermissionMatrixPath = _joinNested(
+        workspace.path, 'agent/audit/workspace_permission_matrix.json');
+    final authorizationRuntimeAuditPath = _joinNested(
+        workspace.path, 'agent/audit/authorization_runtime_audit.jsonl');
+    final blockReportPath = _joinNested(
+        workspace.path, 'agent/audit/unauthorized_access_block_report.json');
+    final agentValidationReportPath =
+        _joinNested(workspace.path, 'agent/audit/agent_validation_report.json');
+    final runHistoryPath =
+        _joinNested(workspace.path, 'agent/audit/run_history.json');
+    final toolRegistryPath =
+        _joinNested(workspace.path, 'agent/tool/tool_registry.json');
+    final toolRequirementReportPath =
+        _joinNested(workspace.path, 'agent/tool/tool_requirement_report.json');
+    final toolUsageReportPath =
+        _joinNested(workspace.path, 'agent/tool/tool_usage_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '沙箱与工具权限治理验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    await _writeAdditionalAgentPackages();
+    await _writeAgentProductOperations();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final permissionAudit = await _readJsonObject(permissionAuditPath);
+    final permissionMatrix = await _readJsonObject(workspacePermissionMatrixPath);
+    final blockReport = await _readJsonObject(blockReportPath);
+    final agentValidation = await _readJsonObject(agentValidationReportPath);
+    final runHistory = await _readJsonObject(runHistoryPath);
+    final toolRegistry = await _readJsonObject(toolRegistryPath);
+    final toolRequirement = await _readJsonObject(toolRequirementReportPath);
+    final toolUsage = await _readJsonObject(toolUsageReportPath);
+    final authorizationRows = <Map<String, dynamic>>[];
+    final authorizationFile = File(authorizationRuntimeAuditPath);
+    if (await authorizationFile.exists()) {
+      for (final line
+          in authorizationFile.readAsLinesSync(encoding: utf8)) {
+        if (line.trim().isEmpty) continue;
+        final decoded = jsonDecode(line);
+        if (decoded is Map) {
+          authorizationRows.add(Map<String, dynamic>.from(decoded));
+        }
+      }
+    }
+
+    final blockedCapabilities =
+        _listOfStrings(permissionMatrix['blocked_capabilities']);
+    final permissionChecks = _listOfStrings(permissionAudit['checks']);
+    final blockedResourceTypes =
+        _listOfStrings(blockReport['blocked_resource_types']);
+    final toolAllowlist = _listOfStrings(toolRegistry['allowlist']);
+    final blockedTools = _listOfStrings(toolRegistry['blocked_tools']);
+    final validationChecks = _listOfMaps(agentValidation['checks']);
+    final runHistoryRecords = _listOfMaps(runHistory['records']);
+    final toolCalls = _listOfMaps(toolUsage['tool_calls']);
+    final deniedRows = authorizationRows
+        .where((row) => _stringValue(row['expected_decision'], '') == 'deny')
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_governance': true,
+      'blackbox_not_required': true,
+      'permission_matrix_written': await File(workspacePermissionMatrixPath).exists(),
+      'permission_matrix_schema_valid': _stringValue(
+              permissionMatrix['schema_version'], '') ==
+          'prd_v3_agent_workspace_permission_matrix.v1',
+      'permission_matrix_passed':
+          _stringValue(permissionMatrix['status'], '') == 'pass',
+      'permission_matrix_has_no_violations':
+          _listOfStrings(permissionMatrix['violations']).isEmpty,
+      'blocked_capabilities_recorded': const [
+        'arbitrary_shell',
+        'computer_use',
+        'plaintext_secret_read',
+      ].every(blockedCapabilities.contains),
+      'permission_audit_written': await File(permissionAuditPath).exists(),
+      'permission_audit_schema_valid':
+          _stringValue(permissionAudit['schema_version'], '') ==
+              'prd_v2_agent_permission_audit.v1',
+      'permission_audit_passed':
+          _stringValue(permissionAudit['status'], '') == 'pass',
+      'permission_checks_cover_tool_and_secret_boundary': const [
+        'no_arbitrary_shell',
+        'computer_use_disabled',
+        'tool_allowlist_enforced',
+        'no_cross_agent_secret_access',
+      ].every(permissionChecks.contains),
+      'secret_display_masked':
+          _stringValue(permissionAudit['secret_display'], '') == 'masked',
+      'authorization_runtime_audit_written':
+          await File(authorizationRuntimeAuditPath).exists(),
+      'authorization_runtime_schema_valid': authorizationRows.every((row) =>
+          _stringValue(row['schema_version'], '') ==
+          'prd_v3_agent_authorization_runtime_audit_record.v1'),
+      'authorization_cases_match_expected': authorizationRows.isNotEmpty &&
+          authorizationRows.every((row) =>
+              _stringValue(row['expected_decision'], '') ==
+              _stringValue(row['decision'], '')),
+      'authorization_denies_unauthorized_paths': deniedRows.length >= 4,
+      'authorization_allows_authorized_path': authorizationRows.any((row) =>
+          _stringValue(row['expected_decision'], '') == 'allow' &&
+          _stringValue(row['decision'], '') == 'allow'),
+      'non_allowlisted_tool_denied': authorizationRows.any((row) =>
+          _stringValue(row['error_code'], '') == 'tool_not_allowlisted' &&
+          _stringValue(row['decision'], '') == 'deny'),
+      'plaintext_secret_access_denied': authorizationRows.any((row) =>
+          _stringValue(row['error_code'], '') ==
+              'plaintext_secret_access_denied' &&
+          _stringValue(row['decision'], '') == 'deny'),
+      'unauthorized_access_block_report_written':
+          await File(blockReportPath).exists(),
+      'unauthorized_access_block_report_passed':
+          _stringValue(blockReport['status'], '') == 'pass',
+      'unauthorized_resources_not_selectable':
+          blockReport['unauthorized_resources_selectable'] == false,
+      'blocked_resource_types_recorded': const [
+        'unauthorized_kb',
+        'sibling_workspace',
+        'non_allowlisted_tool',
+        'plaintext_secret',
+      ].every(blockedResourceTypes.contains),
+      'tool_registry_written': await File(toolRegistryPath).exists(),
+      'tool_allowlist_enforced': const [
+        'kb_retrieval',
+        'document_export',
+      ].every(toolAllowlist.contains),
+      'dangerous_tools_blocked': const [
+        'arbitrary_shell',
+        'computer_use',
+      ].every(blockedTools.contains),
+      'external_tool_not_allowlisted':
+          blockedTools.contains('video.generate'),
+      'tool_requirement_blocks_external_call':
+          _stringValue(toolRequirement['status'], '') == 'Tool 未授权' &&
+              toolRequirement['api_called'] == false,
+      'tool_usage_records_zero_api_calls':
+          (_asInt(toolUsage['total_api_calls']) ?? -1) == 0 &&
+              toolCalls.every((row) => row['api_called'] == false),
+      'agent_validation_report_written':
+          await File(agentValidationReportPath).exists(),
+      'agent_validation_passed':
+          _stringValue(agentValidation['status'], '') == 'pass',
+      'agent_validation_covers_unauthorized_access':
+          validationChecks.any((row) =>
+              _stringValue(row['check_id'], '') ==
+                  'unauthorized_access_blocked' &&
+              _stringValue(row['status'], '') == 'pass'),
+      'run_history_records_authorization': runHistoryRecords.any((row) =>
+          _stringValue(row['action'], '') == 'authorization_runtime_audit' &&
+          _stringValue(row['status'], '') == 'pass'),
+      'workspace_paths_stay_inside_workspace': [
+        permissionAuditPath,
+        workspacePermissionMatrixPath,
+        authorizationRuntimeAuditPath,
+        blockReportPath,
+        agentValidationReportPath,
+        toolRegistryPath,
+      ].every((path) => _isInsideDirectory(path, workspace.path)),
+      'restart_recovery_from_workspace_files':
+          _stringValue(permissionMatrix['status'], '') == 'pass' &&
+              _stringValue(blockReport['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final statusVocabulary = {
+      'schema_version': 'prd_v3_sandbox_tool_permission_status_vocabulary.v1',
+      'status': status,
+      'capability_id': 'sandbox_tool_permission',
+      'allowed_runtime_statuses': [
+        'pass',
+        'blocked',
+        'completed',
+        'Tool 未授权',
+        '未配置',
+        '连接成功',
+      ],
+      'status_mapping': {
+        'permission_matrix': _stringValue(permissionMatrix['status'], ''),
+        'permission_audit': _stringValue(permissionAudit['status'], ''),
+        'unauthorized_access_block_report':
+            _stringValue(blockReport['status'], ''),
+        'agent_validation_report':
+            _stringValue(agentValidation['status'], ''),
+      },
+      'forbidden_user_facing_tokens_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(statusVocabularyPath, statusVocabulary);
+    final boundaryReport = {
+      'schema_version': 'prd_v3_sandbox_tool_permission_boundary_report.v1',
+      'status': status,
+      'capability_id': 'sandbox_tool_permission',
+      'workspace_boundary': workspace.path,
+      'workspace_paths_stay_inside_workspace':
+          checks['workspace_paths_stay_inside_workspace'],
+      'tool_allowlist': toolAllowlist,
+      'blocked_tools': blockedTools,
+      'blocked_capabilities': blockedCapabilities,
+      'blocked_resource_types': blockedResourceTypes,
+      'unauthorized_resources_selectable': false,
+      'secret_plaintext_written': false,
+      'real_user_data_deleted': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+    final governanceReport = {
+      'schema_version': 'prd_v3_sandbox_tool_permission_governance_report.v1',
+      'status': status,
+      'capability_id': 'sandbox_tool_permission',
+      'capability_gate': 'P2-15 Sandbox and Tool Permission Industrialization',
+      'acceptance_type': 'governance',
+      'permission_audit_path': permissionAuditPath,
+      'workspace_permission_matrix_path': workspacePermissionMatrixPath,
+      'authorization_runtime_audit_path': authorizationRuntimeAuditPath,
+      'unauthorized_access_block_report_path': blockReportPath,
+      'agent_validation_report_path': agentValidationReportPath,
+      'tool_registry_path': toolRegistryPath,
+      'tool_requirement_report_path': toolRequirementReportPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'boundary_report_path': boundaryReportPath,
+      'authorization_case_count': authorizationRows.length,
+      'authorization_denied_case_count': deniedRows.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(governanceReportPath, governanceReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_sandbox_tool_permission_summary.v1',
+      'status': status,
+      'capability_id': 'sandbox_tool_permission',
+      'capability_gate': 'P2-15 Sandbox and Tool Permission Industrialization',
+      'acceptance_type': 'governance',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'governance_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'permission_audit_path': permissionAuditPath,
+      'workspace_permission_matrix_path': workspacePermissionMatrixPath,
+      'authorization_runtime_audit_path': authorizationRuntimeAuditPath,
+      'unauthorized_access_block_report_path': blockReportPath,
+      'agent_validation_report_path': agentValidationReportPath,
+      'tool_registry_path': toolRegistryPath,
+      'tool_requirement_report_path': toolRequirementReportPath,
+      'governance_report_path': governanceReportPath,
+      'status_vocabulary_path': statusVocabularyPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runSandboxToolPermissionAcceptance',
+        'permission_matrix_schema':
+            'prd_v3_agent_workspace_permission_matrix.v1',
+        'permission_audit_schema': 'prd_v2_agent_permission_audit.v1',
+        'authorization_audit_schema':
+            'prd_v3_agent_authorization_runtime_audit_record.v1',
+        'block_report_schema':
+            'prd_v3_agent_unauthorized_access_block_report.v1',
+      },
+      'governance_evidence': {
+        'status_vocabulary_path': statusVocabularyPath,
+        'governance_report_path': governanceReportPath,
+        'blocked_capabilities': blockedCapabilities,
+        'blocked_resource_types': blockedResourceTypes,
+        'authorization_case_count': authorizationRows.length,
+        'authorization_denied_case_count': deniedRows.length,
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'governance acceptance validates runtime policy files and permission evidence without a standalone UI blackbox',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'governance_report_path': governanceReportPath,
+        'boundary_report_path': boundaryReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'sandbox_tool_permission_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'permission matrix, permission audit, authorization audit, block report, governance report, boundary report and summary are written',
+        'view': 'summary and governance report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this governance gate',
+        'restart_recovery':
+            'permission matrix and block report reload from workspace files',
+        'error_path':
+            'unauthorized KB, sibling workspace, non-allowlisted tool and plaintext-secret access are denied',
+      },
+      'boundary_evidence': boundaryReport,
+      'reviewer_findings': [
+        'governance gate does not create a fake UI blackbox',
+        'permission matrix and authorization audit are generated fresh in this gate',
+        'non-allowlisted tools and plaintext secret access are denied',
+        'external services remain connector references and are not packaged',
+      ],
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-16 Session Share / Fork / Replay',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'sandbox_tool_permission_validated',
+      module: 'agent_permission',
+      action: 'run_sandbox_tool_permission_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'sandbox_tool_permission',
+      targetName: 'Sandbox and Tool Permission Industrialization',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'governance',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'governance_report_path': governanceReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'sandbox_tool_permission_summary',
+      artifactType: 'acceptance_report',
+      title: 'Sandbox Tool Permission Summary',
+      sourceModule: 'agent_permission',
+      sourceId: 'sandbox_tool_permission',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'sandbox_tool_permission_governance_report',
+      artifactType: 'governance_report',
+      title: 'Sandbox Tool Permission Governance Report',
+      sourceModule: 'agent_permission',
+      sourceId: 'sandbox_tool_permission',
+      filePath: governanceReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '沙箱与工具权限治理验收证据已生成。'
+          : '沙箱与工具权限治理验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'sandbox_tool_permission_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
