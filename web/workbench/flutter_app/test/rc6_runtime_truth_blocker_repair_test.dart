@@ -11431,6 +11431,207 @@ void main() {
         isTrue);
   });
 
+  test('p2 loop orchestrator industrial creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runLoopOrchestratorIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_loop_orchestrator_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'loop_orchestrator_industrial');
+    expect(summary['capability_gate'], 'P2-19 Loop Orchestrator Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-20 Human Brake and Judgment Gate');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'stage_chain_mutated' ||
+          entry.key == 'release_gate_skipped' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final loopPlan = jsonDecode(
+        File(summary['loop_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(loopPlan['schema_version'], 'prd_v3_loop_orchestrator_plan.v1');
+    expect(loopPlan['status'], 'pass');
+    expect(loopPlan['max_auto_repair_rounds'], 3);
+    expect(loopPlan['max_network_retry_rounds'], 5);
+    expect(loopPlan['stage_chain_locked'], isTrue);
+    final traceRows =
+        readJsonlFile(summary['iteration_trace_path'] as String);
+    expect(traceRows, hasLength(6));
+    expect(
+        traceRows.any((row) =>
+            row['step'] == 'white_box_gate' &&
+            row['status'] == 'soft_blocker_detected' &&
+            row['hard_blocker'] == false),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['step'] == 'implementation_repair' &&
+            row['status'] == 'completed' &&
+            row['retry_count'] == 1),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['step'] == 'automatic_retest' &&
+            row['status'] == 'passed'),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['step'] == 'reviewer_gate' && row['status'] == 'passed'),
+        isTrue);
+    final repairBudget = jsonDecode(
+        File(summary['repair_budget_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(repairBudget['schema_version'],
+        'prd_v3_loop_orchestrator_repair_budget.v1');
+    expect(repairBudget['status'], 'pass');
+    expect(repairBudget['max_auto_repair_rounds'], 3);
+    expect(repairBudget['repair_rounds_used'], 1);
+    expect(repairBudget['repair_budget_exhausted'], isFalse);
+    expect(repairBudget['hard_blocker_triggered'], isFalse);
+    final networkPolicy = jsonDecode(
+        File(summary['network_retry_policy_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(networkPolicy['schema_version'],
+        'prd_v3_loop_orchestrator_network_retry_policy.v1');
+    expect(networkPolicy['status'], 'pass');
+    expect(networkPolicy['max_network_retry_rounds'], 5);
+    expect(networkPolicy['retry_wait_seconds'], [10, 30, 60, 120, 300]);
+    expect(networkPolicy['network_call_made'], isFalse);
+    final checkpoint = jsonDecode(
+        File(summary['checkpoint_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(checkpoint['schema_version'],
+        'prd_v3_loop_orchestrator_checkpoint_report.v1');
+    expect(checkpoint['status'], 'pass');
+    expect(checkpoint['checkpoint_required_for_hard_blocker'], isTrue);
+    expect(checkpoint['checkpoint_fields'], contains('resume_prompt'));
+    final resumePrompt = jsonDecode(
+        File(summary['resume_prompt_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(resumePrompt['schema_version'],
+        'prd_v3_loop_orchestrator_resume_prompt_report.v1');
+    expect(resumePrompt['status'], 'pass');
+    expect(resumePrompt['resume_prompt_required'], isTrue);
+    expect(resumePrompt['global_goal_complete_must_remain_false'], isTrue);
+    final exhaustionReport = jsonDecode(
+        File(summary['exhaustion_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(exhaustionReport['schema_version'],
+        'prd_v3_loop_orchestrator_exhaustion_report.v1');
+    expect(exhaustionReport['status'], 'pass');
+    expect(exhaustionReport['auto_repair_exhaustion_turns'], 3);
+    expect(exhaustionReport['network_retry_exhaustion_turns'], 5);
+    expect(exhaustionReport['hard_blocker_after_exhaustion_only'], isTrue);
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_loop_orchestrator_state_snapshot.v1');
+    expect(stateSnapshot['status'], 'pass');
+    expect(stateSnapshot['current_gate'], 'P2-19 Loop Orchestrator Industrial');
+    expect(stateSnapshot['next_gate'], 'P2-20 Human Brake and Judgment Gate');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['remaining_gates_non_empty'], isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_loop_orchestrator_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_loop_orchestrator_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['stage_chain_mutated'], isFalse);
+    expect(boundaryReport['release_gate_skipped'], isFalse);
+    expect(boundaryReport['external_runtime_executed'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training_used'], isFalse);
+    expect(boundaryReport['gpu_training_used'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'loop_orchestrator_industrial_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'loop_orchestrator_industrial_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'loop_orchestrator_industrial_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

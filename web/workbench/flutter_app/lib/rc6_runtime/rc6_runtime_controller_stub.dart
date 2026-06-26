@@ -701,6 +701,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runLoopOrchestratorIndustrialAcceptance({
+    String task = 'P2-19 Loop Orchestrator Industrial',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];
