@@ -11822,6 +11822,191 @@ void main() {
         isTrue);
   });
 
+  test('p2 dataagent foundation industrial creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runDataAgentFoundationIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_dataagent_foundation_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'dataagent_foundation_industrial');
+    expect(summary['capability_gate'], 'P2-21 DataAgent Foundation Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-22 Workbench Native Skills Library');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_database_connected' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final schema = jsonDecode(
+        File(summary['schema_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(schema['schema_version'], 'prd_v3_dataagent_record_schema.v1');
+    expect(schema['status'], 'pass');
+    expect(schema['required_fields'], contains('source_trace_id'));
+    expect(schema['required_fields'], contains('quality_score'));
+    expect(schema['external_database_required'], isFalse);
+    final manifest = jsonDecode(
+        File(summary['dataset_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['schema_version'],
+        'prd_v3_dataagent_dataset_manifest.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['record_count'], 3);
+    expect(manifest['test_marker'], isTrue);
+    expect(manifest['network_call_made'], isFalse);
+    final records = readJsonlFile(summary['task_records_path'] as String);
+    expect(records, hasLength(3));
+    expect(
+        records.every((row) =>
+            row['schema_version'] == 'prd_v3_dataagent_task_record.v1' &&
+            row['test_marker'] == true &&
+            (row['source_trace_id'] as String).isNotEmpty &&
+            (row['evidence_refs'] as List).isNotEmpty &&
+            (row['quality_score'] as num) >= 0.95),
+        isTrue);
+    final traceRows = readJsonlFile(summary['source_trace_path'] as String);
+    expect(traceRows, hasLength(3));
+    final traceIds =
+        traceRows.map((row) => row['source_trace_id']).toSet();
+    expect(
+        records.every((row) => traceIds.contains(row['source_trace_id'])),
+        isTrue);
+    expect(
+        traceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_dataagent_source_trace_record.v1' &&
+            row['validation_status'] == 'linked'),
+        isTrue);
+    final quality = jsonDecode(
+        File(summary['quality_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(quality['schema_version'], 'prd_v3_dataagent_quality_report.v1');
+    expect(quality['status'], 'pass');
+    expect(quality['all_records_have_source_trace'], isTrue);
+    expect(quality['all_records_have_evidence_refs'], isTrue);
+    expect(quality['duplicate_record_count'], 0);
+    expect(quality['missing_required_field_count'], 0);
+    final errorReport = jsonDecode(
+        File(summary['error_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(errorReport['schema_version'], 'prd_v3_dataagent_error_report.v1');
+    expect(errorReport['status'], 'pass');
+    expect(errorReport['all_error_paths_blocked'], isTrue);
+    expect(errorReport['external_database_required'], isFalse);
+    expect(errorReport['external_model_called'], isFalse);
+    expect(
+        (errorReport['error_cases'] as List).any((row) =>
+            (row as Map)['case_id'] ==
+                'missing_source_trace_blocks_close' &&
+            row['decision'] == 'blocked'),
+        isTrue);
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_dataagent_state_snapshot.v1');
+    expect(stateSnapshot['status'], 'pass');
+    expect(stateSnapshot['record_count'], 3);
+    expect(stateSnapshot['source_trace_count'], 3);
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'], 'prd_v3_dataagent_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'], 'prd_v3_dataagent_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['external_database_connected'], isFalse);
+    expect(boundaryReport['external_runtime_executed'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training_used'], isFalse);
+    expect(boundaryReport['gpu_training_used'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'dataagent_foundation_industrial_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'dataagent_foundation_industrial_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'dataagent_foundation_industrial_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

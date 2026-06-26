@@ -713,6 +713,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runDataAgentFoundationIndustrialAcceptance({
+    String task = 'P2-21 DataAgent Foundation Industrial',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];

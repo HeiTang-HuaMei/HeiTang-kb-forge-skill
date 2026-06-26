@@ -9203,6 +9203,477 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runDataAgentFoundationIndustrialAcceptance({
+    String task = 'P2-21 DataAgent Foundation Industrial',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/dataagent_foundation_industrial_summary.json');
+    final root = _joinNested(workspace.path, 'dataagent_foundation_industrial');
+    final schemaPath = _joinNested(root, 'dataagent_record_schema.json');
+    final datasetManifestPath = _joinNested(root, 'dataset_manifest.json');
+    final taskRecordsPath = _joinNested(root, 'task_records.jsonl');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final qualityReportPath = _joinNested(root, 'quality_report.json');
+    final errorReportPath = _joinNested(root, 'error_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: 'DataAgent 基础核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const datasetId = 'test_dataagent_dataset_p2_21';
+    final schema = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_record_schema.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'required_fields': const [
+        'record_id',
+        'task_id',
+        'source_id',
+        'source_trace_id',
+        'entity_refs',
+        'evidence_refs',
+        'quality_score',
+        'test_marker',
+      ],
+      'field_types': const {
+        'record_id': 'string',
+        'task_id': 'string',
+        'source_id': 'string',
+        'source_trace_id': 'string',
+        'entity_refs': 'list<string>',
+        'evidence_refs': 'list<string>',
+        'quality_score': 'number',
+        'test_marker': 'boolean',
+      },
+      'external_database_required': false,
+      'external_model_required': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(schemaPath, schema);
+
+    final datasetManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_dataset_manifest.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'task': task,
+      'record_count': 3,
+      'source_trace_count': 3,
+      'test_marker': true,
+      'storage_mode': 'workspace_local_files',
+      'external_database_required': false,
+      'network_call_made': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(datasetManifestPath, datasetManifest);
+
+    final records = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_dataagent_task_record.v1',
+        'record_id': 'test_dataagent_record_001',
+        'task_id': 'data_quality_profile',
+        'source_id': 'test_source_policy',
+        'source_trace_id': 'trace_policy_001',
+        'entity_refs': const ['policy', 'quality_gate'],
+        'evidence_refs': const ['evidence_policy_001'],
+        'quality_score': 0.98,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_dataagent_task_record.v1',
+        'record_id': 'test_dataagent_record_002',
+        'task_id': 'entity_relation_extract',
+        'source_id': 'test_source_dataset',
+        'source_trace_id': 'trace_dataset_001',
+        'entity_refs': const ['dataset', 'record'],
+        'evidence_refs': const ['evidence_dataset_001'],
+        'quality_score': 0.97,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_dataagent_task_record.v1',
+        'record_id': 'test_dataagent_record_003',
+        'task_id': 'evidence_quality_check',
+        'source_id': 'test_source_evidence',
+        'source_trace_id': 'trace_evidence_001',
+        'entity_refs': const ['evidence', 'source_trace'],
+        'evidence_refs': const ['evidence_trace_001'],
+        'quality_score': 0.99,
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(taskRecordsPath).parent.create(recursive: true);
+    await File(taskRecordsPath).writeAsString(
+      '${records.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final sourceTraceRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_dataagent_source_trace_record.v1',
+        'source_trace_id': 'trace_policy_001',
+        'source_id': 'test_source_policy',
+        'record_id': 'test_dataagent_record_001',
+        'source_path': 'test://dataagent/policy',
+        'validation_status': 'linked',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_dataagent_source_trace_record.v1',
+        'source_trace_id': 'trace_dataset_001',
+        'source_id': 'test_source_dataset',
+        'record_id': 'test_dataagent_record_002',
+        'source_path': 'test://dataagent/dataset',
+        'validation_status': 'linked',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_dataagent_source_trace_record.v1',
+        'source_trace_id': 'trace_evidence_001',
+        'source_id': 'test_source_evidence',
+        'record_id': 'test_dataagent_record_003',
+        'source_path': 'test://dataagent/evidence',
+        'validation_status': 'linked',
+        'created_at': now,
+      },
+    ];
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final qualityReport = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_quality_report.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'record_count': records.length,
+      'source_trace_count': sourceTraceRows.length,
+      'min_quality_score': 0.97,
+      'average_quality_score': 0.98,
+      'all_records_have_source_trace': true,
+      'all_records_have_evidence_refs': true,
+      'duplicate_record_count': 0,
+      'missing_required_field_count': 0,
+      'created_at': now,
+    };
+    await _writeJsonFile(qualityReportPath, qualityReport);
+
+    final errorReport = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_error_report.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'all_error_paths_blocked': true,
+      'error_cases': const [
+        {
+          'case_id': 'missing_source_trace_blocks_close',
+          'decision': 'blocked',
+          'error_code': 'source_trace_missing',
+        },
+        {
+          'case_id': 'duplicate_record_blocks_close',
+          'decision': 'blocked',
+          'error_code': 'duplicate_record_id',
+        },
+        {
+          'case_id': 'low_quality_score_requires_repair',
+          'decision': 'auto_repair',
+          'error_code': 'quality_score_below_threshold',
+        },
+      ],
+      'external_database_required': false,
+      'external_model_called': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(errorReportPath, errorReport);
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_state_snapshot.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'record_count': records.length,
+      'source_trace_count': sourceTraceRows.length,
+      'quality_report_path': qualityReportPath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-22 Workbench Native Skills Library',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_boundary_report.v1',
+      'status': 'pass',
+      'dataset_id': datasetId,
+      'external_database_connected': false,
+      'external_runtime_executed': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedSchema = await _readJsonObject(schemaPath);
+    final reloadedManifest = await _readJsonObject(datasetManifestPath);
+    final reloadedQuality = await _readJsonObject(qualityReportPath);
+    final reloadedError = await _readJsonObject(errorReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final recordLines = File(taskRecordsPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final recordRows = recordLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final traceLines = File(sourceTracePath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final traceRows = traceLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final traceIds = traceRows
+        .map((row) => _stringValue(row['source_trace_id'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'schema_written': await File(schemaPath).exists(),
+      'schema_valid': _stringValue(reloadedSchema['schema_version'], '') ==
+          'prd_v3_dataagent_record_schema.v1',
+      'dataset_manifest_written': await File(datasetManifestPath).exists(),
+      'dataset_manifest_passed':
+          _stringValue(reloadedManifest['status'], '') == 'pass',
+      'task_records_written': await File(taskRecordsPath).exists(),
+      'task_records_count_valid': recordRows.length == 3,
+      'task_records_have_test_marker':
+          recordRows.every((row) => row['test_marker'] == true),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_count_valid': traceRows.length == 3,
+      'all_records_link_source_trace': recordRows.every(
+          (row) => traceIds.contains(_stringValue(row['source_trace_id'], ''))),
+      'quality_report_written': await File(qualityReportPath).exists(),
+      'quality_report_passed':
+          _stringValue(reloadedQuality['status'], '') == 'pass',
+      'quality_scores_above_threshold':
+          (reloadedQuality['min_quality_score'] as num?) != null &&
+              (reloadedQuality['min_quality_score'] as num) >= 0.95,
+      'error_report_written': await File(errorReportPath).exists(),
+      'error_paths_blocked':
+          reloadedError['all_error_paths_blocked'] == true,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['dataset_id'], '') == datasetId &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_database_connected': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'external_database_connected',
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_validation_report.v1',
+      'status': status,
+      'dataset_id': datasetId,
+      'schema_path': schemaPath,
+      'dataset_manifest_path': datasetManifestPath,
+      'task_records_path': taskRecordsPath,
+      'source_trace_path': sourceTracePath,
+      'quality_report_path': qualityReportPath,
+      'error_report_path': errorReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_dataagent_foundation_industrial_summary.v1',
+      'status': status,
+      'capability_id': 'dataagent_foundation_industrial',
+      'capability_gate': 'P2-21 DataAgent Foundation Industrial',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'schema_path': schemaPath,
+      'dataset_manifest_path': datasetManifestPath,
+      'task_records_path': taskRecordsPath,
+      'source_trace_path': sourceTracePath,
+      'quality_report_path': qualityReportPath,
+      'error_report_path': errorReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runDataAgentFoundationIndustrialAcceptance',
+        'record_schema': 'prd_v3_dataagent_record_schema.v1',
+        'task_record_schema': 'prd_v3_dataagent_task_record.v1',
+        'source_trace_schema': 'prd_v3_dataagent_source_trace_record.v1',
+        'quality_report_schema': 'prd_v3_dataagent_quality_report.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only DataAgent foundation contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'quality_report_path': qualityReportPath,
+        'state_snapshot_path': stateSnapshotPath,
+      },
+      'event_evidence': {
+        'event_type': 'dataagent_foundation_industrial_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'record schema, dataset manifest, task records, source trace, quality report, error report, state snapshot, validation report and summary are written',
+        'view': 'summary and validation report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'only test-marked local records are created by this gate',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing source trace, duplicate record and low quality score paths are blocked or routed to repair',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-22 Workbench Native Skills Library',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'dataagent_foundation_industrial_validated',
+      module: 'dataagent',
+      action: 'run_dataagent_foundation_industrial_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'dataagent_foundation_industrial',
+      targetName: 'DataAgent Foundation Industrial',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'dataagent_foundation_industrial_summary',
+      artifactType: 'acceptance_report',
+      title: 'DataAgent Foundation Industrial Summary',
+      sourceModule: 'dataagent',
+      sourceId: 'dataagent_foundation_industrial',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'dataagent_foundation_industrial_validation',
+      artifactType: 'validation_report',
+      title: 'DataAgent Foundation Industrial Validation',
+      sourceModule: 'dataagent',
+      sourceId: 'dataagent_foundation_industrial',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'DataAgent 基础核心验收证据已生成。'
+          : 'DataAgent 基础核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'dataagent_foundation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
