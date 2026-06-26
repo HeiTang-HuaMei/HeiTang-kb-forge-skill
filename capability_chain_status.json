@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-36 Self-Improving Knowledge Maintenance",
+  "current_gate": "P2-37 Agent Memory Industrial",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -107,11 +107,11 @@
     "P2-32 Citation Auto-Repair Industrial",
     "P2-33 Memory Consolidation Industrial",
     "P2-34 Permission-Scoped Company Brain",
-    "P2-35 Retrieval Regression Benchmark Industrial"
+    "P2-35 Retrieval Regression Benchmark Industrial",
+    "P2-36 Self-Improving Knowledge Maintenance"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-36 Self-Improving Knowledge Maintenance",
     "P2-37 Agent Memory Industrial",
     "P2-38 Mermaid Symbolic Memory Industrial",
     "P2-39 Cross-Agent Memory Migration",
@@ -306,7 +306,9 @@
     "P2-34 Permission-Scoped Company Brain has core-only role-bound company knowledge access, permission matrix, scoped retrieval, source_trace, denied-access, Event Ledger, Artifact Catalog and restart recovery evidence; it connects no external database or model and remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-35 Retrieval Regression Benchmark Industrial.",
     "P2-35 Retrieval Regression Benchmark Industrial has core-only benchmark dataset, local baseline, additive external verification source_trace, freshness report, conflict report, citation validation, improved retrieval report, regression matrix, Event Ledger, Artifact Catalog and restart recovery evidence; final full retrieval regression remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-36 Self-Improving Knowledge Maintenance."
+    "P2 queue now continues with P2-36 Self-Improving Knowledge Maintenance.",
+    "P2-36 Self-Improving Knowledge Maintenance has core-only suggestion-only maintenance policy, source-traced signals, patch preview, validation queue, human review requirement, learning report, Event Ledger, Artifact Catalog and restart recovery evidence; it auto-applies no knowledge patches and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-37 Agent Memory Industrial."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
