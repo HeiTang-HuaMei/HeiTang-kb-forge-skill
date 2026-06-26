@@ -17250,6 +17250,289 @@ void main() {
         isTrue);
   });
 
+  test('p2 night memory consolidation loop creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runNightMemoryConsolidationLoopAcceptance();
+    final summary =
+        jsonDecode(File(summaryPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_night_memory_consolidation_loop_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'night_memory_consolidation_loop');
+    expect(summary['capability_gate'], 'P2-40 Night Memory Consolidation Loop');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-41 Memory Observability Panel');
+    expect(summary['input_memory_count'], 3);
+    expect(summary['queue_item_count'], 4);
+    expect(summary['journal_event_count'], 5);
+    expect(summary['output_card_count'], 1);
+    expect(summary['carryover_count'], 1);
+
+    final policy = jsonDecode(
+        File(summary['policy_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(policy['schema_version'],
+        'prd_v3_night_memory_consolidation_policy.v1');
+    expect(policy['status'], 'pass');
+    expect(policy['execution_mode'], 'local_test_marked_loop_simulation');
+    expect(policy['max_auto_repair_rounds'], 3);
+    expect(policy['network_retry_rounds'], 5);
+    expect(policy['p2_release_gate_rerun_required'], isTrue);
+    expect(policy['disallowed_actions'],
+        containsAll(['start_background_daemon', 'train_local_model']));
+
+    final windowPlan = jsonDecode(
+        File(summary['window_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(windowPlan['schema_version'],
+        'prd_v3_night_memory_consolidation_window_plan.v1');
+    expect(windowPlan['status'], 'pass');
+    expect(windowPlan['background_daemon_started'], isFalse);
+    expect(windowPlan['scheduled_runtime_started'], isFalse);
+    final tasks = (windowPlan['tasks'] as List).cast<Map<String, dynamic>>();
+    expect(tasks, hasLength(4));
+    expect(tasks.map((row) => row['task_type']),
+        containsAll(['merge_source_traced_memory_cards',
+          'checkpoint_next_night_window']));
+    expect(tasks.every((row) => row['test_marker'] == true), isTrue);
+
+    final inputs = readJsonlFile(summary['input_snapshot_path'] as String);
+    expect(inputs, hasLength(3));
+    expect(inputs.map((row) => row['status']),
+        containsAll(['active', 'conflict_requires_review']));
+    expect(
+        inputs.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_night_memory_consolidation_input.v1' &&
+            row['test_marker'] == true &&
+            (row['source_trace_ids'] as List).isNotEmpty),
+        isTrue);
+
+    final queueRows = readJsonlFile(summary['queue_path'] as String);
+    expect(queueRows, hasLength(4));
+    expect(queueRows.map((row) => row['status']),
+        containsAll(['completed', 'queued_for_owner_review', 'checkpointed']));
+    expect(
+        queueRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_night_memory_consolidation_queue.v1' &&
+            row['test_marker'] == true),
+        isTrue);
+    expect(
+        queueRows.any((row) =>
+            row['required_action'] == 'review_conflict_before_apply' &&
+            row['source_trace_required'] == true),
+        isTrue);
+
+    final journalRows = readJsonlFile(summary['journal_path'] as String);
+    expect(journalRows, hasLength(5));
+    expect(journalRows.map((row) => row['event_type']),
+        containsAll(['loop_started', 'memory_cards_consolidated',
+          'next_window_checkpointed']));
+    expect(
+        journalRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_night_memory_consolidation_journal.v1' &&
+            row['test_marker'] == true),
+        isTrue);
+
+    final outputCards = jsonDecode(
+        File(summary['output_cards_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(outputCards['schema_version'],
+        'prd_v3_night_memory_consolidation_output_cards.v1');
+    expect(outputCards['status'], 'pass');
+    expect(outputCards['real_memory_applied'], isFalse);
+    final cards =
+        (outputCards['memory_cards'] as List).cast<Map<String, dynamic>>();
+    expect(cards, hasLength(1));
+    expect(cards.single['retrievable'], isTrue);
+    expect(cards.single['updatable'], isTrue);
+    expect(cards.single['forgettable'], isTrue);
+    expect((cards.single['source_trace_ids'] as List), hasLength(2));
+
+    final checkpoint = jsonDecode(
+        File(summary['carryover_checkpoint_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(checkpoint['schema_version'],
+        'prd_v3_night_memory_consolidation_checkpoint.v1');
+    expect(checkpoint['status'], 'pass');
+    expect((checkpoint['carryover_queue_item_ids'] as List),
+        contains('night_queue_review_conflict'));
+    expect((checkpoint['resume_prompt'] as String), isNotEmpty);
+    expect(checkpoint['global_goal_complete'], isFalse);
+
+    final lifecycle = jsonDecode(
+        File(summary['lifecycle_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(lifecycle['schema_version'],
+        'prd_v3_night_memory_consolidation_lifecycle.v1');
+    expect(lifecycle['status'], 'pass');
+    expect(lifecycle['restart_recoverable_from_files'], isTrue);
+    expect(lifecycle['background_daemon_started'], isFalse);
+    expect(lifecycle['real_memory_applied'], isFalse);
+    expect(lifecycle['real_user_data_deleted'], isFalse);
+
+    final observability = jsonDecode(
+        File(summary['observability_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(observability['schema_version'],
+        'prd_v3_night_memory_consolidation_observability.v1');
+    expect(observability['status'], 'pass');
+    expect(observability['input_memory_count'], 3);
+    expect(observability['queue_item_count'], 4);
+    expect(observability['journal_event_count'], 5);
+    expect(observability['output_card_count'], 1);
+    expect(observability['carryover_count'], 1);
+    expect(observability['background_daemon_started'], isFalse);
+    expect(observability['external_memory_service_connected'], isFalse);
+    expect(observability['local_model_training_used'], isFalse);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_night_memory_consolidation_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'], 'P2-41 Memory Observability Panel');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_night_memory_consolidation_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_night_memory_consolidation_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['background_daemon_started'], isFalse);
+    expect(boundary['scheduled_runtime_started'], isFalse);
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_memory_service_connected'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_memory_applied'], isFalse);
+    expect(boundary['real_user_data_migrated'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'background_daemon_started' ||
+          entry.key == 'scheduled_runtime_started' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_memory_service_connected' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_memory_applied' ||
+          entry.key == 'real_user_data_migrated' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'ui_modified' ||
+          entry.key == 'new_dependency_added') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'night_memory_consolidation_loop_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'night_memory_consolidation_loop_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'night_memory_consolidation_loop_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'night_memory_consolidation_loop_queue' &&
+            row['file_path'] == summary['queue_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'night_memory_consolidation_loop_output_cards' &&
+            row['file_path'] == summary['output_cards_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'night_memory_consolidation_loop_checkpoint' &&
+            row['file_path'] == summary['carryover_checkpoint_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('task experience reuse basic writes core evidence and reloads',
       () async {
     final workspace = await createWorkspace();

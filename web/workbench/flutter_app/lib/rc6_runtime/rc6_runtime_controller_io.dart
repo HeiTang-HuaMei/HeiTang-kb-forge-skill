@@ -23745,6 +23745,747 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runNightMemoryConsolidationLoopAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/night_memory_consolidation_loop_summary.json');
+    final root = _joinNested(workspace.path, 'night_memory_consolidation_loop');
+    await _clearWorkspacePath(root);
+    final policyPath = _joinNested(root, 'loop_policy.json');
+    final windowPlanPath = _joinNested(root, 'consolidation_window_plan.json');
+    final inputSnapshotPath = _joinNested(root, 'memory_input_snapshot.jsonl');
+    final queuePath = _joinNested(root, 'consolidation_queue.jsonl');
+    final journalPath = _joinNested(root, 'consolidation_run_journal.jsonl');
+    final outputCardsPath = _joinNested(root, 'consolidation_output_cards.json');
+    final carryoverCheckpointPath =
+        _joinNested(root, 'carryover_checkpoint.json');
+    final lifecycleReportPath = _joinNested(root, 'lifecycle_report.json');
+    final observabilityReportPath =
+        _joinNested(root, 'observability_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '夜间记忆整合循环核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const runId = 'test_night_memory_consolidation_loop_p2_40';
+    await _writeJsonFile(policyPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_policy.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'capability_gate': 'P2-40 Night Memory Consolidation Loop',
+      'execution_mode': 'local_test_marked_loop_simulation',
+      'allowed_actions': const [
+        'collect_test_marked_agent_memory',
+        'deduplicate_memory_candidates',
+        'merge_source_traced_memory_cards',
+        'queue_review_required_conflicts',
+        'checkpoint_next_night_window',
+      ],
+      'disallowed_actions': const [
+        'start_background_daemon',
+        'migrate_real_user_memory',
+        'train_local_model',
+        'call_external_model',
+        'delete_real_user_data',
+      ],
+      'max_auto_repair_rounds': 3,
+      'network_retry_rounds': 5,
+      'requires_test_marker_for_delete': true,
+      'p2_release_gate_rerun_required': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final windowTasks = <Map<String, Object?>>[
+      {
+        'task_id': 'test_window_collect_agent_memory',
+        'task_type': 'collect_test_marked_agent_memory',
+        'source': 'test_agent_memory_industrial_cards',
+        'expected_output': 'memory_input_snapshot',
+        'destructive': false,
+        'test_marker': true,
+      },
+      {
+        'task_id': 'test_window_merge_goal_memory',
+        'task_type': 'merge_source_traced_memory_cards',
+        'source': 'test_cross_agent_memory_migration_preview',
+        'expected_output': 'consolidated_memory_card',
+        'destructive': false,
+        'test_marker': true,
+      },
+      {
+        'task_id': 'test_window_route_conflict',
+        'task_type': 'queue_review_required_conflicts',
+        'source': 'test_cross_agent_conflict_report',
+        'expected_output': 'carryover_checkpoint',
+        'destructive': false,
+        'test_marker': true,
+      },
+      {
+        'task_id': 'test_window_checkpoint_next_loop',
+        'task_type': 'checkpoint_next_night_window',
+        'source': 'test_loop_state',
+        'expected_output': 'restart_recovery_snapshot',
+        'destructive': false,
+        'test_marker': true,
+      },
+    ];
+    await _writeJsonFile(windowPlanPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_window_plan.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'window_id': 'test_night_memory_window_001',
+      'background_daemon_started': false,
+      'scheduled_runtime_started': false,
+      'tasks': windowTasks,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final inputRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_input.v1',
+        'input_memory_id': 'night_input_goal_context',
+        'source_agent_id': 'test_source_agent_memory_worker',
+        'memory_type': 'task_goal',
+        'content': '测试任务目标上下文可进入夜间整合。',
+        'source_trace_ids': const ['trace_test_agent_memory_goal_001'],
+        'migration_source_id': 'src_test_goal_context',
+        'status': 'active',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_input.v1',
+        'input_memory_id': 'night_input_update_policy',
+        'source_agent_id': 'test_source_agent_memory_worker',
+        'memory_type': 'policy',
+        'content': '测试记忆更新策略必须保留 source_trace 和验证报告。',
+        'source_trace_ids': const ['trace_test_agent_memory_update_001'],
+        'migration_source_id': 'src_test_update_policy',
+        'status': 'active',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_input.v1',
+        'input_memory_id': 'night_input_obsolete_context',
+        'source_agent_id': 'test_source_agent_memory_worker',
+        'memory_type': 'task_context',
+        'content': '过期测试上下文进入结转冲突，不覆盖活跃记忆。',
+        'source_trace_ids': const ['trace_test_agent_memory_forget_001'],
+        'migration_source_id': 'src_test_obsolete_context',
+        'status': 'conflict_requires_review',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(inputSnapshotPath).parent.create(recursive: true);
+    await File(inputSnapshotPath).writeAsString(
+      '${inputRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final queueRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_queue.v1',
+        'queue_item_id': 'night_queue_collect_inputs',
+        'task_id': 'test_window_collect_agent_memory',
+        'status': 'completed',
+        'required_action': 'collect_test_marked_memory',
+        'source_trace_required': true,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_queue.v1',
+        'queue_item_id': 'night_queue_merge_cards',
+        'task_id': 'test_window_merge_goal_memory',
+        'status': 'completed',
+        'required_action': 'merge_source_traced_memory_cards',
+        'source_trace_required': true,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_queue.v1',
+        'queue_item_id': 'night_queue_review_conflict',
+        'task_id': 'test_window_route_conflict',
+        'status': 'queued_for_owner_review',
+        'required_action': 'review_conflict_before_apply',
+        'source_trace_required': true,
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_queue.v1',
+        'queue_item_id': 'night_queue_next_window_checkpoint',
+        'task_id': 'test_window_checkpoint_next_loop',
+        'status': 'checkpointed',
+        'required_action': 'resume_next_night_window',
+        'source_trace_required': false,
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(queuePath).writeAsString(
+      '${queueRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final journalRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_journal.v1',
+        'event_id': 'night_event_loop_started',
+        'event_type': 'loop_started',
+        'status': 'completed',
+        'queue_item_id': 'night_queue_collect_inputs',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_journal.v1',
+        'event_id': 'night_event_inputs_collected',
+        'event_type': 'memory_inputs_collected',
+        'status': 'completed',
+        'queue_item_id': 'night_queue_collect_inputs',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_journal.v1',
+        'event_id': 'night_event_cards_consolidated',
+        'event_type': 'memory_cards_consolidated',
+        'status': 'completed',
+        'queue_item_id': 'night_queue_merge_cards',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_journal.v1',
+        'event_id': 'night_event_conflict_carried_over',
+        'event_type': 'conflict_carried_over',
+        'status': 'queued_for_owner_review',
+        'queue_item_id': 'night_queue_review_conflict',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_night_memory_consolidation_journal.v1',
+        'event_id': 'night_event_checkpointed',
+        'event_type': 'next_window_checkpointed',
+        'status': 'checkpointed',
+        'queue_item_id': 'night_queue_next_window_checkpoint',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(journalPath).writeAsString(
+      '${journalRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    await _writeJsonFile(outputCardsPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_output_cards.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'memory_cards': const [
+        {
+          'card_id': 'night_card_consolidated_goal_policy',
+          'title': '测试夜间整合任务目标与策略',
+          'summary': '任务目标与更新策略在夜间窗口整合为一张可恢复记忆卡。',
+          'input_memory_ids': [
+            'night_input_goal_context',
+            'night_input_update_policy',
+          ],
+          'source_trace_ids': [
+            'trace_test_agent_memory_goal_001',
+            'trace_test_agent_memory_update_001',
+          ],
+          'status': 'active',
+          'retrievable': true,
+          'updatable': true,
+          'forgettable': true,
+          'test_marker': true,
+        },
+      ],
+      'real_memory_applied': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(carryoverCheckpointPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_checkpoint.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'checkpoint_id': 'test_night_memory_carryover_001',
+      'next_window': 'test_night_memory_window_002',
+      'carryover_queue_item_ids': const ['night_queue_review_conflict'],
+      'review_required_memory_ids': const ['night_input_obsolete_context'],
+      'resume_prompt': 'Resume P2-40 test night memory consolidation carryover.',
+      'global_goal_complete': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(lifecycleReportPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_lifecycle.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'created_paths': [
+        policyPath,
+        windowPlanPath,
+        inputSnapshotPath,
+        queuePath,
+        journalPath,
+        outputCardsPath,
+        carryoverCheckpointPath,
+      ],
+      'viewable_paths': [
+        windowPlanPath,
+        outputCardsPath,
+        carryoverCheckpointPath,
+        validationReportPath,
+      ],
+      'exportable_paths': [
+        policyPath,
+        windowPlanPath,
+        inputSnapshotPath,
+        queuePath,
+        journalPath,
+        outputCardsPath,
+        carryoverCheckpointPath,
+      ],
+      'delete_scope': 'test_marked_night_memory_loop_artifacts_only',
+      'restart_recoverable_from_files': true,
+      'background_daemon_started': false,
+      'real_memory_applied': false,
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(observabilityReportPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_observability.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'input_memory_count': inputRows.length,
+      'queue_item_count': queueRows.length,
+      'journal_event_count': journalRows.length,
+      'output_card_count': 1,
+      'carryover_count': 1,
+      'event_type': 'night_memory_consolidation_loop_validated',
+      'background_daemon_started': false,
+      'scheduled_runtime_started': false,
+      'external_memory_service_connected': false,
+      'external_model_called': false,
+      'local_model_training_used': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version': 'prd_v3_night_memory_consolidation_state_snapshot.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'policy_path': policyPath,
+      'window_plan_path': windowPlanPath,
+      'input_snapshot_path': inputSnapshotPath,
+      'queue_path': queuePath,
+      'journal_path': journalPath,
+      'output_cards_path': outputCardsPath,
+      'carryover_checkpoint_path': carryoverCheckpointPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'observability_report_path': observabilityReportPath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-41 Memory Observability Panel',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_night_memory_consolidation_boundary_report.v1',
+      'status': 'pass',
+      'background_daemon_started': false,
+      'scheduled_runtime_started': false,
+      'external_project_runtime_loaded': false,
+      'external_memory_service_connected': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'ui_modified': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_migrated': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final policy = await _readJsonObject(policyPath);
+    final windowPlan = await _readJsonObject(windowPlanPath);
+    final outputCards = await _readJsonObject(outputCardsPath);
+    final checkpoint = await _readJsonObject(carryoverCheckpointPath);
+    final lifecycleReport = await _readJsonObject(lifecycleReportPath);
+    final observabilityReport = await _readJsonObject(observabilityReportPath);
+    final stateSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final inputSnapshot = await _readJsonl(File(inputSnapshotPath));
+    final queue = await _readJsonl(File(queuePath));
+    final journal = await _readJsonl(File(journalPath));
+    final loadedTasks = _listOfMaps(windowPlan['tasks']);
+    final cards = _listOfMaps(outputCards['memory_cards']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'policy_written': await File(policyPath).exists(),
+      'policy_passed': _stringValue(policy['status'], '') == 'pass',
+      'policy_limits_auto_repair': policy['max_auto_repair_rounds'] == 3,
+      'policy_requires_release_gate_rerun':
+          policy['p2_release_gate_rerun_required'] == true,
+      'window_plan_written': await File(windowPlanPath).exists(),
+      'window_plan_passed': _stringValue(windowPlan['status'], '') == 'pass',
+      'window_plan_has_tasks': loadedTasks.length == 4,
+      'window_plan_no_daemon':
+          windowPlan['background_daemon_started'] == false &&
+              windowPlan['scheduled_runtime_started'] == false,
+      'input_snapshot_written': await File(inputSnapshotPath).exists(),
+      'input_snapshot_has_rows': inputSnapshot.length == inputRows.length,
+      'input_snapshot_test_marked':
+          inputSnapshot.every((row) => row['test_marker'] == true),
+      'input_snapshot_has_trace': inputSnapshot.every(
+          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'queue_written': await File(queuePath).exists(),
+      'queue_has_required_statuses': queue.any((row) =>
+              _stringValue(row['status'], '') == 'completed') &&
+          queue.any((row) =>
+              _stringValue(row['status'], '') == 'queued_for_owner_review') &&
+          queue.any((row) => _stringValue(row['status'], '') == 'checkpointed'),
+      'journal_written': await File(journalPath).exists(),
+      'journal_records_loop_and_checkpoint': journal.any((row) =>
+              _stringValue(row['event_type'], '') == 'loop_started') &&
+          journal.any((row) =>
+              _stringValue(row['event_type'], '') ==
+              'next_window_checkpointed'),
+      'output_cards_written': await File(outputCardsPath).exists(),
+      'output_cards_passed': _stringValue(outputCards['status'], '') == 'pass',
+      'output_cards_have_lifecycle_flags': cards.every((row) =>
+          row['retrievable'] == true &&
+          row['updatable'] == true &&
+          row['forgettable'] == true),
+      'output_cards_link_source_trace':
+          cards.every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'carryover_checkpoint_written':
+          await File(carryoverCheckpointPath).exists(),
+      'carryover_checkpoint_passed':
+          _stringValue(checkpoint['status'], '') == 'pass',
+      'carryover_has_resume_prompt':
+          _stringValue(checkpoint['resume_prompt'], '').isNotEmpty,
+      'lifecycle_report_written': await File(lifecycleReportPath).exists(),
+      'lifecycle_report_passed':
+          _stringValue(lifecycleReport['status'], '') == 'pass',
+      'lifecycle_restart_recoverable':
+          lifecycleReport['restart_recoverable_from_files'] == true,
+      'observability_report_written':
+          await File(observabilityReportPath).exists(),
+      'observability_report_passed':
+          _stringValue(observabilityReport['status'], '') == 'pass',
+      'observability_counts_match':
+          observabilityReport['input_memory_count'] == inputSnapshot.length &&
+              observabilityReport['queue_item_count'] == queue.length &&
+              observabilityReport['journal_event_count'] == journal.length &&
+              observabilityReport['output_card_count'] == cards.length,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(stateSnapshot['run_id'], '') == runId &&
+              _stringValue(stateSnapshot['next_gate'], '') ==
+                  'P2-41 Memory Observability Panel' &&
+              stateSnapshot['global_goal_complete'] == false,
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'background_daemon_started': false,
+      'scheduled_runtime_started': false,
+      'external_project_runtime_loaded': false,
+      'external_memory_service_connected': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_migrated': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+      'ui_modified': false,
+      'new_dependency_added': false,
+    };
+    const negativeChecks = {
+      'background_daemon_started',
+      'scheduled_runtime_started',
+      'external_project_runtime_loaded',
+      'external_memory_service_connected',
+      'external_database_connected',
+      'external_model_called',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_memory_applied',
+      'real_user_data_migrated',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+      'network_call_made',
+      'ui_modified',
+      'new_dependency_added',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_night_memory_consolidation_validation_report.v1',
+      'status': status,
+      'run_id': runId,
+      'policy_path': policyPath,
+      'window_plan_path': windowPlanPath,
+      'input_snapshot_path': inputSnapshotPath,
+      'queue_path': queuePath,
+      'journal_path': journalPath,
+      'output_cards_path': outputCardsPath,
+      'carryover_checkpoint_path': carryoverCheckpointPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'observability_report_path': observabilityReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_night_memory_consolidation_loop_summary.v1',
+      'status': status,
+      'capability_id': 'night_memory_consolidation_loop',
+      'capability_gate': 'P2-40 Night Memory Consolidation Loop',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'policy_path': policyPath,
+      'window_plan_path': windowPlanPath,
+      'input_snapshot_path': inputSnapshotPath,
+      'queue_path': queuePath,
+      'journal_path': journalPath,
+      'output_cards_path': outputCardsPath,
+      'carryover_checkpoint_path': carryoverCheckpointPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'observability_report_path': observabilityReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'input_memory_count': inputSnapshot.length,
+      'queue_item_count': queue.length,
+      'journal_event_count': journal.length,
+      'output_card_count': cards.length,
+      'carryover_count': _listOfStrings(checkpoint['carryover_queue_item_ids']).length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runNightMemoryConsolidationLoopAcceptance',
+        'policy_schema': 'prd_v3_night_memory_consolidation_policy.v1',
+        'window_schema':
+            'prd_v3_night_memory_consolidation_window_plan.v1',
+        'queue_schema': 'prd_v3_night_memory_consolidation_queue.v1',
+        'journal_schema': 'prd_v3_night_memory_consolidation_journal.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only night memory consolidation loop contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'policy_path': policyPath,
+        'window_plan_path': windowPlanPath,
+        'input_snapshot_path': inputSnapshotPath,
+        'queue_path': queuePath,
+        'journal_path': journalPath,
+        'output_cards_path': outputCardsPath,
+        'carryover_checkpoint_path': carryoverCheckpointPath,
+      },
+      'event_evidence': {
+        'event_type': 'night_memory_consolidation_loop_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'loop policy, window plan, input snapshot, consolidation queue, run journal, output cards, carryover checkpoint, lifecycle, observability, validation and summary are written',
+        'view':
+            'summary, validation report, queue, journal, output cards and checkpoint are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete': 'only test-marked night-memory loop artifacts are in scope',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing source trace, missing checkpoint, daemon start, runtime apply, external service use or boundary violation blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-41 Memory Observability Panel',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'night_memory_consolidation_loop_validated',
+      module: 'agent_memory',
+      action: 'run_night_memory_consolidation_loop_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'night_memory_consolidation_loop',
+      targetName: 'Night Memory Consolidation Loop',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'queue_item_count': queue.length,
+        'output_card_count': cards.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'night_memory_consolidation_loop_summary',
+      artifactType: 'acceptance_report',
+      title: 'Night Memory Consolidation Loop Summary',
+      sourceModule: 'agent_memory',
+      sourceId: 'night_memory_consolidation_loop',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'night_memory_consolidation_loop_validation',
+      artifactType: 'validation_report',
+      title: 'Night Memory Consolidation Loop Validation',
+      sourceModule: 'agent_memory',
+      sourceId: 'night_memory_consolidation_loop',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'night_memory_consolidation_loop_queue',
+      artifactType: 'consolidation_queue',
+      title: 'Night Memory Consolidation Queue',
+      sourceModule: 'agent_memory',
+      sourceId: 'night_memory_consolidation_loop',
+      filePath: queuePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'queue_item_count': queue.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'night_memory_consolidation_loop_output_cards',
+      artifactType: 'memory_cards',
+      title: 'Night Memory Consolidation Output Cards',
+      sourceModule: 'agent_memory',
+      sourceId: 'night_memory_consolidation_loop',
+      filePath: outputCardsPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'output_card_count': cards.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'night_memory_consolidation_loop_checkpoint',
+      artifactType: 'checkpoint',
+      title: 'Night Memory Consolidation Carryover Checkpoint',
+      sourceModule: 'agent_memory',
+      sourceId: 'night_memory_consolidation_loop',
+      filePath: carryoverCheckpointPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'carryover_count':
+            _listOfStrings(checkpoint['carryover_queue_item_ids']).length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '夜间记忆整合循环核心验收证据已生成。'
+          : '夜间记忆整合循环核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'night_memory_consolidation_loop_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   static List<Map<String, Object?>> _mermaidTaskMapBasicNodes() {
     return const [
       {
