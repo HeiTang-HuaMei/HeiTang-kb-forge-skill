@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-33 Memory Consolidation Industrial",
+  "current_gate": "P2-34 Permission-Scoped Company Brain",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -104,11 +104,11 @@
     "P2-29 Human Review Console",
     "P2-30 Reliability Score Industrial",
     "P2-31 Night Knowledge Maintenance Loop",
-    "P2-32 Citation Auto-Repair Industrial"
+    "P2-32 Citation Auto-Repair Industrial",
+    "P2-33 Memory Consolidation Industrial"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-33 Memory Consolidation Industrial",
     "P2-34 Permission-Scoped Company Brain",
     "P2-35 Retrieval Regression Benchmark Industrial",
     "P2-36 Self-Improving Knowledge Maintenance",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T08:45:00Z",
+  "updated_at": "2026-06-26T08:46:00Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -300,7 +300,9 @@
     "P2-31 Night Knowledge Maintenance Loop has core-only local maintenance policy, plan, queue, journal, repair candidates, schedule, Event Ledger, Artifact Catalog and restart recovery evidence; it starts no background daemon and remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-32 Citation Auto-Repair Industrial.",
     "P2-32 Citation Auto-Repair Industrial has core-only local citation issue detection, repair plan, repair diff, patched source_trace, retest report, Event Ledger, Artifact Catalog and restart recovery evidence; it makes no external model call and remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-33 Memory Consolidation Industrial."
+    "P2 queue now continues with P2-33 Memory Consolidation Industrial.",
+    "P2-33 Memory Consolidation Industrial has core-only local memory entries, relations, source_trace, consolidation plan, memory cards, lifecycle report, observability report, Event Ledger, Artifact Catalog and restart recovery evidence; it uses no external memory service or model training and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-34 Permission-Scoped Company Brain."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

@@ -14391,6 +14391,235 @@ void main() {
         isTrue);
   });
 
+  test('p2 memory consolidation industrial creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runMemoryConsolidationIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_memory_consolidation_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'memory_consolidation_industrial');
+    expect(summary['capability_gate'], 'P2-33 Memory Consolidation Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-34 Permission-Scoped Company Brain');
+    expect(summary['entry_count'], 3);
+    expect(summary['relation_count'], 2);
+    expect(summary['memory_card_count'], 1);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_memory_service_connected' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(3));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_memory_consolidation_source_trace.v1' &&
+            (row['citation'] as String).isNotEmpty &&
+            row['test_marker'] == true),
+        isTrue);
+
+    final memoryEntries =
+        readJsonlFile(summary['memory_entries_path'] as String);
+    expect(memoryEntries, hasLength(3));
+    expect(memoryEntries.map((row) => row['status']),
+        containsAll(['active', 'superseded']));
+    expect(
+        memoryEntries.every((row) =>
+            row['schema_version'] == 'prd_v3_memory_consolidation_entry.v1' &&
+            row['test_marker'] == true &&
+            (row['source_trace_ids'] as List).isNotEmpty),
+        isTrue);
+
+    final relations = jsonDecode(
+        File(summary['memory_relations_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(relations['schema_version'],
+        'prd_v3_memory_consolidation_relations.v1');
+    expect(relations['status'], 'pass');
+    final relationRows =
+        (relations['relations'] as List).cast<Map<String, dynamic>>();
+    expect(relationRows, hasLength(2));
+    expect(relationRows.map((row) => row['relation_type']),
+        containsAll(['supports', 'superseded_by']));
+
+    final plan = jsonDecode(
+        File(summary['consolidation_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(plan['schema_version'], 'prd_v3_memory_consolidation_plan.v1');
+    expect(plan['status'], 'pass');
+    final mergeGroups =
+        (plan['merge_groups'] as List).cast<Map<String, dynamic>>();
+    expect(mergeGroups, hasLength(1));
+    expect(mergeGroups.first['requires_external_model'], isFalse);
+    expect(mergeGroups.first['requires_training'], isFalse);
+    expect(plan['tombstone_memory_ids'],
+        contains('test_memory_outdated_preference'));
+
+    final cards = jsonDecode(
+        File(summary['memory_cards_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(cards['schema_version'], 'prd_v3_memory_consolidation_cards.v1');
+    expect(cards['status'], 'pass');
+    final memoryCards =
+        (cards['memory_cards'] as List).cast<Map<String, dynamic>>();
+    expect(memoryCards, hasLength(1));
+    expect(memoryCards.first['retrievable'], isTrue);
+    expect(memoryCards.first['updatable'], isTrue);
+    expect(memoryCards.first['forgettable'], isTrue);
+    expect((memoryCards.first['source_trace_ids'] as List), hasLength(2));
+
+    final lifecycle = jsonDecode(
+        File(summary['lifecycle_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(lifecycle['schema_version'],
+        'prd_v3_memory_consolidation_lifecycle.v1');
+    expect(lifecycle['status'], 'pass');
+    expect(lifecycle['tombstoned_memory_ids'],
+        contains('test_memory_outdated_preference'));
+    expect(lifecycle['forget_requires_test_marker'], isTrue);
+    expect(lifecycle['real_user_data_deleted'], isFalse);
+
+    final observability = jsonDecode(
+        File(summary['observability_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(observability['schema_version'],
+        'prd_v3_memory_consolidation_observability.v1');
+    expect(observability['status'], 'pass');
+    expect(observability['entry_count'], 3);
+    expect(observability['relation_count'], 2);
+    expect(observability['memory_card_count'], 1);
+    expect(observability['tombstone_count'], 1);
+    expect(observability['external_memory_service_used'], isFalse);
+    expect(observability['training_used'], isFalse);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_memory_consolidation_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'],
+        'P2-34 Permission-Scoped Company Brain');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_memory_consolidation_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_memory_consolidation_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_memory_service_connected'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['local_model_training_used'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'memory_consolidation_industrial_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'memory_consolidation_industrial_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'memory_consolidation_industrial_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'memory_consolidation_industrial_cards' &&
+            row['file_path'] == summary['memory_cards_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'memory_consolidation_industrial_lifecycle' &&
+            row['file_path'] == summary['lifecycle_report_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
