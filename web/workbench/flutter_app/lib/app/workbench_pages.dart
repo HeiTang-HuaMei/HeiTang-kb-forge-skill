@@ -3,22 +3,22 @@ part of '../main.dart';
 const pages = <WorkbenchPage>[
   WorkbenchPage(
       'dashboard',
-      'Home',
-      '首页',
-      'Current workspace, recent work, recent outputs, and the next real action.',
-      '查看当前工作区、最近任务、成果与下一步。',
+      'Task Workbench',
+      '任务工作台',
+      'Current workspace, recent work, generated outputs, records, and the next real action.',
+      '查看当前工作区、最近任务、成果记录与下一步。',
       memberPageIds: ['dashboard']),
   WorkbenchPage(
       'workbook',
       'Workbook',
       '工作区',
       'Create or switch the isolated workspace for materials, knowledge bases, skills, assistants, and memory.',
-      '创建或切换资料、知识库、技能、助手和记忆隔离的工作区。',
+      '创建或切换资料、知识库、Skill、Agent 和记忆隔离的工作区。',
       memberPageIds: ['workspace']),
   WorkbenchPage(
       'document-library',
-      'Document Library',
-      '文档库',
+      'Import Materials',
+      '导入资料',
       'Add materials, organize them, and manage source documents for the current workspace.',
       '添加资料、整理资料，并管理当前工作区里的来源文档。',
       memberPageIds: [
@@ -51,24 +51,24 @@ const pages = <WorkbenchPage>[
       memberPageIds: ['document-generation']),
   WorkbenchPage(
       'skill-factory',
-      'Skill Builder',
-      '技能生成',
+      'Skill',
+      'Skill',
       'Generate, check, edit, and export reusable skills from real knowledge bases.',
-      '基于真实知识库生成、检查、编辑和导出可复用技能。',
+      '基于真实知识库生成、检查、编辑和导出可复用 Skill。',
       memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
-      'My Assistants',
-      '我的助手',
+      'Agent',
+      'Agent',
       'Create assistants, start conversations, and use work groups for complex tasks.',
-      '创建助手、发起对话，并通过工作小组处理复杂任务。',
+      '创建 Agent、发起对话，并通过工作小组处理复杂任务。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'artifact-center',
-      'All Outputs',
-      '全部成果',
-      'Browse and export generated documents, knowledge bases, skills, assistants, and work group results.',
-      '查看并导出生成文档、知识库、技能、助手和工作小组结果。',
+      'Outputs',
+      '成果中心',
+      'Browse and export generated documents, knowledge bases, skills, agents, and work group results.',
+      '查看并导出生成文档、知识库、Skill、Agent 和工作小组结果。',
       memberPageIds: ['artifact-management']),
   WorkbenchPage(
       'reports-audit',
@@ -84,14 +84,24 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'workspace',
-      'Settings',
-      '设置',
+      'Configuration',
+      '配置',
       'Manage workspace, model service, export settings, network authorization, storage, memory, and security.',
       '管理工作区、模型服务、导出设置、网络授权、存储、记忆和安全。',
       memberPageIds: [
         'workspace',
         'vector-hub-provider-storage',
       ]),
+];
+
+const primaryNavigationPageIds = <String>[
+  'document-library',
+  'knowledge-package-management',
+  'skill-factory',
+  'agent-factory-runtime',
+  'document-generation',
+  'dashboard',
+  'workspace',
 ];
 
 // Legacy web/P1 routes remain covered by the Flutter source contract, but they

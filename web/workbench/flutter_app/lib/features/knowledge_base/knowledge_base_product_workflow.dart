@@ -5,18 +5,23 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
     required this.localeCode,
     required this.workspace,
     required this.selectedTab,
+    required this.onPageChanged,
     required this.onTabSelected,
   });
 
   final String localeCode;
   final String workspace;
   final int selectedTab;
+  final ValueChanged<int> onPageChanged;
   final ValueChanged<int> onTabSelected;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final hasSources = runtime.hasImportedFile || runtime.sourceCount > 0;
     final tabs = _zh
         ? ['概览', '来源', '验证', '引用', '缺口']
         : ['Overview', 'Sources', 'Verification', 'Citations', 'Gaps'];
@@ -35,9 +40,13 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  _zh
-                      ? '从文档库选择已整理资料生成知识库；测试、来源和版本操作都绑定真实本地产物。'
-                      : 'Build knowledge bases from organized library materials; tests, sources, and versions bind to real local artifacts.',
+                  hasSources
+                      ? (_zh
+                          ? '已有资料可用，下一步生成或更新知识库；生成后可以验证引用质量。'
+                          : 'Materials are ready. Next, generate or update the knowledge base, then verify citation quality.')
+                      : (_zh
+                          ? '还没有资料。请先导入资料，再回来生成知识库。'
+                          : 'No materials yet. Import materials first, then return to build a knowledge base.'),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -46,6 +55,18 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
                       ),
                 ),
               ),
+              if (!hasSources) ...[
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: _zh ? 120 : 150,
+                  child: _PrimaryProductAction(
+                    label: _zh ? '去导入资料' : 'Import materials',
+                    icon: Icons.upload_file_outlined,
+                    onPressed: () =>
+                        onPageChanged(_pageIndexById('document-library')),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -68,6 +89,7 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
                         : _KnowledgePackageListView(
                             zh: _zh,
                             workspace: workspace,
+                            onPageChanged: onPageChanged,
                           ),
       ),
       SizedBox(
@@ -288,10 +310,15 @@ class _KnowledgeGapRecordsView extends StatelessWidget {
 }
 
 class _KnowledgePackageListView extends StatefulWidget {
-  const _KnowledgePackageListView({required this.zh, required this.workspace});
+  const _KnowledgePackageListView({
+    required this.zh,
+    required this.workspace,
+    required this.onPageChanged,
+  });
 
   final bool zh;
   final String workspace;
+  final ValueChanged<int> onPageChanged;
 
   @override
   State<_KnowledgePackageListView> createState() =>
@@ -638,6 +665,13 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             ),
           ),
           bottom: _EqualActionRow(children: [
+            if (!runtime.hasImportedFile)
+              _DisplayAction(
+                label: zh ? '去导入资料' : 'Import materials',
+                icon: Icons.upload_file_outlined,
+                onPressed: () =>
+                    widget.onPageChanged(_pageIndexById('document-library')),
+              ),
             _PrimaryProductAction(
               label: runtime.hasKnowledgeBase
                   ? (zh ? '更新知识库' : 'Update Knowledge Base')
@@ -653,7 +687,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     },
             ),
             _PrimaryProductAction(
-              label: zh ? '生成知识画布' : 'Generate Knowledge Canvas',
+              label: zh ? '查看知识关系' : 'View Knowledge Links',
               icon: Icons.hub_outlined,
               automationKey: 'knowledge-canvas-basic-evidence-button',
               onPressed: runtime.running || rc6 == null
@@ -663,7 +697,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     },
             ),
             _PrimaryProductAction(
-              label: zh ? '刷新知识库表格' : 'Refresh KB Table',
+              label: zh ? '查看知识库列表' : 'View KB List',
               icon: Icons.table_rows_outlined,
               automationKey: 'knowledge-base-table-view-evidence-button',
               onPressed: runtime.running || rc6 == null

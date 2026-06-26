@@ -342,6 +342,25 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _RuntimeFeedbackBanner(
+                title: runtime.hasAgentProfiles
+                    ? (_zh ? '可以开始对话' : 'Ready to chat')
+                    : (_zh ? '先创建助手' : 'Create an assistant first'),
+                detail: runtime.hasAgentProfiles
+                    ? (_zh
+                        ? '主路径：选择助手、输入问题、保存对话成果。'
+                        : 'Main path: choose an assistant, ask a question, and save the output.')
+                    : (_zh
+                        ? '默认从创建助手开始；知识库和 Skill 可作为上下文绑定。'
+                        : 'Start by creating an assistant; the knowledge base and Skill can be bound as context.'),
+                tone: runtime.hasAgentProfiles
+                    ? _StatusTone.success
+                    : _StatusTone.warning,
+                icon: runtime.hasAgentProfiles
+                    ? Icons.chat_bubble_outline
+                    : Icons.smart_toy_outlined,
+              ),
+              SizedBox(height: compactHeight ? 8 : 12),
               _AgentPrimaryEntrySwitch(
                 zh: _zh,
                 selectedIndex: _modeIndex,
@@ -756,8 +775,8 @@ class _AgentConsoleResetTopBar extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     return Container(
       key: const Key('agent-console-reset-top-bar'),
-      height: 58,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: Color.alphaBlend(
           _HTKWTokens.moduleAssistant.withValues(
@@ -849,7 +868,7 @@ class _AgentResetWorkspaceSummary extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -3217,13 +3236,35 @@ class _AgentDiscussionProductViewState
         runtime.hasSkillVersionManifest;
     final canRun =
         rc6 != null && !runtime.running && hasRunnableAgent && hasRunnableSkill;
+    final statusText = runtime.hasA2aSessionManifest
+        ? (zh
+            ? '已可用：最近一次工作小组成果已生成。'
+            : 'Available: latest work group output is ready.')
+        : canRun
+            ? (zh
+                ? '已可用：可基于当前知识库与 Skill 启动工作小组。'
+                : 'Available: start from the current knowledge base and Skill.')
+            : (zh
+                ? '需要处理：请先创建助手并绑定 Skill。'
+                : 'Needs action: create an assistant and bind a Skill first.');
+    final resultText = runtime.hasA2aSessionManifest
+        ? (zh
+            ? '成果已写入工作区，重启后仍可恢复。'
+            : 'Output is saved in the workspace and can be recovered after restart.')
+        : canRun
+            ? (zh
+                ? '点击后会生成讨论纪要、共识报告和事件记录。'
+                : 'Starting creates a discussion note, consensus report, and event record.')
+            : (zh
+                ? '不会显示底层实现名称；只提示下一步。'
+                : 'Implementation details stay hidden; only the next action is shown.');
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
       title: zh ? '工作小组' : 'Work Group',
       subtitle: zh
-          ? '暂不可用：需要先完成单助手创建、配置、对话和成果保存。'
-          : 'Unavailable: finish single assistant creation, config, chat, and output save first.',
+          ? '让多个助手围绕同一个任务形成讨论纪要和共识结果。'
+          : 'Let multiple assistants create a shared discussion note and consensus result.',
       children: [
         TextField(
           key: const Key('a2a-topic-input'),
@@ -3232,8 +3273,8 @@ class _AgentDiscussionProductViewState
           decoration: InputDecoration(
             labelText: zh ? '协作任务输入' : 'Collaboration task input',
             helperText: zh
-                ? '工作小组暂不可用，当前仅保留入口状态。'
-                : 'Work group is unavailable; only the gated entry is shown.',
+                ? '只使用当前工作区的知识库、Skill 和助手成果。'
+                : 'Uses only the current workspace knowledge base, Skill, and assistant outputs.',
             border: const OutlineInputBorder(),
             isDense: true,
           ),
@@ -3243,16 +3284,12 @@ class _AgentDiscussionProductViewState
         const SizedBox(height: 10),
         _FieldRow(
           label: zh ? '当前状态' : 'Current state',
-          value: zh
-              ? '暂不可用：需要先完成单助手能力。'
-              : 'Unavailable: finish single assistant capability first.',
+          value: statusText,
         ),
         const SizedBox(height: 8),
         _FieldRow(
           label: zh ? '本轮结论' : 'Gate result',
-          value: zh
-              ? '工作小组 / 多助手协作已降级，禁止假可用。'
-              : 'Work group and multi-assistant collaboration are gated.',
+          value: resultText,
         ),
         const SizedBox(height: 8),
         _FieldRow(

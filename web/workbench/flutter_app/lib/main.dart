@@ -627,7 +627,8 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPage = pages[selectedIndex];
+    final safeSelectedIndex = selectedIndex.clamp(0, pages.length - 1).toInt();
+    final currentPage = pages[safeSelectedIndex];
     final appTitle =
         '${currentPage.title(localeCode, sampleWorkbenchContracts)} - HeiTang Knowledge Workbench';
 
@@ -736,7 +737,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                                         widget.skillSuiteWorkflow,
                                     localeCode: localeCode,
                                     themeMode: themeMode,
-                                    selectedIndex: selectedIndex,
+                                    selectedIndex: safeSelectedIndex,
                                     isDark: isDark,
                                     coreBridge: widget.coreBridge,
                                     coreCli: widget.coreCli,
@@ -750,8 +751,10 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                                         setState(() => themeMode = value),
                                     onLocaleChanged: (value) =>
                                         setState(() => localeCode = value),
-                                    onPageChanged: (index) =>
-                                        setState(() => selectedIndex = index),
+                                    onPageChanged: (index) => setState(() =>
+                                        selectedIndex = index
+                                            .clamp(0, pages.length - 1)
+                                            .toInt()),
                                   ),
                                 ),
                               ),
@@ -1116,8 +1119,10 @@ class _DesktopWorkbench extends StatelessWidget {
 }
 
 int _pageIndexById(String pageId) {
-  final normalizedPageId =
-      pageId == 'import-parsing' ? 'document-library' : pageId;
+  final normalizedPageId = switch (pageId) {
+    'import-parsing' => 'document-library',
+    _ => pageId,
+  };
   final exactIndex = pages.indexWhere((page) => page.id == normalizedPageId);
   if (exactIndex >= 0) return exactIndex;
   final memberIndex =
@@ -1359,6 +1364,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
           localeCode: widget.localeCode,
           workspace: widget.workspace,
           selectedTab: selectedTab,
+          onPageChanged: widget.onPageChanged,
           onTabSelected: (index) => setState(() => selectedTab = index),
         ),
       'retrieval-verification' => _RetrievalVerificationProductWorkflow(

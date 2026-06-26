@@ -23,6 +23,10 @@ class _SettingsProductWorkflow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final runtime = runtimeController?.state ?? Rc6RuntimeState.initial();
+    final connectionReady = runtime.hasProviderRuntimeSettings ||
+        runtime.hasProviderCapabilityUserCatalog ||
+        runtime.providerValidationReportPath.isNotEmpty;
     final tabs = _zh
         ? ['工作区', '模型服务', '记忆与存储', '导出', '网络与安全']
         : [
@@ -66,6 +70,39 @@ class _SettingsProductWorkflow extends StatelessWidget {
                         isWebRuntime: isWebRuntime,
                       );
     return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 124,
+        child: _FigmaHighlightCard(
+          keyName: 'settings-connection-cta',
+          icon: Icons.hub_outlined,
+          title: _zh ? '外部连接状态' : 'External connection status',
+          description: connectionReady
+              ? (_zh
+                  ? '已有连接配置；下一步可以测试模型服务、文档解析和存储连接。'
+                  : 'Connection settings exist. Next, test model service, document parsing, and storage connections.')
+              : (_zh
+                  ? '未配置外部连接；本地模式可继续使用，需要联网能力时再补配置。'
+                  : 'No external connection configured. Local mode remains usable; add connection settings only when needed.'),
+          actions: [
+            SizedBox(
+              width: _zh ? 128 : 150,
+              child: _PrimaryProductAction(
+                label: _zh ? '测试连接' : 'Test connection',
+                icon: Icons.fact_check_outlined,
+                onPressed: () => onTabSelected(1),
+              ),
+            ),
+            SizedBox(
+              width: _zh ? 128 : 150,
+              child: _DisplayAction(
+                label: _zh ? '存储状态' : 'Storage status',
+                icon: Icons.memory_outlined,
+                onPressed: () => onTabSelected(2),
+              ),
+            ),
+          ],
+        ),
+      ),
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       if (selectedTab == 0)
@@ -780,8 +817,8 @@ class _SettingsProviderModelEditorState
             _PrimaryProductAction(
               automationKey: 'connection-configuration-evidence-button',
               label: validatingConnectionConfiguration
-                  ? (zh ? '正在生成连接配置证据' : 'Generating connection evidence')
-                  : (zh ? '生成连接配置证据' : 'Generate connection evidence'),
+                  ? (zh ? '正在检查连接配置' : 'Checking connection settings')
+                  : (zh ? '检查连接配置' : 'Check connection settings'),
               icon: Icons.cable_outlined,
               onPressed: widget.runtimeController == null ||
                       validatingConnectionConfiguration
@@ -814,7 +851,7 @@ class _SettingsProviderModelEditorState
             const SizedBox(height: 8),
             _RuntimeFeedbackBanner(
               title: connectionConfigurationPath.isNotEmpty
-                  ? (zh ? '连接配置证据已生成' : 'Connection evidence generated')
+                  ? (zh ? '连接配置已检查' : 'Connection settings checked')
                   : validated
                       ? (zh ? '接口测试报告已生成' : 'Interface test report generated')
                       : saved
@@ -1173,7 +1210,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
               ? activeProfile!.lastError
               : (zh
                   ? '无明文密钥；失败进入操作记录'
-                  : 'No plaintext secrets; failures go to audit logs'),
+                  : 'No plaintext secrets; failures go to operation records'),
         ),
         const SizedBox(height: 8),
         _EqualActionRow(children: [
@@ -1719,10 +1756,10 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
                   : 'Arbitrary system commands are not exposed in ordinary UI'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '操作记录' : 'Audit',
+              label: zh ? '操作记录' : 'Operation records',
               value: zh
                   ? '运行记录、失败、权限和恢复进入操作记录'
-                  : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
+                  : 'Runs, failures, permissions, and recovery go to operation records'),
         ],
       );
       if (!wide) {
@@ -2442,17 +2479,17 @@ class _SettingsWorkspaceView extends StatelessWidget {
                 : ['Asset', 'Type', 'Status', 'Note'],
             rows: zh
                 ? [
-                    ['来源文档', '文档', '已登记', '文档库管理'],
+                    ['来源文档', '文档', '已登记', '导入资料管理'],
                     ['知识库', '知识库', '已登记', '知识库管理'],
-                    ['技能草稿', '技能', '已登记', '技能生成管理'],
-                    ['助手创建包', '助手包', '已登记', '我的助手管理'],
+                    ['技能草稿', 'Skill', '已登记', 'Skill 管理'],
+                    ['Agent 创建包', 'Agent 包', '已登记', 'Agent 管理'],
                   ]
                 : [
                     [
                       'Source documents',
                       'Document',
                       'Registered',
-                      'Document Library'
+                      'Import Materials'
                     ],
                     [
                       'Knowledge Base',
@@ -2460,13 +2497,8 @@ class _SettingsWorkspaceView extends StatelessWidget {
                       'Registered',
                       'Knowledge module'
                     ],
-                    ['Skill draft', 'Skill', 'Registered', 'Skill Builder'],
-                    [
-                      'Assistant package',
-                      'Assistant package',
-                      'Registered',
-                      'My Assistants'
-                    ],
+                    ['Skill draft', 'Skill', 'Registered', 'Skill'],
+                    ['Agent package', 'Agent package', 'Registered', 'Agent'],
                   ],
           ),
         ],

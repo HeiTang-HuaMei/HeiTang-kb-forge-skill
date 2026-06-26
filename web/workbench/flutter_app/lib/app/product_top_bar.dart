@@ -438,13 +438,13 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       subtitle: zh
           ? '选择文件、文件夹或保存网页来源'
           : 'Choose files, folders, or save a web source',
-      category: zh ? '文档库' : 'Document Library',
+      category: zh ? '导入资料' : 'Import Materials',
       pageId: 'document-library',
       icon: Icons.file_upload_outlined,
       keywords: const ['import', 'parse', 'ocr', 'chunk', '导入', '解析', '分块'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '文档库' : 'Document Library',
+      title: zh ? '来源文档' : 'Source Documents',
       subtitle: zh ? '查看已导入文件和预览' : 'View imported files and previews',
       category: zh ? '页面' : 'Page',
       pageId: 'document-library',
@@ -476,7 +476,7 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       keywords: const ['generate', 'export', 'markdown', 'docx', 'pdf', '文档生成'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '技能生成' : 'Skill Builder',
+      title: zh ? 'Skill' : 'Skill',
       subtitle: zh ? '从知识库生成可复用技能' : 'Generate reusable skills from KBs',
       category: zh ? '页面' : 'Page',
       pageId: 'skill-factory',
@@ -484,7 +484,7 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       keywords: const ['skill', 'SKILL.md', '技能', '工厂'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '我的助手' : 'My Assistants',
+      title: zh ? 'Agent' : 'Agent',
       subtitle: zh
           ? '创建助手、发起对话，并通过工作小组处理复杂任务'
           : 'Create assistants, chat, and run work groups',
@@ -494,10 +494,10 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       keywords: const ['assistant', 'chat', 'discussion', '助手', '对话'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '全部成果' : 'All Outputs',
+      title: zh ? '成果中心' : 'Outputs',
       subtitle: zh
-          ? '查看生成文档、知识库、技能、助手和讨论报告'
-          : 'Browse documents, KBs, skills, assistants, and discussion reports',
+          ? '查看生成文档、知识库、Skill、Agent 和讨论报告'
+          : 'Browse documents, KBs, skills, agents, and discussion reports',
       category: zh ? '成果' : 'Outputs',
       pageId: 'artifact-center',
       icon: Icons.folder_copy_outlined,

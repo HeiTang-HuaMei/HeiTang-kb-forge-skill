@@ -17,19 +17,44 @@ class _DocumentProductWorkflow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
     final tabs = _zh
         ? ['生成任务', '文档模板', '导出预览']
         : ['Generation Tasks', 'Document Templates', 'Export Preview'];
     return _FigmaPageCanvas(children: [
       SizedBox(
-        height: 82,
+        height: 120,
         child: _FigmaHighlightCard(
           keyName: 'document-generation-hero',
           icon: Icons.description_outlined,
           title: _zh ? '文档生成' : 'Document Generation',
           description: _zh
-              ? '从知识库生成 Markdown 草稿，编辑后导出；未配置格式保持需要设置。'
-              : 'Generate Markdown drafts from knowledge bases, edit, then export configured formats.',
+              ? '主路径：选择知识库 -> 选择模板 -> 生成文档；导出格式按配置启用。'
+              : 'Main path: choose a KB -> choose a template -> generate a document; export formats follow configuration.',
+          actions: [
+            SizedBox(
+              width: _zh ? 128 : 150,
+              child: _PrimaryProductAction(
+                label: runtime.hasKnowledgeBase
+                    ? (_zh ? '生成文档' : 'Generate')
+                    : (_zh ? '先建知识库' : 'Build KB first'),
+                icon: runtime.hasKnowledgeBase
+                    ? Icons.notes_outlined
+                    : Icons.account_tree_outlined,
+                onPressed:
+                    runtime.hasKnowledgeBase ? () => onTabSelected(0) : null,
+              ),
+            ),
+            SizedBox(
+              width: _zh ? 128 : 150,
+              child: _DisplayAction(
+                label: _zh ? '选择模板' : 'Choose template',
+                icon: Icons.dashboard_customize_outlined,
+                onPressed: () => onTabSelected(1),
+              ),
+            ),
+          ],
         ),
       ),
       _PageTabs(

@@ -488,6 +488,10 @@ class _DocumentLibraryProductWorkflowState
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final hasImported = runtime.hasImportedFile;
+    final parsed = runtime.parseReportPath.isNotEmpty;
     final tabs = _zh ? ['添加资料', '来源文档'] : ['Add Materials', 'Source Documents'];
     return _FigmaPageCanvas(children: [
       SizedBox(
@@ -500,22 +504,36 @@ class _DocumentLibraryProductWorkflowState
               ? '先把分散资料整理成可复用文档，再从文档库选择内容构建知识库。'
               : 'Organize scattered materials into reusable documents before building a knowledge base.',
           actions: [
-            SizedBox(
-              width: 130,
-              child: _PrimaryProductAction(
-                label: _zh ? '添加资料' : 'Add materials',
-                icon: Icons.upload_file_outlined,
-                onPressed: () => setState(() => selectedTab = 0),
+            if (!hasImported)
+              SizedBox(
+                width: 130,
+                child: _PrimaryProductAction(
+                  label: _zh ? '添加资料' : 'Add materials',
+                  icon: Icons.upload_file_outlined,
+                  onPressed: () => setState(() => selectedTab = 0),
+                ),
               ),
-            ),
-            SizedBox(
-              width: 110,
-              child: _DisplayAction(
-                label: _zh ? '查看资料' : 'View docs',
-                icon: Icons.article_outlined,
-                onPressed: () => setState(() => selectedTab = 1),
+            if (hasImported && !parsed)
+              SizedBox(
+                width: 130,
+                child: _PrimaryProductAction(
+                  label: _zh ? '整理资料' : 'Organize',
+                  icon: Icons.document_scanner_outlined,
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () => rc6.parseAndChunkSources(),
+                ),
               ),
-            ),
+            if (hasImported)
+              SizedBox(
+                width: 120,
+                child: _DisplayAction(
+                  label: _zh ? '去知识库' : 'Go to KB',
+                  icon: Icons.account_tree_outlined,
+                  onPressed: () => widget.onPageChanged(
+                      _pageIndexById('knowledge-package-management')),
+                ),
+              ),
           ],
         ),
       ),
@@ -526,7 +544,7 @@ class _DocumentLibraryProductWorkflowState
         onSelected: (index) => setState(() => selectedTab = index),
       ),
       SizedBox(
-        height: 510,
+        height: selectedTab == 0 ? 510 : 690,
         child: _LocalScrollBox(
           child: selectedTab == 0
               ? _ImportProductWorkflow(

@@ -38,9 +38,9 @@ class _DesktopDashboardSurface extends StatelessWidget {
               : standard
                   ? 1680.0
                   : width;
-      final heroHeight = wide ? 196.0 : 184.0;
+      final heroHeight = standard ? 212.0 : 184.0;
       final primaryRowHeight = wide ? 376.0 : 334.0;
-      final secondaryRowHeight = wide ? 246.0 : 212.0;
+      final secondaryRowHeight = wide ? 260.0 : 212.0;
 
       final assetOverview = _DashboardAssetOverviewCard(
         localeCode: localeCode,
@@ -532,14 +532,14 @@ class _DashboardGlyphConnector extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 16,
+              width: 12,
               height: 2,
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
-            Icon(Icons.chevron_right, size: 14, color: color),
+            Icon(Icons.chevron_right, size: 12, color: color),
           ],
         ),
       ),
@@ -564,7 +564,7 @@ class _DashboardGlyphStageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: dark ? 0.16 : 0.09),
         borderRadius: BorderRadius.circular(13),
@@ -574,35 +574,36 @@ class _DashboardGlyphStageCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: 22,
+            height: 22,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: color.withValues(alpha: dark ? 0.17 : 0.12),
               borderRadius: BorderRadius.circular(9),
             ),
-            child: Icon(icon, size: 18, color: color),
+            child: Icon(icon, size: 14, color: color),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 3),
           Text(
             title,
             maxLines: 1,
             softWrap: false,
-            overflow: TextOverflow.visible,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: color,
+                  fontSize: 10,
                   fontWeight: FontWeight.w800,
                   height: 1,
                 ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: color.withValues(alpha: dark ? 0.78 : 0.7),
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.w600,
                   height: 1,
                 ),
@@ -649,7 +650,7 @@ class _DashboardAssetOverviewCard extends StatelessWidget {
         'settings',
       ),
       _DashboardOverviewRow(
-        _zh ? '文档库' : 'Document Library',
+        _zh ? '来源文档' : 'Source Documents',
         runtime.hasImportedFile
             ? (_zh
                 ? '${runtime.sourceCount} 个真实来源'
@@ -1338,7 +1339,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'import',
           _zh ? '导入来源文件' : 'Import sources',
-          _zh ? '文档库' : 'Document Library',
+          _zh ? '来源文档' : 'Source Documents',
           _zh ? '${runtime.sourceCount} 个文件' : '${runtime.sourceCount} files',
           Icons.upload_file_outlined,
           'document-library',
@@ -1347,7 +1348,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'parse',
           _zh ? '整理资料' : 'Organize materials',
-          _zh ? '文档库' : 'Document Library',
+          _zh ? '来源文档' : 'Source Documents',
           _zh ? '整理结果已生成' : 'organized result ready',
           Icons.document_scanner_outlined,
           'document-library',
@@ -1387,7 +1388,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'skill',
           _zh ? '生成技能' : 'Generate skill',
-          _zh ? '技能生成' : 'Skill Builder',
+          _zh ? 'Skill' : 'Skill',
           _displayNameForPath(runtime.skillPath),
           Icons.extension_outlined,
           'skill-factory',
@@ -1396,7 +1397,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'agent',
           _zh ? '创建助手' : 'Create assistant',
-          _zh ? '我的助手' : 'My Assistants',
+          _zh ? 'Agent' : 'Agent',
           runtime.hasAgentDialogueExport
               ? (_zh ? '已导出对话' : 'dialogue exported')
               : runtime.hasAgentDialogue
@@ -1408,7 +1409,38 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           'agent-factory-runtime',
         ),
     ];
+    final blockerRows = [
+      if (!runtime.hasImportedFile)
+        _DashboardTaskRow(
+          'blocker-import',
+          _zh ? '缺少资料' : 'Missing materials',
+          _zh ? '阻塞项' : 'Blocker',
+          _zh ? '先导入资料' : 'Import materials first',
+          Icons.upload_file_outlined,
+          'document-library',
+        ),
+      if (runtime.hasImportedFile && !runtime.hasKnowledgeBase)
+        _DashboardTaskRow(
+          'blocker-kb',
+          _zh ? '缺少知识库' : 'Missing knowledge base',
+          _zh ? '阻塞项' : 'Blocker',
+          _zh ? '生成或更新知识库' : 'Build or update KB',
+          Icons.account_tree_outlined,
+          'knowledge-package-management',
+        ),
+      if (runtime.hasKnowledgeBase && !runtime.hasMarkdown)
+        _DashboardTaskRow(
+          'blocker-doc',
+          _zh ? '还没有文档产出' : 'No document output yet',
+          _zh ? '下一步' : 'Next step',
+          _zh ? '选择模板并生成文档' : 'Choose a template and generate',
+          Icons.description_outlined,
+          'document-generation',
+        ),
+    ];
     final visibleRows = rows;
+    final displayRows =
+        visibleRows.isEmpty ? blockerRows.take(2).toList() : visibleRows;
     return _FigmaCard(
       keyName: 'dashboard-next-actions',
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -1416,7 +1448,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _DashboardPanelTitle(
-            title: _zh ? '继续任务' : 'Continue Tasks',
+            title: _zh ? '继续任务 / 阻塞项' : 'Continue Tasks / Blockers',
             trailing: TextButton.icon(
               onPressed: visibleRows.isEmpty
                   ? null
@@ -1427,7 +1459,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: visibleRows.isEmpty
+            child: displayRows.isEmpty
                 ? Align(
                     alignment: Alignment.topLeft,
                     child: _DashboardTaskCard(
@@ -1447,7 +1479,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                     bottomPadding: 4,
                     child: Column(
                       children: [
-                        for (final row in visibleRows) ...[
+                        for (final row in displayRows) ...[
                           _DashboardTaskCard(
                             title: row.title,
                             type: row.type,
@@ -1458,7 +1490,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                             onTap: () => widget
                                 .onPageChanged(_pageIndexById(row.pageId)),
                           ),
-                          if (row != visibleRows.last)
+                          if (row != displayRows.last)
                             const SizedBox(height: 8),
                         ],
                       ],
@@ -1804,72 +1836,64 @@ class _DashboardTaskCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(
-                            alpha: brightness == Brightness.dark ? 0.16 : 0.1),
-                        borderRadius:
-                            BorderRadius.circular(_DesktopGrid.radiusSmall),
-                      ),
-                      child: Icon(icon, size: 17, color: accent),
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(
+                          alpha: brightness == Brightness.dark ? 0.16 : 0.1),
+                      borderRadius:
+                          BorderRadius.circular(_DesktopGrid.radiusSmall),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            '$type · $status',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: colors.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            hint,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: accent.withValues(alpha: 0.9),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
-                      ),
+                    child: Icon(icon, size: 17, color: accent),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          '$type · $status',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          hint,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: accent.withValues(alpha: 0.9),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.chevron_right,
-                        size: 16,
-                        color: colors.onSurfaceVariant.withValues(alpha: 0.54)),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.chevron_right,
+                      size: 16,
+                      color: colors.onSurfaceVariant.withValues(alpha: 0.54)),
+                ],
               ),
               const SizedBox(height: 8),
               ClipRRect(
@@ -2050,7 +2074,7 @@ _DashboardActionRow _dashboardNextAction(Rc6RuntimeState runtime, bool zh) {
     return _DashboardActionRow(
       zh ? '查看成果' : 'View outputs',
       zh
-          ? '已有可查看成果，可以打开全部成果导出或追溯。'
+          ? '已有可查看成果，可以打开成果中心导出或追溯。'
           : 'Outputs are available for preview, export, or trace.',
       Icons.folder_copy_outlined,
       'artifact-center',
@@ -2214,7 +2238,7 @@ class _DashboardArtifactOverview extends StatelessWidget {
                   ),
           ),
           SizedBox(
-            height: 34,
+            height: 40,
             child: _DisplayAction(
               label: _zh ? '查看全部成果' : 'View all outputs',
               icon: Icons.folder_copy_outlined,

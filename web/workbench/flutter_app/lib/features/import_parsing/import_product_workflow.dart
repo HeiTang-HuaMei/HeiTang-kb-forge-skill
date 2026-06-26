@@ -441,7 +441,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
               ),
               const SizedBox(width: 10),
               actionTile(
-                label: _zh ? '运行主链路' : 'Run main chain',
+                label: _zh ? '导入并整理' : 'Import and organize',
                 icon: Icons.play_circle_outline,
                 onPressed: runtime.running || rc6 == null
                     ? null

@@ -21,13 +21,19 @@ class _WorkbenchSidebar extends StatelessWidget {
     final sidebarBackground = visual.sidebarBackground;
     final primaryText = colors.onSurface;
     final secondaryText = colors.onSurfaceVariant;
-    final effectiveSelectedIndex = switch (pages[selectedIndex].id) {
+    final safeSelectedIndex = selectedIndex.clamp(0, pages.length - 1).toInt();
+    final effectiveSelectedIndex = switch (pages[safeSelectedIndex].id) {
       'import-parsing' => _pageIndexById('document-library'),
       'retrieval-verification' =>
         _pageIndexById('knowledge-package-management'),
       'artifact-center' || 'reports-audit' => _pageIndexById('dashboard'),
-      _ => selectedIndex,
+      'workbook' => _pageIndexById('dashboard'),
+      _ => safeSelectedIndex,
     };
+    final primaryNavigationIndexes = primaryNavigationPageIds
+        .map(_pageIndexById)
+        .where((index) => index >= 0)
+        .toList(growable: false);
 
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxWidth < 110;
@@ -52,35 +58,13 @@ class _WorkbenchSidebar extends StatelessWidget {
           child: ListView(
             key: const Key('desktop-sidebar-scroll'),
             padding: EdgeInsets.fromLTRB(
-                compact ? 10 : 18, 26, compact ? 10 : 18, 26),
+                compact ? 10 : 18, 22, compact ? 10 : 18, 18),
             children: [
               compact
                   ? const _SidebarCompactBrand()
                   : _SidebarBrand(localeCode: localeCode),
               SizedBox(height: compact ? 24 : 34),
-              _SidebarItem(
-                keyName: 'sidebar-dashboard',
-                page: pages[0],
-                icon: Icons.dashboard_customize_outlined,
-                localeCode: localeCode,
-                contracts: contracts,
-                selected: effectiveSelectedIndex == 0,
-                primaryText: primaryText,
-                secondaryText: secondaryText,
-                onTap: () => onPageChanged(0),
-              ),
-              _SidebarItem(
-                keyName: 'sidebar-workbook',
-                page: pages[1],
-                icon: Icons.workspaces_outline,
-                localeCode: localeCode,
-                contracts: contracts,
-                selected: effectiveSelectedIndex == 1,
-                primaryText: primaryText,
-                secondaryText: secondaryText,
-                onTap: () => onPageChanged(1),
-              ),
-              for (final index in [2, 3, 5, 6, 7])
+              for (final index in primaryNavigationIndexes)
                 _SidebarItem(
                   keyName: 'sidebar-${pages[index].id}',
                   page: pages[index],
@@ -92,20 +76,8 @@ class _WorkbenchSidebar extends StatelessWidget {
                   secondaryText: secondaryText,
                   onTap: () => onPageChanged(index),
                 ),
-              const SizedBox(height: 8),
-              _SidebarItem(
-                keyName: 'sidebar-workspace',
-                page: pages[10],
-                icon: Icons.tune_outlined,
-                localeCode: localeCode,
-                contracts: contracts,
-                selected: effectiveSelectedIndex == 10,
-                primaryText: primaryText,
-                secondaryText: secondaryText,
-                onTap: () => onPageChanged(10),
-              ),
               if (!compact) ...[
-                const SizedBox(height: 72),
+                const SizedBox(height: 48),
                 _LocalFirstCard(localeCode: localeCode),
               ],
             ],
@@ -396,11 +368,11 @@ class _LocalFirstCard extends StatelessWidget {
 IconData _sidebarIconFor(String pageId) {
   switch (pageId) {
     case 'dashboard':
-      return Icons.dashboard_customize_outlined;
+      return Icons.view_kanban_outlined;
     case 'import-parsing':
       return Icons.file_upload_outlined;
     case 'document-library':
-      return Icons.library_books_outlined;
+      return Icons.file_upload_outlined;
     case 'knowledge-package-management':
       return Icons.inventory_2_outlined;
     case 'retrieval-verification':

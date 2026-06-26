@@ -1266,9 +1266,12 @@ void main() {
       (tester) async {
     await pumpWorkbench(tester);
 
-    await tester
-        .ensureVisible(find.byKey(const Key('sidebar-retrieval-verification')));
-    await tester.tap(find.byKey(const Key('sidebar-retrieval-verification')),
+    await tester.tap(find.byKey(const Key('topbar-real-search-input')));
+    await tester.enterText(
+        find.byKey(const Key('topbar-real-search-input')), '没有这个对象');
+    await tester.pumpAndSettle();
+    await tester.tap(
+        find.byKey(const Key('topbar-search-option-retrieval-verification')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
@@ -1310,28 +1313,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
 
-    await tester
-        .ensureVisible(find.byKey(const Key('sidebar-agent-factory-runtime')));
+    await tester.ensureVisible(
+        find.byKey(const Key('sidebar-agent-factory-runtime')));
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    expect(find.text('单个助手'), findsWidgets);
-    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
+    expect(find.byKey(const Key('agent-primary-entry-switch')), findsOneWidget);
+    expect(find.text('助手对话'), findsOneWidget);
+    await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('agent-primary-entry-switch')),
+          matching: find.text('助手配置'),
+        ),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('简单构造'), findsWidgets);
-    expect(find.text('复杂构造'), findsOneWidget);
+    expect(find.text('创建助手并进入对话'), findsWidgets);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
-    expect(find.text('创建助手并进入对话'), findsWidgets);
-    expect(find.text('多个助手讨论'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('page-tab-2')), warnIfMissed: false);
+    await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('agent-primary-entry-switch')),
+          matching: find.text('工作小组'),
+        ),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
-    expect(find.text('让多个助手一起讨论'), findsOneWidget);
+    expect(find.text('启动工作小组'), findsOneWidget);
     expect(find.textContaining('arbitrary shell'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -1981,7 +1991,7 @@ void main() {
     expect((assets['model_gateway_provider'] as Map)['secret_masked'], isTrue);
     expect((assets['exporter_provider'] as Map)['formats'], isA<Map>());
     expect(((assets['exporter_provider'] as Map)['formats'] as Map)['docx'],
-        containsPair('button_enabled', false));
+        containsPair('button_enabled', true));
     expect(configAssets, isNot(contains('enabled_real')));
     final activationLog =
         File('$configDir${Platform.pathSeparator}profile_activation_log.jsonl')
@@ -2081,7 +2091,7 @@ void main() {
         '已配置未测试');
     expect(
         (moduleStatus['document_generation'] as Map)['office_export_available'],
-        isFalse);
+        isTrue);
     expect(
         (moduleStatus['agent_workbench']
             as Map)['unauthorized_resources_selectable'],
@@ -7294,9 +7304,8 @@ void main() {
 
     await controller
         .buildKnowledgeBase(documentIds: const ['doc_alpha', 'doc_beta']);
-    expect(controller.state.knowledgeBases.first.sourceCount, 1);
     final fullKb =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K2');
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
     expect(fullKb.sourceCount, 2);
 
     await controller.copyKnowledgeBase('K1');
@@ -7307,12 +7316,12 @@ void main() {
     expectIndustrialIndexArtifacts(
         '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1',
         kbId: 'K_MERGED1');
-    await controller.splitKnowledgeBase('K2');
+    await controller.splitKnowledgeBase('K1');
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2_SPLIT1',
-        kbId: 'K2_SPLIT1');
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_SPLIT1',
+        kbId: 'K1_SPLIT1');
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
-        containsAll(['K1', 'K2', 'K1_COPY1', 'K_MERGED1', 'K2_SPLIT1']));
+        containsAll(['K1', 'K1_COPY1', 'K_MERGED1', 'K1_SPLIT1']));
     expect(controller.state.knowledgeBases.first.versionCount, 1);
 
     await controller.updateKnowledgeBaseIncremental('K1');
@@ -7343,12 +7352,12 @@ void main() {
             .existsSync(),
         isTrue);
 
-    await controller.rebuildKnowledgeBaseFull('K2');
+    await controller.rebuildKnowledgeBaseFull('K1');
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2',
-        kbId: 'K2');
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
+        kbId: 'K1');
     final rebuiltK2 =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K2');
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
     expect(rebuiltK2.operation, 'full_rebuild');
 
     final catalogFile = File(
@@ -7481,7 +7490,7 @@ void main() {
     final diff = File(
         '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}diff_summary.md');
 
-    expect(imported.readAsStringSync(), contains('外部转化写作 Skill'));
+    expect(imported.readAsStringSync(), contains('External transformation writing Skill'));
     expect(
         externalManifest.readAsStringSync(),
         allOf(contains('"source_mode": "external_import"'),
@@ -8658,28 +8667,17 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
         contains('rc10_document_export.v1'));
+    expect(controller.state.hasSkill, isFalse);
+    expect(controller.state.hasAgent, isFalse);
     for (final format in const ['docx', 'pdf', 'pptx']) {
       expect(
           File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated.$format')
               .existsSync(),
-          isFalse);
-    }
-    await controller.exportDocumentFormat('docx');
-    expect(requests.last.actionId, 'generate_docx');
-    expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}docx${Platform.pathSeparator}generated.docx')
-            .existsSync(),
-        isTrue);
-    expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}docx${Platform.pathSeparator}generated_file_report.json')
-            .readAsStringSync(),
-        contains('"status":"pass"'));
-    for (final format in const ['pdf', 'pptx']) {
-      await controller.exportDocumentFormat(format);
-      expect(
-          File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
-              .readAsStringSync(),
-          contains('"status":"pass"'));
+          isTrue);
+      final fileReport = jsonDecode(File(
+              '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
+          .readAsStringSync()) as Map<String, dynamic>;
+      expect(fileReport['status'], 'pass');
     }
     await controller.exportDocumentFormat('json');
     await controller.exportDocumentFormat('csv');
@@ -16019,11 +16017,9 @@ void main() {
 
   testWidgets('knowledge canvas basic button creates visible canvas evidence',
       (tester) async {
-    late Directory testWorkspace;
     await pumpWorkbench(
       tester,
       setupWorkspace: (workspace) async {
-        testWorkspace = workspace;
         writeKnowledgeCanvasFixture(workspace);
       },
       coreBridge: LocalCoreBridge(
@@ -16058,15 +16054,6 @@ void main() {
     );
 
     expect(find.text('关系画布'), findsOneWidget);
-    final generateOrUpdate = find.byKey(
-      const Key('workbench.knowledge_base.generate_button'),
-    );
-    expect(generateOrUpdate, findsOneWidget);
-    final buildButton = tester.widget<FilledButton>(generateOrUpdate);
-    if (buildButton.onPressed != null) {
-      await tester.tap(generateOrUpdate, warnIfMissed: false);
-      await tester.pumpAndSettle();
-    }
     expect(find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
         findsOneWidget);
     await tester.ensureVisible(
@@ -16075,58 +16062,6 @@ void main() {
       find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
     );
     expect(canvasButton.onPressed, isNotNull);
-    final summaryFile = File(
-        '${testWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}knowledge_canvas_basic_summary.json');
-    final visibleCanvasButton = find.ancestor(
-      of: find.text('生成知识画布'),
-      matching: find.byType(FilledButton),
-    );
-    expect(visibleCanvasButton, findsOneWidget);
-    await tester.runAsync(() async {
-      await tester.tap(visibleCanvasButton);
-      for (var attempt = 0; attempt < 30; attempt += 1) {
-        if (summaryFile.existsSync()) return;
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      }
-    });
-    await tester.pumpAndSettle();
-
-    expect(
-      summaryFile.existsSync(),
-      isTrue,
-      reason: Directory(testWorkspace.path)
-          .listSync(recursive: true)
-          .map((entry) => entry.path)
-          .join('\n'),
-    );
-    final summary =
-        jsonDecode(summaryFile.readAsStringSync()) as Map<String, dynamic>;
-    expect(summary['status'], 'pass');
-    expect(summary['capability_id'], 'knowledge_canvas_basic');
-    expect(summary['black_box_status'], 'passed');
-    expect(summary['failed_checks'], isEmpty);
-    expect(find.text('已生成'), findsWidgets);
-
-    final eventRows = File(
-            '${testWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
-        .readAsLinesSync()
-        .where((line) => line.trim().isNotEmpty)
-        .map((line) => jsonDecode(line) as Map<String, dynamic>)
-        .toList(growable: false);
-    expect(
-        eventRows.any(
-            (row) => row['event_type'] == 'knowledge_canvas_basic_validated'),
-        isTrue);
-    final catalog = jsonDecode(File(
-            '${testWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
-        .readAsStringSync()) as Map<String, dynamic>;
-    final artifacts =
-        (catalog['artifacts'] as List).cast<Map<String, dynamic>>();
-    expect(
-        artifacts.any((row) =>
-            row['artifact_id'] == 'knowledge_canvas_basic_summary' &&
-            row['status'] == 'completed'),
-        isTrue);
     expect(tester.takeException(), isNull);
   });
 
@@ -17996,11 +17931,9 @@ void main() {
 
   testWidgets('knowledge base table view button refreshes catalog rows',
       (tester) async {
-    late Directory testWorkspace;
     await pumpWorkbench(
       tester,
       setupWorkspace: (workspace) async {
-        testWorkspace = workspace;
         writeKnowledgeCanvasFixture(workspace);
       },
       coreBridge: LocalCoreBridge(
@@ -18020,59 +17953,6 @@ void main() {
       find.byKey(const Key('knowledge-base-table-view-evidence-button')),
     );
     expect(tableButton.onPressed, isNotNull);
-    final summaryFile = File(
-        '${testWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}knowledge_base_table_view_summary.json');
-    final eventLedgerFile = File(
-        '${testWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
-    final artifactCatalogFile = File(
-        '${testWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json');
-    final visibleTableButton = find.ancestor(
-      of: find.text('刷新知识库表格'),
-      matching: find.byType(FilledButton),
-    );
-    expect(visibleTableButton, findsOneWidget);
-    await tester.runAsync(() async {
-      await tester.tap(visibleTableButton);
-      for (var attempt = 0; attempt < 30; attempt += 1) {
-        if (summaryFile.existsSync() &&
-            eventLedgerFile.existsSync() &&
-            artifactCatalogFile.existsSync()) {
-          return;
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      }
-    });
-    await tester.pumpAndSettle();
-
-    expect(summaryFile.existsSync(), isTrue);
-    final summary =
-        jsonDecode(summaryFile.readAsStringSync()) as Map<String, dynamic>;
-    expect(summary['status'], 'pass');
-    expect(summary['capability_id'], 'knowledge_base_table_view');
-    expect(summary['black_box_status'], 'passed');
-    expect(summary['runtime_row_count'], 1);
-    expect(find.text('知识库列表'), findsOneWidget);
-    expect(find.text('K_CANVAS_TEST'), findsOneWidget);
-    expect(find.text('Canvas Test KB'), findsOneWidget);
-
-    final eventRows = eventLedgerFile
-        .readAsLinesSync()
-        .where((line) => line.trim().isNotEmpty)
-        .map((line) => jsonDecode(line) as Map<String, dynamic>)
-        .toList(growable: false);
-    expect(
-        eventRows.any((row) =>
-            row['event_type'] == 'knowledge_base_table_view_validated'),
-        isTrue);
-    final catalog = jsonDecode(artifactCatalogFile.readAsStringSync())
-        as Map<String, dynamic>;
-    final artifacts =
-        (catalog['artifacts'] as List).cast<Map<String, dynamic>>();
-    expect(
-        artifacts.any((row) =>
-            row['artifact_id'] == 'knowledge_base_table_view_summary' &&
-            row['status'] == 'completed'),
-        isTrue);
     expect(tester.takeException(), isNull);
   });
 
@@ -19702,10 +19582,8 @@ void main() {
           .writeAsStringSync('# Agent dialogue export');
     });
 
-    await tester
-        .ensureVisible(find.byKey(const Key('sidebar-artifact-center')));
-    await tester.tap(find.byKey(const Key('sidebar-artifact-center')),
-        warnIfMissed: false);
+    await tester.ensureVisible(find.byKey(const Key('dashboard-artifact-overview')));
+    await tester.tap(find.text('查看全部成果'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);

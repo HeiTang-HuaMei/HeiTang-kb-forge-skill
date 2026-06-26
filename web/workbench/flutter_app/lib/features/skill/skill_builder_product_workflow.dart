@@ -197,6 +197,25 @@ class _SkillBuilderProductWorkflowState
         selectedIndex: selectedTab,
         onSelected: (index) => setState(() => selectedTab = index),
       ),
+      _RuntimeFeedbackBanner(
+        title: runtime.hasKnowledgeBase
+            ? (_zh ? '可以从知识库生成 Skill' : 'Ready to generate a Skill from KB')
+            : (_zh ? '缺少知识库' : 'Knowledge base needed'),
+        detail: runtime.hasKnowledgeBase
+            ? (_zh
+                ? '主路径：从当前知识库生成 Skill；也可以导入外部 Skill 作为模板。'
+                : 'Main path: generate a Skill from the current KB; external Skills can be imported as templates.')
+            : (_zh
+                ? '请先在知识库页生成知识库；已有外部 Skill 时可先导入模板。'
+                : 'Build a knowledge base first, or import an external Skill as a template.'),
+        tone: runtime.hasKnowledgeBase
+            ? _StatusTone.success
+            : _StatusTone.warning,
+        icon: runtime.hasKnowledgeBase
+            ? Icons.extension_outlined
+            : Icons.account_tree_outlined,
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
       if (configReady || outputPreviewReady || validationReady) ...[
         _RuntimeFeedbackBanner(
           title: validationReady
