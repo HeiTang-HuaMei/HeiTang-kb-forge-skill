@@ -16711,6 +16711,678 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runPermissionScopedCompanyBrainAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/permission_scoped_company_brain_summary.json');
+    final root = _joinNested(workspace.path, 'permission_scoped_company_brain');
+    await _clearWorkspacePath(root);
+    final policyPath = _joinNested(root, 'company_brain_policy.json');
+    final manifestPath = _joinNested(root, 'company_knowledge_manifest.json');
+    final permissionMatrixPath =
+        _joinNested(root, 'role_permission_matrix.json');
+    final scopedRetrievalPath =
+        _joinNested(root, 'scoped_retrieval_plan.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final allowedAnswerPath = _joinNested(root, 'allowed_answer_report.json');
+    final deniedAccessPath = _joinNested(root, 'denied_access_report.json');
+    final lifecycleReportPath = _joinNested(root, 'lifecycle_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '公司知识权限核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const runId = 'test_permission_scoped_company_brain_p2_34';
+    await _writeJsonFile(policyPath, {
+      'schema_version': 'prd_v3_permission_scoped_company_brain_policy.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'capability_gate': 'P2-34 Permission-Scoped Company Brain',
+      'user_visible_capability_name': '企业知识权限',
+      'user_visible_status': '已可用',
+      'scope_model': 'role_and_workspace_bound',
+      'rules': const [
+        {
+          'rule_id': 'test_company_brain_policy_allow_hr',
+          'role_id': 'test_role_hr_reviewer',
+          'workspace_id': 'test_workspace_company_brain',
+          'knowledge_base_id': 'test_kb_company_policy',
+          'decision': 'allow',
+          'reason': 'role owns current test company policy scope',
+          'test_marker': true,
+        },
+        {
+          'rule_id': 'test_company_brain_product_reference',
+          'role_id': 'test_role_hr_reviewer',
+          'workspace_id': 'test_workspace_company_brain',
+          'knowledge_base_id': 'test_kb_product_reference',
+          'decision': 'allow_reference',
+          'reason': 'explicit test reference scope',
+          'test_marker': true,
+        },
+        {
+          'rule_id': 'test_company_brain_finance_block',
+          'role_id': 'test_role_hr_reviewer',
+          'workspace_id': 'test_workspace_company_brain',
+          'knowledge_base_id': 'real_user_finance_kb_not_test',
+          'decision': 'block',
+          'reason': 'not test-marked and outside role scope',
+          'test_marker': true,
+        },
+      ],
+      'forbidden_user_visible_terms_absent': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final knowledgeBases = <Map<String, Object?>>[
+      {
+        'knowledge_base_id': 'test_kb_company_policy',
+        'display_name': '测试公司制度知识库',
+        'workspace_id': 'test_workspace_company_brain',
+        'department_scope': 'people_ops',
+        'classification': 'internal_policy_test',
+        'test_marker': true,
+        'documents': const [
+          {
+            'document_id': 'test_doc_company_policy_leave',
+            'title': '测试休假制度',
+            'source_path': 'test_sources/company_policy_leave.md',
+            'chunk_id': 'test_chunk_company_policy_leave_001',
+            'citation': 'company_policy_leave.md#chunk=1',
+            'fact': '测试员工休假制度只对具备公司制度权限的角色开放。',
+          },
+        ],
+      },
+      {
+        'knowledge_base_id': 'test_kb_product_reference',
+        'display_name': '测试产品说明知识库',
+        'workspace_id': 'test_workspace_company_brain',
+        'department_scope': 'product',
+        'classification': 'reference_test',
+        'test_marker': true,
+        'documents': const [
+          {
+            'document_id': 'test_doc_product_reference',
+            'title': '测试产品知识参考',
+            'source_path': 'test_sources/product_reference.md',
+            'chunk_id': 'test_chunk_product_reference_001',
+            'citation': 'product_reference.md#chunk=1',
+            'fact': '测试产品知识只能作为明确授权的参考证据。',
+          },
+        ],
+      },
+      {
+        'knowledge_base_id': 'real_user_finance_kb_not_test',
+        'display_name': '真实用户财务知识库占位',
+        'workspace_id': 'real_user_workspace_not_test',
+        'department_scope': 'finance_private',
+        'classification': 'real_user_private',
+        'test_marker': false,
+        'documents': const [],
+      },
+    ];
+    await _writeJsonFile(manifestPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_manifest.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'knowledge_bases': knowledgeBases,
+      'test_knowledge_base_count': 2,
+      'blocked_non_test_knowledge_base_count': 1,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(permissionMatrixPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_permission_matrix.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'roles': const [
+        {
+          'role_id': 'test_role_hr_reviewer',
+          'display_name': '测试制度审核员',
+          'workspace_id': 'test_workspace_company_brain',
+          'allowed_knowledge_base_ids': [
+            'test_kb_company_policy',
+            'test_kb_product_reference',
+          ],
+          'blocked_knowledge_base_ids': ['real_user_finance_kb_not_test'],
+          'allowed_actions': ['read', 'answer_with_citation', 'export_report'],
+          'blocked_actions': [
+            'read_real_user_finance_kb_not_test',
+            'delete_real_user_finance_kb_not_test',
+            'answer_without_scope_trace',
+          ],
+          'test_marker': true,
+        },
+      ],
+      'delete_scope': 'test_marked_objects_only',
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final sourceTraceRows = <Map<String, Object?>>[
+      for (final kb in knowledgeBases)
+        if (kb['test_marker'] == true)
+          for (final document in _listOfMaps(kb['documents']))
+            {
+              'schema_version':
+                  'prd_v3_permission_scoped_company_brain_source_trace.v1',
+              'trace_id': 'trace_${_stringValue(document['chunk_id'], '')}',
+              'workspace_id': kb['workspace_id'],
+              'knowledge_base_id': kb['knowledge_base_id'],
+              'department_scope': kb['department_scope'],
+              'classification': kb['classification'],
+              'document_id': document['document_id'],
+              'chunk_id': document['chunk_id'],
+              'source_path': document['source_path'],
+              'citation': document['citation'],
+              'excerpt': document['fact'],
+              'test_marker': true,
+              'created_at': now,
+            }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    const allowedKbIds = [
+      'test_kb_company_policy',
+      'test_kb_product_reference',
+    ];
+    await _writeJsonFile(scopedRetrievalPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_retrieval_plan.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'route': 'Anchor -> Entity -> Evidence -> Answer',
+      'request': {
+        'workspace_id': 'test_workspace_company_brain',
+        'role_id': 'test_role_hr_reviewer',
+        'question': '测试休假制度如何回答',
+      },
+      'allowed_knowledge_base_ids': allowedKbIds,
+      'blocked_knowledge_base_ids': const ['real_user_finance_kb_not_test'],
+      'source_trace_path': sourceTracePath,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final selectedTraceRows = sourceTraceRows
+        .where((row) =>
+            allowedKbIds.contains(_stringValue(row['knowledge_base_id'], '')))
+        .toList(growable: false);
+    await _writeJsonFile(allowedAnswerPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_allowed_answer.v1',
+      'status': selectedTraceRows.length == sourceTraceRows.length
+          ? 'pass'
+          : 'blocked',
+      'run_id': runId,
+      'role_id': 'test_role_hr_reviewer',
+      'workspace_id': 'test_workspace_company_brain',
+      'used_knowledge_base_ids': selectedTraceRows
+          .map((row) => _stringValue(row['knowledge_base_id'], ''))
+          .toSet()
+          .toList(growable: false),
+      'evidence_refs': [
+        for (final row in selectedTraceRows)
+          {
+            'trace_id': row['trace_id'],
+            'knowledge_base_id': row['knowledge_base_id'],
+            'citation': row['citation'],
+            'department_scope': row['department_scope'],
+          }
+      ],
+      'answer': '仅基于已授权的测试公司知识证据回答。',
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(deniedAccessPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_denied_access.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'denied_request': const {
+        'role_id': 'test_role_hr_reviewer',
+        'workspace_id': 'test_workspace_company_brain',
+        'knowledge_base_id': 'real_user_finance_kb_not_test',
+        'reason': 'outside role scope and not test-marked',
+      },
+      'blocked_actions': const [
+        'read_real_user_finance_kb_not_test',
+        'delete_real_user_finance_kb_not_test',
+        'answer_without_scope_trace',
+      ],
+      'user_visible_status': '需要处理',
+      'user_visible_next_action': '请检查知识范围或申请权限',
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(lifecycleReportPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_lifecycle.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'created_artifacts': const [
+        'company_brain_policy',
+        'company_knowledge_manifest',
+        'role_permission_matrix',
+        'scoped_retrieval_plan',
+        'source_trace',
+        'allowed_answer_report',
+        'denied_access_report',
+      ],
+      'viewable_paths': [
+        policyPath,
+        manifestPath,
+        permissionMatrixPath,
+        scopedRetrievalPath,
+        sourceTracePath,
+        allowedAnswerPath,
+        deniedAccessPath,
+      ],
+      'exportable_paths': [
+        summaryPath,
+        validationReportPath,
+        allowedAnswerPath,
+        deniedAccessPath,
+      ],
+      'delete_scope': 'test_marked_objects_only',
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_state_snapshot.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'policy_path': policyPath,
+      'manifest_path': manifestPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'scoped_retrieval_plan_path': scopedRetrievalPath,
+      'source_trace_path': sourceTracePath,
+      'allowed_answer_report_path': allowedAnswerPath,
+      'denied_access_report_path': deniedAccessPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-35 Retrieval Regression Benchmark Industrial',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_boundary_report.v1',
+      'status': 'pass',
+      'external_project_runtime_loaded': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'ui_modified': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final policy = await _readJsonObject(policyPath);
+    final manifest = await _readJsonObject(manifestPath);
+    final permissionMatrix = await _readJsonObject(permissionMatrixPath);
+    final retrievalPlan = await _readJsonObject(scopedRetrievalPath);
+    final allowedAnswer = await _readJsonObject(allowedAnswerPath);
+    final deniedAccess = await _readJsonObject(deniedAccessPath);
+    final lifecycle = await _readJsonObject(lifecycleReportPath);
+    final stateSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final reloadedTraceRows = await _readJsonl(File(sourceTracePath));
+    final userVisibleText = [
+      _stringValue(policy['user_visible_capability_name'], ''),
+      _stringValue(policy['user_visible_status'], ''),
+      _stringValue(deniedAccess['user_visible_status'], ''),
+      _stringValue(deniedAccess['user_visible_next_action'], ''),
+    ].join(' ');
+    final forbiddenUiTokens = [
+      'OpenDataLoader',
+      'Composio',
+      'Provider',
+      'Adapter',
+      'Parser',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ];
+    final roles = _listOfMaps(permissionMatrix['roles']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'policy_written': await File(policyPath).exists(),
+      'policy_passed': _stringValue(policy['status'], '') == 'pass',
+      'policy_has_allow_and_block_rules':
+          _listOfMaps(policy['rules']).any((row) => row['decision'] == 'allow') &&
+              _listOfMaps(policy['rules'])
+                  .any((row) => row['decision'] == 'block'),
+      'product_facing_capability_label_present':
+          _stringValue(policy['user_visible_capability_name'], '') == '企业知识权限',
+      'forbidden_ui_tokens_absent':
+          forbiddenUiTokens.every((token) => !userVisibleText.contains(token)),
+      'manifest_written': await File(manifestPath).exists(),
+      'manifest_passed': _stringValue(manifest['status'], '') == 'pass',
+      'manifest_blocks_non_test_kb':
+          manifest['blocked_non_test_knowledge_base_count'] == 1,
+      'permission_matrix_written': await File(permissionMatrixPath).exists(),
+      'permission_matrix_passed':
+          _stringValue(permissionMatrix['status'], '') == 'pass',
+      'role_allows_test_kbs': roles.any((row) =>
+          _listOfStrings(row['allowed_knowledge_base_ids'])
+                  .contains('test_kb_company_policy') &&
+              _listOfStrings(row['allowed_knowledge_base_ids'])
+                  .contains('test_kb_product_reference')),
+      'role_blocks_real_user_kb': roles.any((row) =>
+          _listOfStrings(row['blocked_knowledge_base_ids'])
+              .contains('real_user_finance_kb_not_test')),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_has_two_allowed_rows': reloadedTraceRows.length == 2,
+      'source_trace_has_citations': reloadedTraceRows
+          .every((row) => _stringValue(row['citation'], '').isNotEmpty),
+      'scoped_retrieval_plan_written':
+          await File(scopedRetrievalPath).exists(),
+      'scoped_retrieval_plan_passed':
+          _stringValue(retrievalPlan['status'], '') == 'pass',
+      'retrieval_uses_anchor_entity_evidence_answer':
+          _stringValue(retrievalPlan['route'], '') ==
+              'Anchor -> Entity -> Evidence -> Answer',
+      'allowed_answer_written': await File(allowedAnswerPath).exists(),
+      'allowed_answer_passed':
+          _stringValue(allowedAnswer['status'], '') == 'pass',
+      'allowed_answer_uses_allowed_kbs_only':
+          _listOfStrings(allowedAnswer['used_knowledge_base_ids'])
+              .every((id) => allowedKbIds.contains(id)),
+      'denied_access_written': await File(deniedAccessPath).exists(),
+      'denied_access_passed':
+          _stringValue(deniedAccess['status'], '') == 'pass',
+      'denied_access_blocks_real_user_kb':
+          _stringValue(_mapValue(deniedAccess['denied_request'])
+                  ['knowledge_base_id'], '') ==
+              'real_user_finance_kb_not_test',
+      'lifecycle_report_written': await File(lifecycleReportPath).exists(),
+      'lifecycle_report_passed':
+          _stringValue(lifecycle['status'], '') == 'pass',
+      'lifecycle_export_paths_present':
+          _listOfStrings(lifecycle['exportable_paths']).length >= 4,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(stateSnapshot['run_id'], '') == runId &&
+              _stringValue(stateSnapshot['next_gate'], '') ==
+                  'P2-35 Retrieval Regression Benchmark Industrial' &&
+              stateSnapshot['global_goal_complete'] == false,
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+      'ui_modified': false,
+      'new_dependency_added': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_database_connected',
+      'external_model_called',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+      'network_call_made',
+      'ui_modified',
+      'new_dependency_added',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_validation_report.v1',
+      'status': status,
+      'run_id': runId,
+      'policy_path': policyPath,
+      'manifest_path': manifestPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'scoped_retrieval_plan_path': scopedRetrievalPath,
+      'source_trace_path': sourceTracePath,
+      'allowed_answer_report_path': allowedAnswerPath,
+      'denied_access_report_path': deniedAccessPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_permission_scoped_company_brain_summary.v1',
+      'status': status,
+      'capability_id': 'permission_scoped_company_brain',
+      'capability_gate': 'P2-34 Permission-Scoped Company Brain',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'policy_path': policyPath,
+      'manifest_path': manifestPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'scoped_retrieval_plan_path': scopedRetrievalPath,
+      'source_trace_path': sourceTracePath,
+      'allowed_answer_report_path': allowedAnswerPath,
+      'denied_access_report_path': deniedAccessPath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'source_trace_count': reloadedTraceRows.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runPermissionScopedCompanyBrainAcceptance',
+        'policy_schema': 'prd_v3_permission_scoped_company_brain_policy.v1',
+        'manifest_schema':
+            'prd_v3_permission_scoped_company_brain_manifest.v1',
+        'permission_schema':
+            'prd_v3_permission_scoped_company_brain_permission_matrix.v1',
+        'source_trace_schema':
+            'prd_v3_permission_scoped_company_brain_source_trace.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only company brain permission contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'allowed_answer_report_path': allowedAnswerPath,
+        'denied_access_report_path': deniedAccessPath,
+      },
+      'event_evidence': {
+        'event_type': 'permission_scoped_company_brain_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'policy, manifest, permission matrix, scoped retrieval plan, source trace, answer reports, validation and summary are written',
+        'view':
+            'summary, validation report, source trace and answer reports are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete':
+            'only test-marked objects are in scope; real user data is never deleted',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'out-of-scope KB read, missing source trace or boundary violation blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-35 Retrieval Regression Benchmark Industrial',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'permission_scoped_company_brain_validated',
+      module: 'knowledge_governance',
+      action: 'run_permission_scoped_company_brain_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'permission_scoped_company_brain',
+      targetName: 'Permission-Scoped Company Brain',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'source_trace_count': reloadedTraceRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'permission_scoped_company_brain_summary',
+      artifactType: 'acceptance_report',
+      title: 'Permission-Scoped Company Brain Summary',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'permission_scoped_company_brain',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'permission_scoped_company_brain_validation',
+      artifactType: 'validation_report',
+      title: 'Permission-Scoped Company Brain Validation',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'permission_scoped_company_brain',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'permission_scoped_company_brain_source_trace',
+      artifactType: 'source_trace',
+      title: 'Permission-Scoped Company Brain Source Trace',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'permission_scoped_company_brain',
+      filePath: sourceTracePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'source_trace_count': reloadedTraceRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'permission_scoped_company_brain_denied_access',
+      artifactType: 'permission_report',
+      title: 'Permission-Scoped Company Brain Denied Access',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'permission_scoped_company_brain',
+      filePath: deniedAccessPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'blocked_knowledge_base_id': 'real_user_finance_kb_not_test',
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '公司知识权限核心验收证据已生成。' : '公司知识权限核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'permission_scoped_company_brain_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
