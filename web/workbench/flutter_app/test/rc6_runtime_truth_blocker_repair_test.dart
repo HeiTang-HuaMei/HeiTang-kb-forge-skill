@@ -10906,6 +10906,155 @@ void main() {
         isTrue);
   });
 
+  test('p2 session share fork replay creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runSessionShareForkReplayAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_session_share_fork_replay_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'session_share_fork_replay');
+    expect(summary['capability_gate'], 'P2-16 Session Share / Fork / Replay');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-17 Cloud Disposable Sandbox Evaluation');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final snapshot = jsonDecode(
+        File(summary['session_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(snapshot['schema_version'], 'prd_v3_session_share_snapshot.v1');
+    expect(snapshot['status'], 'pass');
+    expect(snapshot['turns'], hasLength(2));
+    expect(snapshot['contains_secret_plaintext'], isFalse);
+    expect(snapshot['external_network_required'], isFalse);
+    final sharePackage = jsonDecode(
+        File(summary['share_package_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(sharePackage['schema_version'],
+        'prd_v3_session_share_package.v1');
+    expect((sharePackage['permissions'] as Map)['read_only'], isTrue);
+    expect((sharePackage['permissions'] as Map)['fork_allowed'], isTrue);
+    expect(
+        (sharePackage['permissions'] as Map)['external_network_required'],
+        isFalse);
+    final forkManifest = jsonDecode(
+        File(summary['fork_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(forkManifest['schema_version'],
+        'prd_v3_session_fork_manifest.v1');
+    expect(forkManifest['parent_session_modified'], isFalse);
+    expect(forkManifest['parent_source_hash'], summary['source_hash']);
+    expect(forkManifest['secret_plaintext_written'], isFalse);
+    final replayRows =
+        readJsonlFile(summary['replay_log_path'] as String);
+    expect(replayRows, hasLength(2));
+    expect(
+        replayRows.every((row) =>
+            row['schema_version'] == 'prd_v3_session_replay_record.v1' &&
+            row['replay_status'] == 'matched' &&
+            row['content_hash'] == row['expected_hash'] &&
+            row['external_call_made'] == false &&
+            row['tool_call_made'] == false),
+        isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_session_replay_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['parent_hash_preserved'], isTrue);
+    expect(validation['replay_matched'], isTrue);
+    final errorReport = jsonDecode(
+        File(summary['error_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(errorReport['schema_version'],
+        'prd_v3_session_replay_error_report.v1');
+    expect(errorReport['status'], 'pass');
+    expect(errorReport['all_error_paths_blocked'], isTrue);
+    expect(
+        (errorReport['error_cases'] as List).any((row) =>
+            (row as Map)['case_id'] == 'missing_snapshot_blocks_replay' &&
+            row['decision'] == 'blocked'),
+        isTrue);
+    expect(
+        (errorReport['error_cases'] as List).any((row) =>
+            (row as Map)['case_id'] == 'tampered_hash_blocks_replay' &&
+            row['decision'] == 'blocked'),
+        isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'session_share_fork_replay_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'session_share_fork_replay_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'session_share_package' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

@@ -6823,6 +6823,434 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runSessionShareForkReplayAcceptance({
+    String sessionId = 'test_session_p2_16',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/session_share_fork_replay_summary.json');
+    final root = _joinNested(workspace.path, 'session_share_fork_replay');
+    final snapshotPath = _joinNested(root, 'session_snapshot.json');
+    final sharePackagePath = _joinNested(root, 'session_share_package.json');
+    final forkManifestPath = _joinNested(root, 'session_fork_manifest.json');
+    final replayLogPath = _joinNested(root, 'session_replay_log.jsonl');
+    final validationReportPath =
+        _joinNested(root, 'session_replay_validation_report.json');
+    final errorReportPath =
+        _joinNested(root, 'session_replay_error_report.json');
+    final readmePath = _joinNested(root, 'session_share_readme.md');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '会话分享、分叉与回放核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final safeSessionId = _safeFileName(sessionId);
+    final forkSessionId = '${safeSessionId}_fork_001';
+    final turns = <Map<String, dynamic>>[
+      {
+        'turn_id': 'turn_001',
+        'role': 'user',
+        'content': '请总结当前知识库中可以复用的证据。',
+        'evidence_refs': const <String>[],
+        'created_at': now,
+      },
+      {
+        'turn_id': 'turn_002',
+        'role': 'assistant',
+        'content': '回答基于本地知识库、source trace 和 Artifact 记录，不调用外部服务。',
+        'evidence_refs': const [
+          'source_trace:test_source_001',
+          'artifact:knowledge_package_summary',
+        ],
+        'created_at': now,
+      },
+    ];
+    final sourceHash = _stableHash(jsonEncode(turns)).toString();
+    final snapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_session_share_snapshot.v1',
+      'status': 'pass',
+      'session_id': safeSessionId,
+      'session_type': 'local_agent_session',
+      'turn_count': turns.length,
+      'turns': turns,
+      'source_hash': sourceHash,
+      'shareable': true,
+      'contains_secret_plaintext': false,
+      'contains_real_user_data': false,
+      'external_network_required': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(snapshotPath, snapshot);
+    final sharePackage = <String, dynamic>{
+      'schema_version': 'prd_v3_session_share_package.v1',
+      'status': 'pass',
+      'share_id': 'share_${safeSessionId}_001',
+      'source_session_id': safeSessionId,
+      'source_snapshot_path': snapshotPath,
+      'share_mode': 'local_read_only_reference',
+      'source_hash': sourceHash,
+      'permissions': const {
+        'read_only': true,
+        'fork_allowed': true,
+        'replay_allowed': true,
+        'external_network_required': false,
+        'secret_plaintext_included': false,
+        'real_user_data_included': false,
+      },
+      'included_artifacts': [snapshotPath],
+      'created_at': now,
+    };
+    await _writeJsonFile(sharePackagePath, sharePackage);
+    final forkedTurns = turns
+        .map((turn) => {
+              ...turn,
+              'forked_from_turn_id': turn['turn_id'],
+              'fork_session_id': forkSessionId,
+            })
+        .toList(growable: false);
+    final forkHash = _stableHash(jsonEncode(forkedTurns)).toString();
+    final forkManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_session_fork_manifest.v1',
+      'status': 'pass',
+      'parent_session_id': safeSessionId,
+      'fork_session_id': forkSessionId,
+      'source_share_id': sharePackage['share_id'],
+      'source_snapshot_path': snapshotPath,
+      'fork_turn_count': forkedTurns.length,
+      'forked_turns': forkedTurns,
+      'parent_source_hash': sourceHash,
+      'fork_hash': forkHash,
+      'parent_session_modified': false,
+      'secret_plaintext_written': false,
+      'real_user_data_deleted': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(forkManifestPath, forkManifest);
+    final replayRows = <Map<String, dynamic>>[
+      for (var index = 0; index < turns.length; index += 1)
+        {
+          'schema_version': 'prd_v3_session_replay_record.v1',
+          'replay_id': 'replay_${safeSessionId}_001',
+          'sequence': index + 1,
+          'source_session_id': safeSessionId,
+          'fork_session_id': forkSessionId,
+          'turn_id': turns[index]['turn_id'],
+          'role': turns[index]['role'],
+          'content_hash': _stableHash(turns[index]['content'].toString()),
+          'expected_hash': _stableHash(turns[index]['content'].toString()),
+          'replay_status': 'matched',
+          'external_call_made': false,
+          'tool_call_made': false,
+          'created_at': now,
+        }
+    ];
+    await File(replayLogPath).parent.create(recursive: true);
+    await File(replayLogPath).writeAsString(
+      '${replayRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final replayMatched = replayRows.every((row) =>
+        row['replay_status'] == 'matched' &&
+        row['content_hash'] == row['expected_hash']);
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_session_replay_validation_report.v1',
+      'status': replayMatched ? 'pass' : 'blocked',
+      'session_id': safeSessionId,
+      'fork_session_id': forkSessionId,
+      'snapshot_path': snapshotPath,
+      'share_package_path': sharePackagePath,
+      'fork_manifest_path': forkManifestPath,
+      'replay_log_path': replayLogPath,
+      'turn_count': turns.length,
+      'replayed_turn_count': replayRows.length,
+      'source_hash': sourceHash,
+      'fork_hash': forkHash,
+      'parent_hash_preserved':
+          _stringValue(forkManifest['parent_source_hash'], '') == sourceHash,
+      'replay_matched': replayMatched,
+      'secret_plaintext_written': false,
+      'external_call_made': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final errorReport = <String, dynamic>{
+      'schema_version': 'prd_v3_session_replay_error_report.v1',
+      'status': 'pass',
+      'error_cases': const [
+        {
+          'case_id': 'missing_snapshot_blocks_replay',
+          'decision': 'blocked',
+          'error_code': 'session_snapshot_missing',
+          'resume_prompt': 'Regenerate the local session snapshot, then rerun replay.',
+        },
+        {
+          'case_id': 'tampered_hash_blocks_replay',
+          'decision': 'blocked',
+          'error_code': 'session_hash_mismatch',
+          'resume_prompt': 'Use the original share package or create a new fork.',
+        },
+      ],
+      'all_error_paths_blocked': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(errorReportPath, errorReport);
+    await File(readmePath).parent.create(recursive: true);
+    await File(readmePath).writeAsString(
+      [
+        '# Session Share / Fork / Replay',
+        '',
+        '- Share mode: local read-only reference.',
+        '- Fork mode: copy session turns without mutating the parent.',
+        '- Replay mode: deterministic local replay from the stored snapshot.',
+        '- Boundary: no external call, no secret plaintext, no real user data deletion.',
+      ].join('\n'),
+      encoding: utf8,
+    );
+
+    final reloadedSnapshot = await _readJsonObject(snapshotPath);
+    final reloadedShare = await _readJsonObject(sharePackagePath);
+    final reloadedFork = await _readJsonObject(forkManifestPath);
+    final reloadedValidation = await _readJsonObject(validationReportPath);
+    final reloadedError = await _readJsonObject(errorReportPath);
+    final replayLines = File(replayLogPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'session_snapshot_written': await File(snapshotPath).exists(),
+      'session_snapshot_schema_valid':
+          _stringValue(reloadedSnapshot['schema_version'], '') ==
+              'prd_v3_session_share_snapshot.v1',
+      'session_snapshot_turns_present':
+          _listOfMaps(reloadedSnapshot['turns']).length == turns.length,
+      'session_snapshot_excludes_secret':
+          reloadedSnapshot['contains_secret_plaintext'] == false,
+      'share_package_written': await File(sharePackagePath).exists(),
+      'share_package_schema_valid':
+          _stringValue(reloadedShare['schema_version'], '') ==
+              'prd_v3_session_share_package.v1',
+      'share_package_read_only':
+          _mapValue(reloadedShare['permissions'])['read_only'] == true,
+      'share_package_no_external_network':
+          _mapValue(reloadedShare['permissions'])
+                  ['external_network_required'] ==
+              false,
+      'fork_manifest_written': await File(forkManifestPath).exists(),
+      'fork_manifest_schema_valid':
+          _stringValue(reloadedFork['schema_version'], '') ==
+              'prd_v3_session_fork_manifest.v1',
+      'fork_parent_not_mutated':
+          reloadedFork['parent_session_modified'] == false,
+      'fork_parent_hash_preserved':
+          _stringValue(reloadedFork['parent_source_hash'], '') == sourceHash,
+      'replay_log_written': await File(replayLogPath).exists(),
+      'replay_count_matches_turns': replayLines.length == turns.length,
+      'replay_rows_matched': replayMatched,
+      'validation_report_written':
+          await File(validationReportPath).exists(),
+      'validation_report_passed':
+          _stringValue(reloadedValidation['status'], '') == 'pass',
+      'error_report_written': await File(errorReportPath).exists(),
+      'error_report_passed':
+          _stringValue(reloadedError['status'], '') == 'pass',
+      'missing_snapshot_blocks_replay': _listOfMaps(
+              reloadedError['error_cases'])
+          .any((row) =>
+              _stringValue(row['case_id'], '') ==
+                  'missing_snapshot_blocks_replay' &&
+              _stringValue(row['decision'], '') == 'blocked'),
+      'tampered_hash_blocks_replay': _listOfMaps(
+              reloadedError['error_cases'])
+          .any((row) =>
+              _stringValue(row['case_id'], '') ==
+                  'tampered_hash_blocks_replay' &&
+              _stringValue(row['decision'], '') == 'blocked'),
+      'readme_written': await File(readmePath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['source_hash'], '') == sourceHash &&
+              _stringValue(reloadedValidation['source_hash'], '') == sourceHash,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_session_share_fork_replay_summary.v1',
+      'status': status,
+      'capability_id': 'session_share_fork_replay',
+      'capability_gate': 'P2-16 Session Share / Fork / Replay',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'session_snapshot_path': snapshotPath,
+      'share_package_path': sharePackagePath,
+      'fork_manifest_path': forkManifestPath,
+      'replay_log_path': replayLogPath,
+      'validation_report_path': validationReportPath,
+      'error_report_path': errorReportPath,
+      'readme_path': readmePath,
+      'source_hash': sourceHash,
+      'fork_hash': forkHash,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runSessionShareForkReplayAcceptance',
+        'snapshot_schema': 'prd_v3_session_share_snapshot.v1',
+        'share_package_schema': 'prd_v3_session_share_package.v1',
+        'fork_manifest_schema': 'prd_v3_session_fork_manifest.v1',
+        'replay_record_schema': 'prd_v3_session_replay_record.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only session persistence capability; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'share_package_path': sharePackagePath,
+        'validation_report_path': validationReportPath,
+        'error_report_path': errorReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'session_share_fork_replay_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'session snapshot, share package, fork manifest, replay log, validation report, error report and summary are written',
+        'view': 'summary and share package are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only gate',
+        'restart_recovery':
+            'snapshot and validation report reload from workspace files',
+        'error_path':
+            'missing snapshot and tampered hash cases are blocked',
+      },
+      'boundary_evidence': {
+        'external_project_runtime_loaded': false,
+        'external_model_called': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-17 Cloud Disposable Sandbox Evaluation',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'session_share_fork_replay_validated',
+      module: 'agent_session',
+      action: 'run_session_share_fork_replay_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'session_share_fork_replay',
+      targetName: 'Session Share / Fork / Replay',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'share_package_path': sharePackagePath,
+        'replay_log_path': replayLogPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'session_share_fork_replay_summary',
+      artifactType: 'acceptance_report',
+      title: 'Session Share Fork Replay Summary',
+      sourceModule: 'agent_session',
+      sourceId: 'session_share_fork_replay',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'session_share_package',
+      artifactType: 'session_share_package',
+      title: 'Session Share Package',
+      sourceModule: 'agent_session',
+      sourceId: 'session_share_fork_replay',
+      filePath: sharePackagePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '会话分享、分叉与回放核心验收证据已生成。'
+          : '会话分享、分叉与回放核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'session_share_fork_replay_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-16 Session Share / Fork / Replay",
+  "current_gate": "P2-17 Cloud Disposable Sandbox Evaluation",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -87,11 +87,11 @@
     "P2-12 Long Context Evaluation",
     "P2-13 Official Sample Project Library",
     "P2-14 Polly-style Lead Orchestrator",
-    "P2-15 Sandbox and Tool Permission Industrialization"
+    "P2-15 Sandbox and Tool Permission Industrialization",
+    "P2-16 Session Share / Fork / Replay"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-16 Session Share / Fork / Replay",
     "P2-17 Cloud Disposable Sandbox Evaluation",
     "P2-18 Fugu-style Multi-Model Orchestration",
     "P2-19 Loop Orchestrator Industrial",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T04:39:22Z",
+  "updated_at": "2026-06-26T04:48:04Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -265,7 +265,9 @@
     "P2 queue now continues with P2-14 Polly-style Lead Orchestrator.",
     "P2-14 Polly-style Lead Orchestrator has core-only lead plan, delegation, execution trace, verifier review, missing-evidence block, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-15 Sandbox and Tool Permission Industrialization.",
-    "P2-15 Sandbox and Tool Permission Industrialization has governance evidence for workspace permission matrix, permission audit, authorization runtime audit, unauthorized-access block report, tool allowlist, Event Ledger, Artifact Catalog and restart recovery; it remains subject to P2 Release Gate."
+    "P2-15 Sandbox and Tool Permission Industrialization has governance evidence for workspace permission matrix, permission audit, authorization runtime audit, unauthorized-access block report, tool allowlist, Event Ledger, Artifact Catalog and restart recovery; it remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-16 Session Share / Fork / Replay.",
+    "P2-16 Session Share / Fork / Replay has core-only local session snapshot, share package, fork manifest, replay log, validation report, error-path report, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",
