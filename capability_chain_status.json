@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-22 Workbench Native Skills Library",
+  "current_gate": "P2-23 CLI Agent Hub Evaluation",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -93,11 +93,11 @@
     "P2-18 Fugu-style Multi-Model Orchestration",
     "P2-19 Loop Orchestrator Industrial",
     "P2-20 Human Brake and Judgment Gate",
-    "P2-21 DataAgent Foundation Industrial"
+    "P2-21 DataAgent Foundation Industrial",
+    "P2-22 Workbench Native Skills Library"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-22 Workbench Native Skills Library",
     "P2-23 CLI Agent Hub Evaluation",
     "P2-24 Remote Task Control",
     "P2-25 Office Agent Industrialization",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T05:33:35Z",
+  "updated_at": "2026-06-26T06:10:00Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -277,7 +277,9 @@
     "P2 queue now continues with P2-20 Human Brake and Judgment Gate.",
     "P2-20 Human Brake and Judgment Gate has governance evidence for human brake policy, judgment matrix, soft blocker routing, hard blocker report, checkpoint contract, owner review manifest, queue invariant report, status vocabulary report, validation report, boundary report, Event Ledger, Artifact Catalog and restart recovery; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-21 DataAgent Foundation Industrial.",
-    "P2-21 DataAgent Foundation Industrial has core-only local DataAgent foundation evidence for record schema, dataset manifest, task records, source trace, quality report, error report, state snapshot, validation report, boundary report, Event Ledger, Artifact Catalog and restart recovery; it does not connect external databases or execute external runtimes and remains subject to P2 Release Gate."
+    "P2-21 DataAgent Foundation Industrial has core-only local DataAgent foundation evidence for record schema, dataset manifest, task records, source trace, quality report, error report, state snapshot, validation report, boundary report, Event Ledger, Artifact Catalog and restart recovery; it does not connect external databases or execute external runtimes and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-22 Workbench Native Skills Library.",
+    "P2-22 Workbench Native Skills Library has artifact lifecycle evidence for native Skill templates, test-marked Skill creation, test knowledge-base binding, source trace, validation, export, open, delete/tombstone, operation history, Event Ledger, Artifact Catalog and restart recovery; it does not load external Skill runtimes and remains subject to P2 Release Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

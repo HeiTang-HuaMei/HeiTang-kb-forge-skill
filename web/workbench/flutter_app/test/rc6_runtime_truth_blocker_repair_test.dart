@@ -12007,6 +12007,246 @@ void main() {
         isTrue);
   });
 
+  test('p2 native skills library creates artifact lifecycle evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runNativeSkillsLibraryAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'], 'prd_v3_native_skill_library_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'native_skills_library');
+    expect(summary['capability_gate'], 'P2-22 Workbench Native Skills Library');
+    expect(summary['acceptance_type'], 'artifact');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-23 CLI Agent Hub Evaluation');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_skill_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final templateManifest = jsonDecode(
+        File(summary['template_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(templateManifest['schema_version'],
+        'prd_v3_native_skill_template_manifest.v1');
+    expect(templateManifest['status'], 'pass');
+    expect(templateManifest['template_count'], greaterThanOrEqualTo(5));
+    expect(templateManifest['external_project_names_user_visible'], isFalse);
+    expect(templateManifest['provider_adapter_parser_user_visible'], isFalse);
+    final templateRows =
+        readJsonlFile(summary['template_catalog_path'] as String);
+    expect(templateRows, hasLength(greaterThanOrEqualTo(5)));
+    expect(
+        templateRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_native_skill_template_catalog_row.v1' &&
+            row['test_marker'] == true &&
+            (row['user_capability'] as String).isNotEmpty),
+        isTrue);
+    final createdSnapshot = jsonDecode(
+        File(summary['created_skill_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(createdSnapshot['schema_version'],
+        'prd_v3_native_skill_created_snapshot.v1');
+    expect(createdSnapshot['status'], 'pass');
+    expect(createdSnapshot['skill_id'], 'test_native_skill_review');
+    expect(createdSnapshot['test_marker'], isTrue);
+    final testKb = jsonDecode(
+        File(summary['test_kb_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(testKb['schema_version'], 'prd_v3_native_skill_test_kb_manifest.v1');
+    expect(testKb['knowledge_base_id'], 'test_kb_native_skill_library');
+    expect(testKb['test_marker'], isTrue);
+    final binding = jsonDecode(
+        File(summary['binding_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(binding['schema_version'], 'prd_v3_native_skill_binding_manifest.v1');
+    expect(binding['skill_id'], 'test_native_skill_review');
+    expect(binding['knowledge_base_id'], 'test_kb_native_skill_library');
+    expect(binding['external_runtime_required'], isFalse);
+    final historyRows =
+        readJsonlFile(summary['operation_history_path'] as String);
+    final operations = historyRows.map((row) => row['operation']).toSet();
+    expect(
+        operations,
+        containsAll([
+          'create_skill',
+          'bind_knowledge_base',
+          'validate_skill',
+          'export_skill',
+          'open_skill_export',
+          'delete_skill',
+        ]));
+    expect(historyRows.every((row) => row['test_marker'] == true), isTrue);
+    final traceRows = readJsonlFile(summary['source_trace_path'] as String);
+    expect(traceRows, hasLength(1));
+    expect(traceRows.single['validation_status'], 'linked');
+    expect(traceRows.single['test_marker'], isTrue);
+    final exportManifest = jsonDecode(
+        File(summary['export_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(exportManifest['schema_version'],
+        'prd_v3_native_skill_export_manifest.v1');
+    expect(exportManifest['export_openable'], isTrue);
+    final exportPackage = jsonDecode(
+        File(summary['export_file_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(exportPackage['schema_version'],
+        'prd_v3_native_skill_export_package.v1');
+    expect(exportPackage['skill_id'], 'test_native_skill_review');
+    expect(exportPackage['test_marker'], isTrue);
+    final openReport = jsonDecode(
+        File(summary['open_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(openReport['schema_version'], 'prd_v3_native_skill_open_report.v1');
+    expect(openReport['status'], 'pass');
+    expect(openReport['opened_skill_id'], 'test_native_skill_review');
+    final deleteReport = jsonDecode(
+        File(summary['delete_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deleteReport['schema_version'],
+        'prd_v3_native_skill_delete_report.v1');
+    expect(deleteReport['status'], 'pass');
+    expect(deleteReport['skill_existed_before_delete'], isTrue);
+    expect(deleteReport['skill_exists_after_delete'], isFalse);
+    expect(deleteReport['only_test_marked_object_deleted'], isTrue);
+    expect(deleteReport['real_user_data_deleted'], isFalse);
+    final tombstone = jsonDecode(
+        File(summary['tombstone_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(tombstone['schema_version'], 'prd_v3_native_skill_tombstone.v1');
+    expect(tombstone['status'], 'deleted');
+    expect(tombstone['test_marker'], isTrue);
+    expect(tombstone['real_user_data_deleted'], isFalse);
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_native_skill_library_state_snapshot.v1');
+    expect(stateSnapshot['test_skill_deleted'], isTrue);
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_native_skill_library_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_native_skill_library_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['external_project_runtime_loaded'], isFalse);
+    expect(boundaryReport['external_skill_runtime_loaded'], isFalse);
+    expect(boundaryReport['external_model_called'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundaryReport['local_model_training_used'], isFalse);
+    expect(boundaryReport['gpu_training_used'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'native_skill_created' &&
+            row['target_id'] == 'test_native_skill_review'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'native_skill_exported' &&
+            row['artifact_path'] == summary['export_file_path']),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'native_skill_deleted' &&
+            row['artifact_path'] == summary['tombstone_path']),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'native_skills_library_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'native_skills_library_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'native_skills_library_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'native_skill_test_export' &&
+            row['file_path'] == summary['export_file_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'native_skill_test_tombstone' &&
+            row['file_path'] == summary['tombstone_path'] &&
+            row['status'] == 'deleted'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

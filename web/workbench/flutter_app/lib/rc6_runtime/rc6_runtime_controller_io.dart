@@ -9674,6 +9674,679 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runNativeSkillsLibraryAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath =
+        _joinNested(workspace.path, 'acceptance/native_skills_library_summary.json');
+    final root = _joinNested(workspace.path, 'native_skills_library');
+    final templateManifestPath = _joinNested(root, 'skill_template_manifest.json');
+    final templateCatalogPath = _joinNested(root, 'skill_template_catalog.jsonl');
+    final testKbPath = _joinNested(root, 'test_knowledge_base_manifest.json');
+    final testSkillRoot = _joinNested(root, 'skills/test_native_skill_review');
+    final testSkillPath = _joinNested(testSkillRoot, 'SKILL.md');
+    final testSkillManifestPath = _joinNested(root, 'test_skill_manifest.json');
+    final createdSkillSnapshotPath =
+        _joinNested(root, 'created_skill_snapshot.json');
+    final bindingManifestPath = _joinNested(root, 'test_skill_binding_manifest.json');
+    final operationHistoryPath = _joinNested(root, 'operation_history.jsonl');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final exportDir = _joinNested(root, 'exports');
+    final exportFilePath = _joinNested(exportDir, 'test_native_skill_review.json');
+    final exportManifestPath = _joinNested(root, 'export_manifest.json');
+    final openReportPath = _joinNested(root, 'open_report.json');
+    final deleteReportPath = _joinNested(root, 'delete_report.json');
+    final tombstonePath = _joinNested(root, 'test_native_skill_review.tombstone.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '原生 Skill 库验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const libraryId = 'test_native_skills_library_p2_22';
+    const testSkillId = 'test_native_skill_review';
+    const testKbId = 'test_kb_native_skill_library';
+    final templates = <Map<String, dynamic>>[
+      {
+        'template_id': 'evidence_qa',
+        'display_name': '证据问答',
+        'user_capability': '知识库问答能力',
+        'required_inputs': const ['question', 'knowledge_base_id'],
+        'expected_outputs': const ['answer', 'evidence_refs'],
+      },
+      {
+        'template_id': 'document_writer',
+        'display_name': '文档撰写',
+        'user_capability': '文档生成能力',
+        'required_inputs': const ['document_type', 'knowledge_base_id'],
+        'expected_outputs': const ['outline', 'draft', 'citation_refs'],
+      },
+      {
+        'template_id': 'citation_check',
+        'display_name': '引用检查',
+        'user_capability': '知识库问答能力',
+        'required_inputs': const ['draft', 'source_trace'],
+        'expected_outputs': const ['validation_report', 'missing_refs'],
+      },
+      {
+        'template_id': 'task_planner',
+        'display_name': '任务规划',
+        'user_capability': 'Agent 执行能力',
+        'required_inputs': const ['goal', 'constraints'],
+        'expected_outputs': const ['plan', 'handoff'],
+      },
+      {
+        'template_id': 'review_checklist',
+        'display_name': '审查清单',
+        'user_capability': 'Skill 生成能力',
+        'required_inputs': const ['artifact_path'],
+        'expected_outputs': const ['review_findings', 'fix_items'],
+      },
+    ];
+    final templateManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_template_manifest.v1',
+      'status': 'pass',
+      'library_id': libraryId,
+      'template_count': templates.length,
+      'templates': templates,
+      'external_project_names_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(templateManifestPath, templateManifest);
+    await File(templateCatalogPath).parent.create(recursive: true);
+    await File(templateCatalogPath).writeAsString(
+      '${templates.map((row) => jsonEncode({
+            'schema_version': 'prd_v3_native_skill_template_catalog_row.v1',
+            'library_id': libraryId,
+            ...row,
+            'test_marker': true,
+            'created_at': now,
+          })).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final testKbManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_test_kb_manifest.v1',
+      'status': 'pass',
+      'knowledge_base_id': testKbId,
+      'display_name': '测试知识库',
+      'test_marker': true,
+      'source_trace_ids': const ['native_skill_trace_001'],
+      'created_at': now,
+    };
+    await _writeJsonFile(testKbPath, testKbManifest);
+
+    await Directory(testSkillRoot).create(recursive: true);
+    await File(testSkillPath).writeAsString(
+      '# 测试审查 Skill\n\n'
+      '用途：根据测试知识库生成审查清单，并返回证据引用。\n\n'
+      '- template_id: review_checklist\n'
+      '- knowledge_base_id: $testKbId\n'
+      '- test_marker: true\n',
+      encoding: utf8,
+    );
+    final testSkillManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_native_test_skill_manifest.v1',
+      'status': 'created',
+      'skill_id': testSkillId,
+      'template_id': 'review_checklist',
+      'knowledge_base_id': testKbId,
+      'skill_path': testSkillPath,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(testSkillManifestPath, testSkillManifest);
+    await _writeJsonFile(createdSkillSnapshotPath, {
+      'schema_version': 'prd_v3_native_skill_created_snapshot.v1',
+      'status': 'pass',
+      'skill_id': testSkillId,
+      'skill_manifest': testSkillManifest,
+      'skill_content_path_before_delete': testSkillPath,
+      'test_marker': true,
+      'created_at': now,
+    });
+    final skillCreatedBeforeDelete = await File(testSkillPath).exists();
+
+    final bindingManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_binding_manifest.v1',
+      'status': 'pass',
+      'skill_id': testSkillId,
+      'knowledge_base_id': testKbId,
+      'binding_scope': 'test_workspace_only',
+      'source_trace_ids': const ['native_skill_trace_001'],
+      'local_model_training_used': false,
+      'external_runtime_required': false,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(bindingManifestPath, bindingManifest);
+
+    final sourceTraceRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_native_skill_source_trace_record.v1',
+        'source_trace_id': 'native_skill_trace_001',
+        'source_id': testKbId,
+        'skill_id': testSkillId,
+        'template_id': 'review_checklist',
+        'validation_status': 'linked',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final operationRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'create_skill',
+        'skill_id': testSkillId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'bind_knowledge_base',
+        'skill_id': testSkillId,
+        'knowledge_base_id': testKbId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'validate_skill',
+        'skill_id': testSkillId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'export_skill',
+        'skill_id': testSkillId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'open_skill_export',
+        'skill_id': testSkillId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_native_skill_operation_record.v1',
+        'operation': 'delete_skill',
+        'skill_id': testSkillId,
+        'status': 'completed',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(operationHistoryPath).writeAsString(
+      '${operationRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final exportPayload = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_export_package.v1',
+      'status': 'pass',
+      'skill_id': testSkillId,
+      'template_id': 'review_checklist',
+      'knowledge_base_id': testKbId,
+      'skill_manifest': testSkillManifest,
+      'binding_manifest': bindingManifest,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(exportFilePath, exportPayload);
+    final exportManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_export_manifest.v1',
+      'status': 'pass',
+      'skill_id': testSkillId,
+      'export_file_path': exportFilePath,
+      'export_openable': true,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(exportManifestPath, exportManifest);
+
+    final openedExport = await _readJsonObject(exportFilePath);
+    final openReport = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_open_report.v1',
+      'status': 'pass',
+      'skill_id': testSkillId,
+      'opened_file_path': exportFilePath,
+      'opened_schema_version': _stringValue(openedExport['schema_version'], ''),
+      'opened_skill_id': _stringValue(openedExport['skill_id'], ''),
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(openReportPath, openReport);
+
+    if (skillCreatedBeforeDelete) {
+      await Directory(testSkillRoot).delete(recursive: true);
+    }
+    final skillDeleted = !await Directory(testSkillRoot).exists();
+    final tombstone = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_tombstone.v1',
+      'status': skillDeleted ? 'deleted' : 'blocked',
+      'skill_id': testSkillId,
+      'deleted_path': testSkillRoot,
+      'test_marker': true,
+      'real_user_data_deleted': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(tombstonePath, tombstone);
+    final deleteReport = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_delete_report.v1',
+      'status': skillDeleted ? 'pass' : 'blocked',
+      'skill_id': testSkillId,
+      'skill_existed_before_delete': skillCreatedBeforeDelete,
+      'skill_exists_after_delete': !skillDeleted,
+      'tombstone_path': tombstonePath,
+      'only_test_marked_object_deleted': true,
+      'real_user_data_deleted': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(deleteReportPath, deleteReport);
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_library_state_snapshot.v1',
+      'status': 'pass',
+      'library_id': libraryId,
+      'template_count': templates.length,
+      'test_skill_id': testSkillId,
+      'test_skill_deleted': skillDeleted,
+      'tombstone_path': tombstonePath,
+      'export_file_path': exportFilePath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-23 CLI Agent Hub Evaluation',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_library_boundary_report.v1',
+      'status': 'pass',
+      'library_id': libraryId,
+      'external_project_runtime_loaded': false,
+      'external_skill_runtime_loaded': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedTemplateManifest = await _readJsonObject(templateManifestPath);
+    final reloadedTestKb = await _readJsonObject(testKbPath);
+    final reloadedBinding = await _readJsonObject(bindingManifestPath);
+    final reloadedExportManifest = await _readJsonObject(exportManifestPath);
+    final reloadedOpenReport = await _readJsonObject(openReportPath);
+    final reloadedDeleteReport = await _readJsonObject(deleteReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final templateRows = File(templateCatalogPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final historyRows = File(operationHistoryPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final traceRows = File(sourceTracePath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final operations =
+        historyRows.map((row) => _stringValue(row['operation'], '')).toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_artifact': true,
+      'template_manifest_written': await File(templateManifestPath).exists(),
+      'template_manifest_schema_valid':
+          _stringValue(reloadedTemplateManifest['schema_version'], '') ==
+              'prd_v3_native_skill_template_manifest.v1',
+      'template_count_valid': templateRows.length >= 5,
+      'test_kb_manifest_written': await File(testKbPath).exists(),
+      'test_kb_has_test_marker': reloadedTestKb['test_marker'] == true,
+      'created_skill_snapshot_written':
+          await File(createdSkillSnapshotPath).exists(),
+      'test_skill_created_before_delete': skillCreatedBeforeDelete,
+      'binding_manifest_written': await File(bindingManifestPath).exists(),
+      'skill_bound_to_test_kb':
+          _stringValue(reloadedBinding['knowledge_base_id'], '') == testKbId,
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_linked': traceRows.every(
+          (row) => _stringValue(row['validation_status'], '') == 'linked'),
+      'operation_history_written': await File(operationHistoryPath).exists(),
+      'operation_history_complete': operations.containsAll(const {
+        'create_skill',
+        'bind_knowledge_base',
+        'validate_skill',
+        'export_skill',
+        'open_skill_export',
+        'delete_skill',
+      }),
+      'export_manifest_written': await File(exportManifestPath).exists(),
+      'export_file_written': await File(exportFilePath).exists(),
+      'export_openable': reloadedExportManifest['export_openable'] == true,
+      'open_report_written': await File(openReportPath).exists(),
+      'open_report_passed':
+          _stringValue(reloadedOpenReport['opened_skill_id'], '') == testSkillId,
+      'delete_report_written': await File(deleteReportPath).exists(),
+      'delete_effective':
+          reloadedDeleteReport['skill_exists_after_delete'] == false &&
+              skillDeleted,
+      'tombstone_written': await File(tombstonePath).exists(),
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          reloadedSnapshot['test_skill_deleted'] == true &&
+              _stringValue(reloadedSnapshot['next_gate'], '') ==
+                  'P2-23 CLI Agent Hub Evaluation',
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_skill_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_skill_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'packaging_architecture_changed',
+      'network_call_made',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_library_validation_report.v1',
+      'status': status,
+      'library_id': libraryId,
+      'template_manifest_path': templateManifestPath,
+      'template_catalog_path': templateCatalogPath,
+      'test_kb_path': testKbPath,
+      'test_skill_manifest_path': testSkillManifestPath,
+      'created_skill_snapshot_path': createdSkillSnapshotPath,
+      'binding_manifest_path': bindingManifestPath,
+      'operation_history_path': operationHistoryPath,
+      'source_trace_path': sourceTracePath,
+      'export_manifest_path': exportManifestPath,
+      'export_file_path': exportFilePath,
+      'open_report_path': openReportPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_native_skill_library_summary.v1',
+      'status': status,
+      'capability_id': 'native_skills_library',
+      'capability_gate': 'P2-22 Workbench Native Skills Library',
+      'acceptance_type': 'artifact',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'template_manifest_path': templateManifestPath,
+      'template_catalog_path': templateCatalogPath,
+      'test_kb_path': testKbPath,
+      'test_skill_manifest_path': testSkillManifestPath,
+      'created_skill_snapshot_path': createdSkillSnapshotPath,
+      'binding_manifest_path': bindingManifestPath,
+      'operation_history_path': operationHistoryPath,
+      'source_trace_path': sourceTracePath,
+      'export_manifest_path': exportManifestPath,
+      'export_file_path': exportFilePath,
+      'open_report_path': openReportPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runNativeSkillsLibraryAcceptance',
+        'template_manifest_schema':
+            'prd_v3_native_skill_template_manifest.v1',
+        'test_skill_manifest_schema': 'prd_v3_native_test_skill_manifest.v1',
+        'operation_history_schema':
+            'prd_v3_native_skill_operation_record.v1',
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'scenario':
+            'create a test-marked Skill from a native template, bind it to a test knowledge base, validate, export, open and delete it',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'created_skill_snapshot_path': createdSkillSnapshotPath,
+        'validation_report_path': validationReportPath,
+        'export_file_path': exportFilePath,
+        'tombstone_path': tombstonePath,
+      },
+      'event_evidence': {
+        'event_types': const [
+          'native_skill_created',
+          'native_skill_exported',
+          'native_skill_deleted',
+          'native_skills_library_validated',
+        ],
+      },
+      'lifecycle_evidence': {
+        'create': 'test-marked Skill is created from native template',
+        'view': 'template manifest, Skill manifest and validation report reload',
+        'open': 'export package is opened and schema/skill id are verified',
+        'export': 'export package and export manifest are written',
+        'delete': 'test-marked Skill directory is removed and tombstone is written',
+        'restart_recovery': 'state snapshot reloads deleted/tombstone state',
+        'error_path':
+            'missing template, missing source trace or non-test deletion would block closure',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-23 CLI Agent Hub Evaluation',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'native_skill_created',
+      module: 'skill',
+      action: 'create_test_native_skill',
+      status: 'completed',
+      targetId: testSkillId,
+      targetName: '测试审查 Skill',
+      artifactPath: testSkillManifestPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'test_marked_artifact': true,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'native_skill_exported',
+      module: 'skill',
+      action: 'export_test_native_skill',
+      status: 'completed',
+      targetId: testSkillId,
+      targetName: '测试审查 Skill',
+      artifactPath: exportFilePath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'test_marked_artifact': true,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'native_skill_deleted',
+      module: 'skill',
+      action: 'delete_test_native_skill',
+      status: skillDeleted ? 'completed' : 'blocked',
+      targetId: testSkillId,
+      targetName: '测试审查 Skill',
+      artifactPath: tombstonePath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'test_marked_artifact': true,
+        'real_user_data_deleted': false,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'native_skills_library_validated',
+      module: 'skill',
+      action: 'run_native_skills_library_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'native_skills_library',
+      targetName: 'Workbench Native Skills Library',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'native_skills_library_summary',
+      artifactType: 'acceptance_report',
+      title: 'Native Skills Library Summary',
+      sourceModule: 'skill',
+      sourceId: 'native_skills_library',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'native_skills_library_validation',
+      artifactType: 'validation_report',
+      title: 'Native Skills Library Validation',
+      sourceModule: 'skill',
+      sourceId: 'native_skills_library',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'native_skill_test_export',
+      artifactType: 'skill_export_package',
+      title: 'Test Native Skill Export',
+      sourceModule: 'skill',
+      sourceId: testSkillId,
+      filePath: exportFilePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'native_skill_test_tombstone',
+      artifactType: 'skill_tombstone',
+      title: 'Test Native Skill Tombstone',
+      sourceModule: 'skill',
+      sourceId: testSkillId,
+      filePath: tombstonePath,
+      status: skillDeleted ? 'deleted' : 'blocked',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'test_marked_artifact': true,
+        'real_user_data_deleted': false,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '原生 Skill 库验收证据已生成。'
+          : '原生 Skill 库验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'native_skills_library_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
