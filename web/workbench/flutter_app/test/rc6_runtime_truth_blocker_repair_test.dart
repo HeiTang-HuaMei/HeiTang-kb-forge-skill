@@ -14854,6 +14854,239 @@ void main() {
         isTrue);
   });
 
+  test('p2 retrieval regression benchmark creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runRetrievalRegressionBenchmarkIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(
+        summary['capability_id'], 'retrieval_regression_benchmark_industrial');
+    expect(summary['capability_gate'],
+        'P2-35 Retrieval Regression Benchmark Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-36 Self-Improving Knowledge Maintenance');
+    expect(summary['benchmark_case_count'], 3);
+    expect(summary['external_trace_count'], 2);
+    expect(summary['baseline_pass_rate'], 0.33);
+    expect(summary['improved_pass_rate'], 1.0);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_network_call_made' ||
+          entry.key == 'local_kb_evidence_replaced' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'ui_modified' ||
+          entry.key == 'new_dependency_added') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final dataset = jsonDecode(
+        File(summary['dataset_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(dataset['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_dataset.v1');
+    expect(dataset['status'], 'pass');
+    expect((dataset['cases'] as List), hasLength(3));
+
+    final baseline = jsonDecode(
+        File(summary['baseline_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(baseline['schema_version'],
+        'prd_v3_retrieval_regression_baseline_report.v1');
+    expect(baseline['status'], 'partial');
+    expect(baseline['local_kb_evidence_retained'], isTrue);
+    expect(baseline['baseline_pass_rate'], 0.33);
+
+    final externalTraceRows = readJsonlFile(
+        summary['external_verification_source_trace_path'] as String);
+    expect(externalTraceRows, hasLength(2));
+    expect(
+        externalTraceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_retrieval_external_verification_source_trace.v1' &&
+            (row['citation'] as String).isNotEmpty &&
+            row['validation_status'] == 'linked' &&
+            row['network_call_made'] == false &&
+            row['test_marker'] == true),
+        isTrue);
+
+    final freshness = jsonDecode(
+        File(summary['freshness_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(freshness['schema_version'],
+        'prd_v3_retrieval_freshness_regression_report.v1');
+    expect(freshness['status'], 'pass');
+    expect(freshness['freshness_improved_count'], 2);
+
+    final conflict = jsonDecode(
+        File(summary['conflict_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(conflict['schema_version'],
+        'prd_v3_retrieval_conflict_regression_report.v1');
+    expect(conflict['status'], 'pass');
+    expect(conflict['conflict_count'], 1);
+    expect(conflict['missed_conflict_count_after'], 0);
+
+    final citationValidation = jsonDecode(
+        File(summary['citation_validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(citationValidation['schema_version'],
+        'prd_v3_retrieval_citation_validation_regression_report.v1');
+    expect(citationValidation['status'], 'pass');
+    expect(citationValidation['local_citation_coverage'], 1.0);
+    expect(citationValidation['external_trace_coverage'], 1.0);
+    expect(citationValidation['local_kb_evidence_replaced'], isFalse);
+
+    final improved = jsonDecode(
+        File(summary['improved_retrieval_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(improved['schema_version'],
+        'prd_v3_retrieval_regression_improved_report.v1');
+    expect(improved['status'], 'pass');
+    expect(improved['improved_pass_rate'], 1.0);
+    expect(improved['local_kb_evidence_retained'], isTrue);
+    expect(improved['external_verification_is_additive'], isTrue);
+
+    final matrix = jsonDecode(
+        File(summary['regression_matrix_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(matrix['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_matrix.v1');
+    expect(matrix['status'], 'pass');
+    expect(matrix['freshness_regression_passed'], isTrue);
+    expect(matrix['conflict_regression_passed'], isTrue);
+    expect(matrix['citation_validation_passed'], isTrue);
+    expect(matrix['source_trace_regression_passed'], isTrue);
+    expect(matrix['local_kb_evidence_replaced'], isFalse);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'],
+        'P2-36 Self-Improving Knowledge Maintenance');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_retrieval_regression_benchmark_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_verification_used'], isTrue);
+    expect(boundary['external_network_call_made'], isFalse);
+    expect(boundary['local_kb_evidence_replaced'], isFalse);
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_database_connected'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'retrieval_regression_benchmark_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'retrieval_regression_benchmark_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'retrieval_regression_benchmark_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'retrieval_regression_benchmark_external_trace' &&
+            row['file_path'] ==
+                summary['external_verification_source_trace_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'retrieval_regression_benchmark_matrix' &&
+            row['file_path'] == summary['regression_matrix_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

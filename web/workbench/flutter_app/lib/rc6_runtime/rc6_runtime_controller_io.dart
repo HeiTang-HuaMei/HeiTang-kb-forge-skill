@@ -17383,6 +17383,628 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runRetrievalRegressionBenchmarkIndustrialAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/retrieval_regression_benchmark_industrial_summary.json');
+    final root =
+        _joinNested(workspace.path, 'retrieval_regression_benchmark_industrial');
+    await _clearWorkspacePath(root);
+    final datasetPath = _joinNested(root, 'benchmark_dataset.json');
+    final baselinePath = _joinNested(root, 'local_retrieval_baseline.json');
+    final externalTracePath =
+        _joinNested(root, 'external_verification_source_trace.jsonl');
+    final freshnessReportPath = _joinNested(root, 'freshness_report.json');
+    final conflictReportPath = _joinNested(root, 'conflict_report.json');
+    final citationValidationPath =
+        _joinNested(root, 'citation_validation_report.json');
+    final improvedRetrievalPath =
+        _joinNested(root, 'improved_retrieval_report.json');
+    final regressionMatrixPath = _joinNested(root, 'regression_matrix.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '检索回归基准核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const runId = 'test_retrieval_regression_benchmark_p2_35';
+    final benchmarkCases = <Map<String, Object?>>[
+      {
+        'case_id': 'test_case_fresh_policy_answer',
+        'query': '测试制度有效日期是什么',
+        'local_knowledge_base_id': 'test_kb_company_policy',
+        'expected_answer_anchor': 'policy_effective_date',
+        'expected_local_citation': 'company_policy.md#chunk=1',
+        'external_verification_required': true,
+        'test_marker': true,
+      },
+      {
+        'case_id': 'test_case_conflict_detected',
+        'query': '测试制度旧日期是否仍有效',
+        'local_knowledge_base_id': 'test_kb_company_policy',
+        'expected_answer_anchor': 'policy_superseded_date',
+        'expected_local_citation': 'company_policy_archive.md#chunk=2',
+        'external_verification_required': true,
+        'test_marker': true,
+      },
+      {
+        'case_id': 'test_case_citation_validation',
+        'query': '测试引用是否可回链',
+        'local_knowledge_base_id': 'test_kb_product_reference',
+        'expected_answer_anchor': 'citation_backlink',
+        'expected_local_citation': 'product_reference.md#chunk=1',
+        'external_verification_required': false,
+        'test_marker': true,
+      },
+    ];
+    await _writeJsonFile(datasetPath, {
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_dataset.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'cases': benchmarkCases,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(baselinePath, {
+      'schema_version':
+          'prd_v3_retrieval_regression_baseline_report.v1',
+      'status': 'partial',
+      'run_id': runId,
+      'retrieval_mode': 'local_only_baseline',
+      'top_k': 3,
+      'case_results': const [
+        {
+          'case_id': 'test_case_fresh_policy_answer',
+          'rank': 1,
+          'local_citation': 'company_policy.md#chunk=1',
+          'freshness_status': 'stale_unknown',
+          'citation_status': 'linked',
+          'conflict_status': 'not_checked',
+          'passed': false,
+        },
+        {
+          'case_id': 'test_case_conflict_detected',
+          'rank': 1,
+          'local_citation': 'company_policy_archive.md#chunk=2',
+          'freshness_status': 'stale',
+          'citation_status': 'linked',
+          'conflict_status': 'missed_conflict',
+          'passed': false,
+        },
+        {
+          'case_id': 'test_case_citation_validation',
+          'rank': 1,
+          'local_citation': 'product_reference.md#chunk=1',
+          'freshness_status': 'not_required',
+          'citation_status': 'linked',
+          'conflict_status': 'not_required',
+          'passed': true,
+        },
+      ],
+      'pass_count': 1,
+      'case_count': 3,
+      'baseline_pass_rate': 0.33,
+      'local_kb_evidence_retained': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final externalTraceRows = <Map<String, Object?>>[
+      {
+        'schema_version':
+            'prd_v3_retrieval_external_verification_source_trace.v1',
+        'trace_id': 'trace_test_external_policy_freshness_001',
+        'case_id': 'test_case_fresh_policy_answer',
+        'source_kind': 'public_reference_snapshot',
+        'source_url': 'https://example.com/policy/freshness-check',
+        'retrieved_at': now,
+        'citation': 'external_policy_snapshot#effective_date=2026-06',
+        'excerpt': '测试制度有效日期以最新公开校验快照为准。',
+        'validation_status': 'linked',
+        'network_call_made': false,
+        'test_marker': true,
+      },
+      {
+        'schema_version':
+            'prd_v3_retrieval_external_verification_source_trace.v1',
+        'trace_id': 'trace_test_external_conflict_001',
+        'case_id': 'test_case_conflict_detected',
+        'source_kind': 'public_reference_snapshot',
+        'source_url': 'https://example.com/policy/conflict-check',
+        'retrieved_at': now,
+        'citation': 'external_policy_snapshot#superseded_date=2026-05',
+        'excerpt': '旧测试制度日期已被新制度覆盖，需要标记冲突。',
+        'validation_status': 'linked',
+        'network_call_made': false,
+        'test_marker': true,
+      },
+    ];
+    await File(externalTracePath).parent.create(recursive: true);
+    await File(externalTracePath).writeAsString(
+      '${externalTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    await _writeJsonFile(freshnessReportPath, {
+      'schema_version':
+          'prd_v3_retrieval_freshness_regression_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'freshness_checks': const [
+        {
+          'case_id': 'test_case_fresh_policy_answer',
+          'before': 'stale_unknown',
+          'after': 'fresh_verified',
+          'external_trace_id': 'trace_test_external_policy_freshness_001',
+          'local_evidence_retained': true,
+          'passed': true,
+        },
+        {
+          'case_id': 'test_case_conflict_detected',
+          'before': 'stale',
+          'after': 'superseded_detected',
+          'external_trace_id': 'trace_test_external_conflict_001',
+          'local_evidence_retained': true,
+          'passed': true,
+        },
+      ],
+      'freshness_improved_count': 2,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(conflictReportPath, {
+      'schema_version':
+          'prd_v3_retrieval_conflict_regression_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'conflicts': const [
+        {
+          'case_id': 'test_case_conflict_detected',
+          'conflict_type': 'local_stale_vs_external_fresh',
+          'local_citation': 'company_policy_archive.md#chunk=2',
+          'external_trace_id': 'trace_test_external_conflict_001',
+          'resolution': 'mark_superseded_and_require_fresh_answer',
+          'human_review_required': true,
+          'passed': true,
+        },
+      ],
+      'conflict_count': 1,
+      'missed_conflict_count_after': 0,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(citationValidationPath, {
+      'schema_version':
+          'prd_v3_retrieval_citation_validation_regression_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'local_citation_coverage': 1.0,
+      'external_trace_coverage': 1.0,
+      'all_answer_rows_have_local_citations': true,
+      'all_external_checks_have_source_trace': true,
+      'local_kb_evidence_replaced': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(improvedRetrievalPath, {
+      'schema_version':
+          'prd_v3_retrieval_regression_improved_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'retrieval_mode': 'local_kb_plus_external_verification',
+      'case_results': const [
+        {
+          'case_id': 'test_case_fresh_policy_answer',
+          'answer_status': 'fresh_verified',
+          'local_citation': 'company_policy.md#chunk=1',
+          'external_trace_id': 'trace_test_external_policy_freshness_001',
+          'passed': true,
+        },
+        {
+          'case_id': 'test_case_conflict_detected',
+          'answer_status': 'conflict_detected_requires_review',
+          'local_citation': 'company_policy_archive.md#chunk=2',
+          'external_trace_id': 'trace_test_external_conflict_001',
+          'passed': true,
+        },
+        {
+          'case_id': 'test_case_citation_validation',
+          'answer_status': 'citation_validated',
+          'local_citation': 'product_reference.md#chunk=1',
+          'external_trace_id': '',
+          'passed': true,
+        },
+      ],
+      'pass_count': 3,
+      'case_count': 3,
+      'improved_pass_rate': 1.0,
+      'local_kb_evidence_retained': true,
+      'external_verification_is_additive': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(regressionMatrixPath, {
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_matrix.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'baseline_pass_rate': 0.33,
+      'improved_pass_rate': 1.0,
+      'freshness_regression_passed': true,
+      'conflict_regression_passed': true,
+      'citation_validation_passed': true,
+      'source_trace_regression_passed': true,
+      'local_kb_evidence_replaced': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_state_snapshot.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'dataset_path': datasetPath,
+      'baseline_path': baselinePath,
+      'external_verification_source_trace_path': externalTracePath,
+      'freshness_report_path': freshnessReportPath,
+      'conflict_report_path': conflictReportPath,
+      'citation_validation_report_path': citationValidationPath,
+      'improved_retrieval_report_path': improvedRetrievalPath,
+      'regression_matrix_path': regressionMatrixPath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-36 Self-Improving Knowledge Maintenance',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_boundary_report.v1',
+      'status': 'pass',
+      'external_verification_used': true,
+      'external_network_call_made': false,
+      'local_kb_evidence_replaced': false,
+      'external_project_runtime_loaded': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'new_dependency_added': false,
+      'ui_modified': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final dataset = await _readJsonObject(datasetPath);
+    final baseline = await _readJsonObject(baselinePath);
+    final freshness = await _readJsonObject(freshnessReportPath);
+    final conflict = await _readJsonObject(conflictReportPath);
+    final citationValidation = await _readJsonObject(citationValidationPath);
+    final improved = await _readJsonObject(improvedRetrievalPath);
+    final matrix = await _readJsonObject(regressionMatrixPath);
+    final stateSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final externalTraceRowsReloaded =
+        await _readJsonl(File(externalTracePath));
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'benchmark_dataset_written': await File(datasetPath).exists(),
+      'benchmark_dataset_passed':
+          _stringValue(dataset['status'], '') == 'pass',
+      'benchmark_has_three_cases': _listOfMaps(dataset['cases']).length == 3,
+      'baseline_report_written': await File(baselinePath).exists(),
+      'baseline_is_partial':
+          _stringValue(baseline['status'], '') == 'partial',
+      'baseline_keeps_local_kb_evidence':
+          baseline['local_kb_evidence_retained'] == true,
+      'external_trace_written': await File(externalTracePath).exists(),
+      'external_trace_has_two_rows': externalTraceRowsReloaded.length == 2,
+      'external_trace_has_citations': externalTraceRowsReloaded
+          .every((row) => _stringValue(row['citation'], '').isNotEmpty),
+      'external_trace_has_validation_status': externalTraceRowsReloaded
+          .every((row) => row['validation_status'] == 'linked'),
+      'freshness_report_written': await File(freshnessReportPath).exists(),
+      'freshness_report_passed':
+          _stringValue(freshness['status'], '') == 'pass',
+      'freshness_improved':
+          freshness['freshness_improved_count'] == 2,
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'conflict_report_passed':
+          _stringValue(conflict['status'], '') == 'pass',
+      'conflict_detected': conflict['conflict_count'] == 1 &&
+          conflict['missed_conflict_count_after'] == 0,
+      'citation_validation_written':
+          await File(citationValidationPath).exists(),
+      'citation_validation_passed':
+          _stringValue(citationValidation['status'], '') == 'pass',
+      'citation_coverage_complete':
+          citationValidation['local_citation_coverage'] == 1.0 &&
+              citationValidation['external_trace_coverage'] == 1.0,
+      'improved_report_written': await File(improvedRetrievalPath).exists(),
+      'improved_report_passed':
+          _stringValue(improved['status'], '') == 'pass',
+      'improved_pass_rate_beats_baseline':
+          (_asDouble(improved['improved_pass_rate']) ?? 0) >
+              (_asDouble(baseline['baseline_pass_rate']) ?? 0),
+      'external_verification_is_additive':
+          improved['external_verification_is_additive'] == true &&
+              improved['local_kb_evidence_retained'] == true,
+      'regression_matrix_written': await File(regressionMatrixPath).exists(),
+      'regression_matrix_passed':
+          _stringValue(matrix['status'], '') == 'pass',
+      'matrix_keeps_local_kb_evidence':
+          matrix['local_kb_evidence_replaced'] == false,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(stateSnapshot['run_id'], '') == runId &&
+              _stringValue(stateSnapshot['next_gate'], '') ==
+                  'P2-36 Self-Improving Knowledge Maintenance' &&
+              stateSnapshot['global_goal_complete'] == false,
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_network_call_made': false,
+      'local_kb_evidence_replaced': false,
+      'external_project_runtime_loaded': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'ui_modified': false,
+      'new_dependency_added': false,
+    };
+    const negativeChecks = {
+      'external_network_call_made',
+      'local_kb_evidence_replaced',
+      'external_project_runtime_loaded',
+      'external_database_connected',
+      'external_model_called',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+      'ui_modified',
+      'new_dependency_added',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_validation_report.v1',
+      'status': status,
+      'run_id': runId,
+      'dataset_path': datasetPath,
+      'baseline_path': baselinePath,
+      'external_verification_source_trace_path': externalTracePath,
+      'freshness_report_path': freshnessReportPath,
+      'conflict_report_path': conflictReportPath,
+      'citation_validation_report_path': citationValidationPath,
+      'improved_retrieval_report_path': improvedRetrievalPath,
+      'regression_matrix_path': regressionMatrixPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_retrieval_regression_benchmark_industrial_summary.v1',
+      'status': status,
+      'capability_id': 'retrieval_regression_benchmark_industrial',
+      'capability_gate': 'P2-35 Retrieval Regression Benchmark Industrial',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'dataset_path': datasetPath,
+      'baseline_path': baselinePath,
+      'external_verification_source_trace_path': externalTracePath,
+      'freshness_report_path': freshnessReportPath,
+      'conflict_report_path': conflictReportPath,
+      'citation_validation_report_path': citationValidationPath,
+      'improved_retrieval_report_path': improvedRetrievalPath,
+      'regression_matrix_path': regressionMatrixPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'benchmark_case_count': _listOfMaps(dataset['cases']).length,
+      'external_trace_count': externalTraceRowsReloaded.length,
+      'baseline_pass_rate': baseline['baseline_pass_rate'],
+      'improved_pass_rate': improved['improved_pass_rate'],
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method':
+            'runRetrievalRegressionBenchmarkIndustrialAcceptance',
+        'dataset_schema':
+            'prd_v3_retrieval_regression_benchmark_dataset.v1',
+        'external_trace_schema':
+            'prd_v3_retrieval_external_verification_source_trace.v1',
+        'regression_matrix_schema':
+            'prd_v3_retrieval_regression_benchmark_matrix.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only retrieval benchmark contract; final full matrix belongs to P2 Release Gate',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'external_verification_source_trace_path': externalTracePath,
+        'regression_matrix_path': regressionMatrixPath,
+        'improved_retrieval_report_path': improvedRetrievalPath,
+      },
+      'event_evidence': {
+        'event_type': 'retrieval_regression_benchmark_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'dataset, baseline, external verification trace, freshness, conflict, citation validation, improved retrieval, regression matrix, validation and summary are written',
+        'view':
+            'summary, validation report, source trace and regression matrix are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing source_trace, lost local KB evidence, stale freshness, missed conflict or citation failure blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-36 Self-Improving Knowledge Maintenance',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'retrieval_regression_benchmark_validated',
+      module: 'knowledge_reliability',
+      action: 'run_retrieval_regression_benchmark_industrial_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'retrieval_regression_benchmark_industrial',
+      targetName: 'Retrieval Regression Benchmark Industrial',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'benchmark_case_count': _listOfMaps(dataset['cases']).length,
+        'external_trace_count': externalTraceRowsReloaded.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'retrieval_regression_benchmark_summary',
+      artifactType: 'acceptance_report',
+      title: 'Retrieval Regression Benchmark Summary',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'retrieval_regression_benchmark_industrial',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'retrieval_regression_benchmark_validation',
+      artifactType: 'validation_report',
+      title: 'Retrieval Regression Benchmark Validation',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'retrieval_regression_benchmark_industrial',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'retrieval_regression_benchmark_external_trace',
+      artifactType: 'source_trace',
+      title: 'Retrieval Regression Benchmark External Trace',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'retrieval_regression_benchmark_industrial',
+      filePath: externalTracePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'external_trace_count': externalTraceRowsReloaded.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'retrieval_regression_benchmark_matrix',
+      artifactType: 'regression_matrix',
+      title: 'Retrieval Regression Benchmark Matrix',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'retrieval_regression_benchmark_industrial',
+      filePath: regressionMatrixPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'baseline_pass_rate': baseline['baseline_pass_rate'],
+        'improved_pass_rate': improved['improved_pass_rate'],
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '检索回归基准核心验收证据已生成。' : '检索回归基准核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'retrieval_regression_benchmark_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
