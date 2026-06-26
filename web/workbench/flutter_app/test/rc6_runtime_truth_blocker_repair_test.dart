@@ -14187,6 +14187,210 @@ void main() {
         isTrue);
   });
 
+  test('p2 citation auto repair creates core evidence package', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runCitationAutoRepairAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'], 'prd_v3_citation_auto_repair_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'citation_auto_repair');
+    expect(summary['capability_gate'], 'P2-32 Citation Auto-Repair Industrial');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-33 Memory Consolidation Industrial');
+    expect(summary['issue_count'], 1);
+    expect(summary['repair_action_count'], 2);
+    expect(summary['patched_trace_count'], 2);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final beforeRows =
+        readJsonlFile(summary['source_trace_before_path'] as String);
+    expect(beforeRows, hasLength(2));
+    expect(
+        beforeRows.any((row) =>
+            row['validation_status'] == 'missing_citation' &&
+            row['citation'] == ''),
+        isTrue);
+
+    final issues = jsonDecode(
+        File(summary['citation_issues_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(issues['schema_version'], 'prd_v3_citation_auto_repair_issues.v1');
+    expect(issues['status'], 'pass');
+    final issueRows = (issues['issues'] as List).cast<Map<String, dynamic>>();
+    expect(issueRows, hasLength(1));
+    expect(issueRows.first['issue_type'], 'missing_citation');
+    expect(issueRows.first['auto_fix_allowed'], isTrue);
+    expect(issueRows.first['max_retry_rounds'], 3);
+
+    final plan = jsonDecode(
+        File(summary['repair_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(plan['schema_version'], 'prd_v3_citation_auto_repair_plan.v1');
+    expect(plan['status'], 'pass');
+    expect(plan['max_auto_repair_rounds'], 3);
+    expect(plan['network_retry_required'], isFalse);
+    final actions = (plan['actions'] as List).cast<Map<String, dynamic>>();
+    expect(actions.map((row) => row['action_type']),
+        containsAll(['patch_source_trace_citation', 'retest_source_trace_validation']));
+    expect(actions.every((row) => row['requires_external_model'] == false),
+        isTrue);
+
+    final diff = jsonDecode(
+        File(summary['repair_diff_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(diff['schema_version'], 'prd_v3_citation_auto_repair_diff.v1');
+    expect(diff['status'], 'pass');
+    final changes = (diff['changes'] as List).cast<Map<String, dynamic>>();
+    expect(changes, hasLength(1));
+    expect(changes.first['field'], 'citation');
+    expect(changes.first['before'], '');
+    expect(changes.first['after'], 'citation_policy.md#chunk=2');
+    expect(diff['real_user_data_deleted'], isFalse);
+
+    final afterRows =
+        readJsonlFile(summary['patched_source_trace_path'] as String);
+    expect(afterRows, hasLength(2));
+    expect(
+        afterRows.every((row) =>
+            row['validation_status'] == 'valid' &&
+            (row['citation'] as String).isNotEmpty &&
+            row['test_marker'] == true),
+        isTrue);
+    expect(
+        afterRows.any((row) =>
+            row['repair_status'] == 'patched_and_retested' &&
+            row['repair_issue_id'] == 'test_issue_missing_citation_001'),
+        isTrue);
+
+    final retest = jsonDecode(
+        File(summary['retest_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(retest['schema_version'],
+        'prd_v3_citation_auto_repair_retest_report.v1');
+    expect(retest['status'], 'pass');
+    expect(retest['before_issue_count'], 1);
+    expect(retest['after_issue_count'], 0);
+    expect(retest['citation_coverage'], 1.0);
+    expect(retest['all_repaired_rows_have_citations'], isTrue);
+
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_citation_auto_repair_state_snapshot.v1');
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'], 'P2-33 Memory Consolidation Industrial');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_citation_auto_repair_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_citation_auto_repair_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'citation_auto_repair_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'citation_auto_repair_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'citation_auto_repair_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'citation_auto_repair_source_trace' &&
+            row['file_path'] == summary['patched_source_trace_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'citation_auto_repair_retest_report' &&
+            row['file_path'] == summary['retest_report_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
