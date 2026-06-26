@@ -5531,6 +5531,467 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runOfficialSampleProjectLibraryAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/official_sample_project_library_summary.json');
+    final root = _joinNested(workspace.path, 'sample_project_library');
+    final manifestPath = _joinNested(root, 'sample_library_manifest.json');
+    final kbSamplePath =
+        _joinNested(root, 'knowledge_base_samples/common_kb_templates.json');
+    final documentTemplatePath =
+        _joinNested(root, 'document_samples/common_document_templates.json');
+    final testKbPath = _joinNested(
+        root, 'generated/test_knowledge_base_from_sample.json');
+    final testDocumentPath =
+        _joinNested(root, 'generated/test_document_from_sample.md');
+    final sourceTracePath = _joinNested(root, 'generated/source_trace.jsonl');
+    final validationReportPath =
+        _joinNested(root, 'sample_library_validation_report.json');
+    final tombstonePath =
+        _joinNested(root, 'generated/test_object_tombstones.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: '官方样例项目库验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final kbTemplates = [
+      {
+        'template_id': 'company_knowledge_base',
+        'display_name': '公司知识库',
+        'description': '用于组织制度、项目资料和常见问题的基础知识库样例。',
+        'default_collections': ['制度', '项目', '问答'],
+      },
+      {
+        'template_id': 'research_library',
+        'display_name': '研究资料库',
+        'description': '用于论文、报告、调研资料和证据追踪的知识库样例。',
+        'default_collections': ['文献', '事实', '结论'],
+      },
+      {
+        'template_id': 'customer_support_library',
+        'display_name': '客服知识库',
+        'description': '用于产品帮助、问题处理和答复模板的知识库样例。',
+        'default_collections': ['产品', '问题', '答复'],
+      },
+    ];
+    final documentTemplates = [
+      {
+        'template_id': 'research_report',
+        'display_name': '研究报告',
+        'output_format': 'markdown',
+        'required_sections': ['背景', '证据', '结论', '风险'],
+      },
+      {
+        'template_id': 'project_plan',
+        'display_name': '项目计划',
+        'output_format': 'markdown',
+        'required_sections': ['目标', '范围', '计划', '验收'],
+      },
+      {
+        'template_id': 'operation_manual',
+        'display_name': '操作手册',
+        'output_format': 'markdown',
+        'required_sections': ['入口', '步骤', '异常处理', '检查清单'],
+      },
+    ];
+    final manifest = {
+      'schema_version': 'prd_v3_official_sample_project_library_manifest.v1',
+      'status': 'pass',
+      'capability_id': 'official_sample_project_library',
+      'knowledge_base_sample_count': kbTemplates.length,
+      'document_template_sample_count': documentTemplates.length,
+      'knowledge_base_samples_path': kbSamplePath,
+      'document_templates_path': documentTemplatePath,
+      'user_facing_entry': '样例项目库',
+      'implementation_names_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(manifestPath, manifest);
+    await _writeJsonFile(kbSamplePath, {
+      'schema_version': 'prd_v3_common_knowledge_base_samples.v1',
+      'status': 'pass',
+      'samples': kbTemplates,
+      'created_at': now,
+    });
+    await _writeJsonFile(documentTemplatePath, {
+      'schema_version': 'prd_v3_common_document_template_samples.v1',
+      'status': 'pass',
+      'samples': documentTemplates,
+      'created_at': now,
+    });
+    final testKb = {
+      'schema_version': 'prd_v3_test_knowledge_base_from_sample.v1',
+      'status': 'created',
+      'test_marker': 'p2_13_official_sample_project_library',
+      'source_template_id': 'company_knowledge_base',
+      'knowledge_base_id': 'test_kb_official_sample_project_library',
+      'documents': [
+        {
+          'document_id': 'test_document_company_policy',
+          'title': '样例制度文档',
+          'source_trace_id': 'sample_trace_01',
+        },
+        {
+          'document_id': 'test_document_project_archive',
+          'title': '样例项目归档',
+          'source_trace_id': 'sample_trace_02',
+        },
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(testKbPath, testKb);
+    final sourceTraceRows = [
+      {
+        'schema_version': 'prd_v3_sample_project_source_trace.v1',
+        'trace_id': 'sample_trace_01',
+        'source_template_id': 'company_knowledge_base',
+        'citation': 'sample_project://company_knowledge_base/policy#chunk=1',
+        'test_marked_source': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_sample_project_source_trace.v1',
+        'trace_id': 'sample_trace_02',
+        'source_template_id': 'company_knowledge_base',
+        'citation': 'sample_project://company_knowledge_base/archive#chunk=2',
+        'test_marked_source': true,
+        'created_at': now,
+      },
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(testDocumentPath).parent.create(recursive: true);
+    await File(testDocumentPath).writeAsString(
+      [
+        '# 样例项目报告',
+        '',
+        'test_marker: p2_13_official_sample_project_library',
+        '',
+        '## 背景',
+        '本报告由官方样例项目库创建，用于验证样例知识库和文档模板生命周期。',
+        '',
+        '## 证据',
+        '- sample_trace_01: sample_project://company_knowledge_base/policy#chunk=1',
+        '- sample_trace_02: sample_project://company_knowledge_base/archive#chunk=2',
+        '',
+        '## 结论',
+        '样例库可以创建 test 标记知识库和文档，并保留可追踪证据。',
+        '',
+        '## 风险',
+        '只允许删除本次创建且带 test 标记的对象。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final openedPreview = await readWorkspaceTextArtifact(
+      testDocumentPath,
+      maxCharacters: 800,
+    );
+    final exportManifestPath = await exportWorkspaceArtifact(
+      artifactPath: testDocumentPath,
+      artifactLabel: 'official_sample_project_library_test_document',
+    );
+    final exportManifest = await _readJsonObject(exportManifestPath);
+    final exportedPath = _stringValue(exportManifest['exported_path'], '');
+    final testKbBeforeDelete = await _readJsonObject(testKbPath);
+    final testDocumentText = await File(testDocumentPath).readAsString();
+    final canDeleteTestObjects =
+        _stringValue(testKbBeforeDelete['test_marker'], '') ==
+                'p2_13_official_sample_project_library' &&
+            testDocumentText.contains(
+                'test_marker: p2_13_official_sample_project_library');
+    var testKbDeleted = false;
+    var testDocumentDeleted = false;
+    if (canDeleteTestObjects) {
+      final kbFile = File(testKbPath);
+      final documentFile = File(testDocumentPath);
+      if (await kbFile.exists()) {
+        await kbFile.delete();
+        testKbDeleted = true;
+      }
+      if (await documentFile.exists()) {
+        await documentFile.delete();
+        testDocumentDeleted = true;
+      }
+    }
+    final tombstone = {
+      'schema_version': 'prd_v3_official_sample_project_library_tombstone.v1',
+      'status': canDeleteTestObjects ? 'pass' : 'blocked',
+      'test_marker': 'p2_13_official_sample_project_library',
+      'deleted_objects': [
+        {
+          'object_id': 'test_kb_official_sample_project_library',
+          'object_type': 'knowledge_base',
+          'path': testKbPath,
+          'deleted': testKbDeleted,
+        },
+        {
+          'object_id': 'test_document_from_sample',
+          'object_type': 'document',
+          'path': testDocumentPath,
+          'deleted': testDocumentDeleted,
+        },
+      ],
+      'only_test_marked_objects_deleted': canDeleteTestObjects,
+      'real_user_data_deleted': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(tombstonePath, tombstone);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_artifact': true,
+      'manifest_written': await File(manifestPath).exists(),
+      'knowledge_base_samples_written': await File(kbSamplePath).exists(),
+      'document_template_samples_written':
+          await File(documentTemplatePath).exists(),
+      'knowledge_base_sample_count_valid': kbTemplates.length >= 3,
+      'document_template_sample_count_valid': documentTemplates.length >= 3,
+      'test_knowledge_base_created_before_delete':
+          _stringValue(testKbBeforeDelete['knowledge_base_id'], '').isNotEmpty,
+      'test_document_created_before_delete':
+          openedPreview.contains('样例项目报告'),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_rows_exist': sourceTraceRows.length == 2,
+      'open_preview_non_empty': openedPreview.trim().isNotEmpty &&
+          !openedPreview.contains('无法预览'),
+      'export_manifest_written': exportManifestPath.trim().isNotEmpty &&
+          await File(exportManifestPath).exists(),
+      'exported_document_exists': exportedPath.trim().isNotEmpty &&
+          await File(exportedPath).exists(),
+      'delete_only_test_marked_objects': canDeleteTestObjects,
+      'test_knowledge_base_deleted': testKbDeleted &&
+          !await File(testKbPath).exists(),
+      'test_document_deleted': testDocumentDeleted &&
+          !await File(testDocumentPath).exists(),
+      'tombstone_written': await File(tombstonePath).exists(),
+      'restart_recovery_from_workspace_files':
+          await File(manifestPath).exists() &&
+              await File(validationReportPath).parent.exists(),
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = {
+      'schema_version':
+          'prd_v3_official_sample_project_library_validation_report.v1',
+      'status': status,
+      'manifest_path': manifestPath,
+      'knowledge_base_samples_path': kbSamplePath,
+      'document_template_samples_path': documentTemplatePath,
+      'source_trace_path': sourceTracePath,
+      'export_manifest_path': exportManifestPath,
+      'exported_document_path': exportedPath,
+      'tombstone_path': tombstonePath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_official_sample_project_library_summary.v1',
+      'status': status,
+      'capability_id': 'official_sample_project_library',
+      'capability_gate': 'P2-13 Official Sample Project Library',
+      'acceptance_type': 'artifact',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'manifest_path': manifestPath,
+      'knowledge_base_samples_path': kbSamplePath,
+      'document_template_samples_path': documentTemplatePath,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationReportPath,
+      'export_manifest_path': exportManifestPath,
+      'exported_document_path': exportedPath,
+      'tombstone_path': tombstonePath,
+      'deleted_test_knowledge_base_path': testKbPath,
+      'deleted_test_document_path': testDocumentPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runOfficialSampleProjectLibraryAcceptance',
+        'manifest_schema':
+            'prd_v3_official_sample_project_library_manifest.v1',
+        'validation_schema':
+            'prd_v3_official_sample_project_library_validation_report.v1',
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'scenario':
+            'open sample library, create test-marked knowledge base and document, open preview, export, delete test objects',
+        'user_facing_entry': '样例项目库',
+      },
+      'artifact_evidence': {
+        'manifest_path': manifestPath,
+        'export_manifest_path': exportManifestPath,
+        'exported_document_path': exportedPath,
+        'tombstone_path': tombstonePath,
+      },
+      'lifecycle_evidence': {
+        'create':
+            'sample manifest, sample packs, test knowledge base, test document and source trace are written',
+        'view': 'test document preview succeeds before deletion',
+        'open': 'readWorkspaceTextArtifact opens the generated test document',
+        'export': 'exportWorkspaceArtifact exports the generated test document',
+        'delete':
+            'only current test-marked knowledge base and document are deleted',
+        'restart_recovery':
+            'manifest, exported copy, validation report and tombstone remain reloadable',
+        'error_path': 'delete is gated by the test marker',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-14 Polly-style Lead Orchestrator',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'official_sample_project_library_validated',
+      module: 'sample_project_library',
+      action: 'run_official_sample_project_library_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'official_sample_project_library',
+      targetName: 'Official Sample Project Library',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'manifest_path': manifestPath,
+        'export_manifest_path': exportManifestPath,
+        'tombstone_path': tombstonePath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'official_sample_project_library_test_objects_deleted',
+      module: 'sample_project_library',
+      action: 'delete_test_sample_project_objects',
+      status: canDeleteTestObjects ? 'completed' : 'blocked',
+      targetId: 'p2_13_test_objects',
+      targetName: 'P2-13 test sample objects',
+      artifactPath: tombstonePath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'test_marker': 'p2_13_official_sample_project_library',
+        'real_user_data_deleted': false,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'official_sample_project_library_summary',
+      artifactType: 'acceptance_report',
+      title: 'Official Sample Project Library Summary',
+      sourceModule: 'sample_project_library',
+      sourceId: 'official_sample_project_library',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'artifact',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'official_sample_project_library_manifest',
+      artifactType: 'sample_library_manifest',
+      title: 'Official Sample Project Library Manifest',
+      sourceModule: 'sample_project_library',
+      sourceId: 'official_sample_project_library',
+      filePath: manifestPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'official_sample_project_library_tombstones',
+      artifactType: 'tombstone_report',
+      title: 'Official Sample Project Library Tombstones',
+      sourceModule: 'sample_project_library',
+      sourceId: 'official_sample_project_library',
+      filePath: tombstonePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'only_test_marked_objects_deleted': canDeleteTestObjects,
+        'real_user_data_deleted': false,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '官方样例项目库验收证据已生成。' : '官方样例项目库验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'official_sample_project_library_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

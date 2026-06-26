@@ -10468,6 +10468,157 @@ void main() {
         isTrue);
   });
 
+  test('p2 official sample project library has artifact lifecycle evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runOfficialSampleProjectLibraryAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_official_sample_project_library_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'official_sample_project_library');
+    expect(
+        summary['capability_gate'], 'P2-13 Official Sample Project Library');
+    expect(summary['acceptance_type'], 'artifact');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-14 Polly-style Lead Orchestrator');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final manifest = jsonDecode(
+        File(summary['manifest_path'] as String).readAsStringSync()) as Map;
+    expect(manifest['schema_version'],
+        'prd_v3_official_sample_project_library_manifest.v1');
+    expect(manifest['knowledge_base_sample_count'], 3);
+    expect(manifest['document_template_sample_count'], 3);
+    expect(manifest['implementation_names_user_visible'], isFalse);
+    expect(manifest['provider_adapter_parser_user_visible'], isFalse);
+    final kbSamples = jsonDecode(
+            File(summary['knowledge_base_samples_path'] as String)
+                .readAsStringSync())
+        as Map;
+    expect((kbSamples['samples'] as List), hasLength(3));
+    final documentSamples = jsonDecode(
+            File(summary['document_template_samples_path'] as String)
+                .readAsStringSync())
+        as Map;
+    expect((documentSamples['samples'] as List), hasLength(3));
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(2));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['trace_id'].toString().isNotEmpty &&
+            row['citation'].toString().isNotEmpty &&
+            row['test_marked_source'] == true),
+        isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_official_sample_project_library_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['export_manifest_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['exported_document_path'] as String).existsSync(),
+        isTrue);
+    expect(
+        File(summary['deleted_test_knowledge_base_path'] as String)
+            .existsSync(),
+        isFalse);
+    expect(
+        File(summary['deleted_test_document_path'] as String).existsSync(),
+        isFalse);
+    final tombstone =
+        jsonDecode(File(summary['tombstone_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(tombstone['schema_version'],
+        'prd_v3_official_sample_project_library_tombstone.v1');
+    expect(tombstone['status'], 'pass');
+    expect(tombstone['only_test_marked_objects_deleted'], isTrue);
+    expect(tombstone['real_user_data_deleted'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'official_sample_project_library_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+            'official_sample_project_library_test_objects_deleted'),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'official_sample_project_library_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'official_sample_project_library_manifest' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'official_sample_project_library_tombstones' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
