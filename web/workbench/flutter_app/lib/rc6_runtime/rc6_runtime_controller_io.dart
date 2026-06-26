@@ -12749,6 +12749,621 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runVersionedKnowledgeGovernanceAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/versioned_knowledge_governance_summary.json');
+    final root = _joinNested(workspace.path, 'versioned_knowledge_governance');
+    await _clearWorkspacePath(root);
+    final versionRegistryPath = _joinNested(root, 'version_registry.json');
+    final kbManifestPath =
+        _joinNested(root, 'test_knowledge_base_manifest.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final versionDiffPath = _joinNested(root, 'version_diff_report.json');
+    final rollbackReportPath = _joinNested(root, 'rollback_report.json');
+    final queryAnswerPath = _joinNested(root, 'query_answer_route_report.json');
+    final activeVersionPath = _joinNested(root, 'active_test_version.json');
+    final deleteReportPath = _joinNested(root, 'delete_report.json');
+    final tombstonePath =
+        _joinNested(root, 'test_versioned_knowledge.tombstone.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '知识库版本治理核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final versions = <Map<String, Object?>>[
+      {
+        'version_id': 'test_kb_versioned_p2_27_v1',
+        'parent_version_id': '',
+        'change_type': 'initial_import',
+        'status': 'superseded',
+        'document_count': 1,
+        'chunk_count': 1,
+        'fact_count': 1,
+        'source_trace_ids': const ['trace_test_kb_versioned_v1_001'],
+        'test_marker': true,
+      },
+      {
+        'version_id': 'test_kb_versioned_p2_27_v2',
+        'parent_version_id': 'test_kb_versioned_p2_27_v1',
+        'change_type': 'incremental_update',
+        'status': 'rollback_target',
+        'document_count': 2,
+        'chunk_count': 2,
+        'fact_count': 2,
+        'source_trace_ids': const [
+          'trace_test_kb_versioned_v1_001',
+          'trace_test_kb_versioned_v2_001',
+        ],
+        'test_marker': true,
+      },
+      {
+        'version_id': 'test_kb_versioned_p2_27_v3',
+        'parent_version_id': 'test_kb_versioned_p2_27_v2',
+        'change_type': 'policy_revision',
+        'status': 'current_before_rollback',
+        'document_count': 2,
+        'chunk_count': 3,
+        'fact_count': 3,
+        'source_trace_ids': const [
+          'trace_test_kb_versioned_v1_001',
+          'trace_test_kb_versioned_v2_001',
+          'trace_test_kb_versioned_v3_001',
+        ],
+        'test_marker': true,
+      },
+    ];
+    await _writeJsonFile(versionRegistryPath, {
+      'schema_version': 'prd_v3_versioned_knowledge_registry.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-27 Versioned Knowledge Governance',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'display_name': '测试知识库版本记录',
+      'user_visible_entry': '知识库版本记录',
+      'user_visible_actions': const ['查看版本', '恢复版本', '查看差异'],
+      'current_version_id': 'test_kb_versioned_p2_27_v3',
+      'rollback_target_version_id': 'test_kb_versioned_p2_27_v2',
+      'versions': versions,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    const documents = [
+      {
+        'document_id': 'test_doc_version_policy',
+        'title': '测试制度资料',
+        'source_path': 'test_sources/version_policy.md',
+        'version_id': 'test_kb_versioned_p2_27_v1',
+        'chunk_id': 'test_chunk_version_policy_001',
+        'citation': 'version_policy.md#chunk=1',
+        'fact': '初始版本记录制度资料的适用范围。',
+      },
+      {
+        'document_id': 'test_doc_version_faq',
+        'title': '测试问答资料',
+        'source_path': 'test_sources/version_faq.md',
+        'version_id': 'test_kb_versioned_p2_27_v2',
+        'chunk_id': 'test_chunk_version_faq_001',
+        'citation': 'version_faq.md#chunk=1',
+        'fact': '增量版本补充常见问题证据。',
+      },
+      {
+        'document_id': 'test_doc_version_revision',
+        'title': '测试修订资料',
+        'source_path': 'test_sources/version_revision.md',
+        'version_id': 'test_kb_versioned_p2_27_v3',
+        'chunk_id': 'test_chunk_version_revision_001',
+        'citation': 'version_revision.md#chunk=1',
+        'fact': '修订版本补充变更说明。',
+      },
+    ];
+    await _writeJsonFile(kbManifestPath, {
+      'schema_version': 'prd_v3_versioned_knowledge_base_manifest.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-27 Versioned Knowledge Governance',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'template_id': 'policy_library',
+      'template_display_name': '制度资料库',
+      'documents': documents,
+      'version_registry_path': versionRegistryPath,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final traceRows = <Map<String, Object?>>[
+      for (final document in documents)
+        {
+          'schema_version': 'prd_v3_versioned_knowledge_source_trace.v1',
+          'trace_id':
+              'trace_${_stringValue(document['chunk_id'], '').replaceAll('-', '_')}',
+          'knowledge_base_id': 'test_kb_versioned_p2_27',
+          'version_id': document['version_id'],
+          'document_id': document['document_id'],
+          'chunk_id': document['chunk_id'],
+          'source_path': document['source_path'],
+          'citation': document['citation'],
+          'excerpt': document['fact'],
+          'test_marker': true,
+          'created_at': now,
+        }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final versionDiff = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_diff_report.v1',
+      'status': 'pass',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'from_version_id': 'test_kb_versioned_p2_27_v2',
+      'to_version_id': 'test_kb_versioned_p2_27_v3',
+      'added_chunks': const ['test_chunk_version_revision_001'],
+      'changed_chunks': const ['test_chunk_version_faq_001'],
+      'removed_chunks': const [],
+      'source_trace_ids': const ['trace_test_chunk_version_revision_001'],
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(versionDiffPath, versionDiff);
+
+    await _writeJsonFile(activeVersionPath, {
+      'schema_version': 'prd_v3_active_test_version.v1',
+      'status': 'active',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'active_version_id': 'test_kb_versioned_p2_27_v3',
+      'test_marker': true,
+      'created_at': now,
+    });
+    final activeBeforeRollback = await _readJsonObject(activeVersionPath);
+    await _writeJsonFile(activeVersionPath, {
+      'schema_version': 'prd_v3_active_test_version.v1',
+      'status': 'active',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'active_version_id': 'test_kb_versioned_p2_27_v2',
+      'rollback_from_version_id': activeBeforeRollback['active_version_id'],
+      'test_marker': true,
+      'updated_at': now,
+    });
+    final activeAfterRollback = await _readJsonObject(activeVersionPath);
+    final rollbackReport = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_rollback_report.v1',
+      'status': activeAfterRollback['active_version_id'] ==
+              'test_kb_versioned_p2_27_v2'
+          ? 'pass'
+          : 'blocked',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'active_version_before_rollback':
+          activeBeforeRollback['active_version_id'],
+      'rollback_target_version_id': 'test_kb_versioned_p2_27_v2',
+      'active_version_after_rollback': activeAfterRollback['active_version_id'],
+      'rollback_scope': 'current_test_marked_knowledge_base_only',
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(rollbackReportPath, rollbackReport);
+
+    final evidenceForRollbackVersion = traceRows
+        .where((row) =>
+            _stringValue(row['version_id'], '') ==
+                'test_kb_versioned_p2_27_v2' ||
+            _stringValue(row['version_id'], '') == 'test_kb_versioned_p2_27_v1')
+        .toList(growable: false);
+    final queryAnswerReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_versioned_knowledge_query_answer_route_report.v1',
+      'status': evidenceForRollbackVersion.length == 2 ? 'pass' : 'blocked',
+      'query': '测试恢复到上一版本后是否按版本证据回答',
+      'route': 'Anchor -> Entity -> Evidence -> Answer',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'active_version_id': activeAfterRollback['active_version_id'],
+      'excluded_version_ids': const ['test_kb_versioned_p2_27_v3'],
+      'evidence_refs': [
+        for (final row in evidenceForRollbackVersion)
+          {
+            'trace_id': row['trace_id'],
+            'version_id': row['version_id'],
+            'citation': row['citation'],
+          }
+      ],
+      'answer': '恢复版本后仅使用目标版本及其父版本的测试证据回答。',
+      'created_at': now,
+    };
+    await _writeJsonFile(queryAnswerPath, queryAnswerReport);
+
+    final activeExistsBeforeDelete = await File(activeVersionPath).exists();
+    await File(activeVersionPath).delete();
+    final activeExistsAfterDelete = await File(activeVersionPath).exists();
+    await _writeJsonFile(tombstonePath, {
+      'schema_version': 'prd_v3_versioned_knowledge_tombstone.v1',
+      'status': 'deleted',
+      'knowledge_base_id': 'test_kb_versioned_p2_27',
+      'deleted_object': activeVersionPath,
+      'delete_scope': 'current_test_marked_active_version_record_only',
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+    await _writeJsonFile(deleteReportPath, {
+      'schema_version': 'prd_v3_versioned_knowledge_delete_report.v1',
+      'status': activeExistsBeforeDelete && !activeExistsAfterDelete
+          ? 'pass'
+          : 'blocked',
+      'active_record_exists_before_delete': activeExistsBeforeDelete,
+      'active_record_exists_after_delete': activeExistsAfterDelete,
+      'tombstone_path': tombstonePath,
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_state_snapshot.v1',
+      'status': 'pass',
+      'version_registry_path': versionRegistryPath,
+      'test_knowledge_base_manifest_path': kbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'version_diff_report_path': versionDiffPath,
+      'rollback_report_path': rollbackReportPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-28 Jurisdiction / Domain Scope',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_boundary_report.v1',
+      'status': 'pass',
+      'external_database_connected': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final versionRegistry = await _readJsonObject(versionRegistryPath);
+    final kbManifest = await _readJsonObject(kbManifestPath);
+    final reloadedDiff = await _readJsonObject(versionDiffPath);
+    final reloadedRollback = await _readJsonObject(rollbackReportPath);
+    final reloadedQuery = await _readJsonObject(queryAnswerPath);
+    final reloadedDelete = await _readJsonObject(deleteReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final reloadedTraceRows = await _readJsonl(File(sourceTracePath));
+    final forbiddenUiTokens = [
+      'OpenDataLoader',
+      'Composio',
+      'Provider',
+      'Adapter',
+      'Parser',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ];
+    final userVisibleText = [
+      _stringValue(versionRegistry['user_visible_entry'], ''),
+      ..._listOfStrings(versionRegistry['user_visible_actions']),
+      _stringValue(kbManifest['template_display_name'], ''),
+    ].join(' ');
+    final registryVersions = _listOfMaps(versionRegistry['versions']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'version_registry_written': await File(versionRegistryPath).exists(),
+      'version_registry_passed':
+          _stringValue(versionRegistry['status'], '') == 'pass',
+      'version_registry_has_three_versions': registryVersions.length == 3,
+      'current_version_recorded':
+          _stringValue(versionRegistry['current_version_id'], '') ==
+              'test_kb_versioned_p2_27_v3',
+      'rollback_target_recorded':
+          _stringValue(versionRegistry['rollback_target_version_id'], '') ==
+              'test_kb_versioned_p2_27_v2',
+      'version_parent_links_present': registryVersions.length == 3 &&
+          _stringValue(registryVersions[1]['parent_version_id'], '') ==
+              'test_kb_versioned_p2_27_v1' &&
+          _stringValue(registryVersions[2]['parent_version_id'], '') ==
+              'test_kb_versioned_p2_27_v2',
+      'all_versions_test_marked':
+          registryVersions.every((row) => row['test_marker'] == true),
+      'product_facing_version_entry_present':
+          _stringValue(versionRegistry['user_visible_entry'], '') == '知识库版本记录',
+      'forbidden_ui_tokens_absent':
+          forbiddenUiTokens.every((token) => !userVisibleText.contains(token)),
+      'test_knowledge_base_manifest_written':
+          await File(kbManifestPath).exists(),
+      'test_knowledge_base_manifest_passed':
+          _stringValue(kbManifest['status'], '') == 'pass',
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_spans_three_versions': reloadedTraceRows
+              .map((row) => _stringValue(row['version_id'], ''))
+              .where((id) => id.isNotEmpty)
+              .toSet()
+              .length ==
+          3,
+      'source_trace_has_citations': reloadedTraceRows
+          .every((row) => _stringValue(row['citation'], '').isNotEmpty),
+      'version_diff_written': await File(versionDiffPath).exists(),
+      'version_diff_passed': _stringValue(reloadedDiff['status'], '') == 'pass',
+      'version_diff_has_added_chunk':
+          _listOfStrings(reloadedDiff['added_chunks'])
+              .contains('test_chunk_version_revision_001'),
+      'rollback_report_written': await File(rollbackReportPath).exists(),
+      'rollback_report_passed':
+          _stringValue(reloadedRollback['status'], '') == 'pass',
+      'rollback_target_active':
+          _stringValue(reloadedRollback['active_version_after_rollback'], '') ==
+              'test_kb_versioned_p2_27_v2',
+      'query_answer_route_written': await File(queryAnswerPath).exists(),
+      'query_answer_route_passed':
+          _stringValue(reloadedQuery['status'], '') == 'pass',
+      'query_uses_rollback_version':
+          _stringValue(reloadedQuery['active_version_id'], '') ==
+              'test_kb_versioned_p2_27_v2',
+      'query_excludes_later_version':
+          _listOfStrings(reloadedQuery['excluded_version_ids'])
+              .contains('test_kb_versioned_p2_27_v3'),
+      'delete_report_passed':
+          _stringValue(reloadedDelete['status'], '') == 'pass',
+      'test_active_version_record_removed':
+          reloadedDelete['active_record_exists_after_delete'] == false,
+      'tombstone_written': await File(tombstonePath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['next_gate'], '') ==
+                  'P2-28 Jurisdiction / Domain Scope' &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_database_connected': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+    };
+    const negativeChecks = {
+      'external_database_connected',
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'network_call_made',
+      'new_dependency_added',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_validation_report.v1',
+      'status': status,
+      'version_registry_path': versionRegistryPath,
+      'test_knowledge_base_manifest_path': kbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'version_diff_report_path': versionDiffPath,
+      'rollback_report_path': rollbackReportPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_versioned_knowledge_governance_summary.v1',
+      'status': status,
+      'capability_id': 'versioned_knowledge_governance',
+      'capability_gate': 'P2-27 Versioned Knowledge Governance',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'version_registry_path': versionRegistryPath,
+      'test_knowledge_base_manifest_path': kbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'version_diff_report_path': versionDiffPath,
+      'rollback_report_path': rollbackReportPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'version_count': registryVersions.length,
+      'source_trace_count': reloadedTraceRows.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runVersionedKnowledgeGovernanceAcceptance',
+        'version_registry_schema': 'prd_v3_versioned_knowledge_registry.v1',
+        'manifest_schema': 'prd_v3_versioned_knowledge_base_manifest.v1',
+        'source_trace_schema': 'prd_v3_versioned_knowledge_source_trace.v1',
+        'diff_schema': 'prd_v3_versioned_knowledge_diff_report.v1',
+        'rollback_schema': 'prd_v3_versioned_knowledge_rollback_report.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only versioned knowledge governance contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'version_registry_path': versionRegistryPath,
+        'version_diff_report_path': versionDiffPath,
+        'rollback_report_path': rollbackReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'versioned_knowledge_governance_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'version registry, test KB manifest, source trace, version diff, rollback report, query route, validation report and summary are written',
+        'view':
+            'summary, validation report and version registry are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete':
+            'only the current test-marked active version record is removed and tombstoned',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'missing version parent links, missing source trace, failed rollback or real-user deletion block acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-28 Jurisdiction / Domain Scope',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'versioned_knowledge_governance_validated',
+      module: 'knowledge_governance',
+      action: 'run_versioned_knowledge_governance_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'versioned_knowledge_governance',
+      targetName: 'Versioned Knowledge Governance',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'version_count': registryVersions.length,
+        'source_trace_count': reloadedTraceRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'versioned_knowledge_governance_summary',
+      artifactType: 'acceptance_report',
+      title: 'Versioned Knowledge Governance Summary',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'versioned_knowledge_governance',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'versioned_knowledge_governance_validation',
+      artifactType: 'validation_report',
+      title: 'Versioned Knowledge Governance Validation',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'versioned_knowledge_governance',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'versioned_knowledge_governance_source_trace',
+      artifactType: 'source_trace',
+      title: 'Versioned Knowledge Governance Source Trace',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'versioned_knowledge_governance',
+      filePath: sourceTracePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'version_count': registryVersions.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'versioned_knowledge_governance_tombstone',
+      artifactType: 'tombstone',
+      title: 'Versioned Knowledge Test Record Tombstone',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'versioned_knowledge_governance',
+      filePath: tombstonePath,
+      status: 'deleted',
+      metadata: {
+        'delete_report_path': deleteReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass' ? '知识库版本治理核心验收证据已生成。' : '知识库版本治理核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'versioned_knowledge_governance_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

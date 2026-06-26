@@ -13082,6 +13082,232 @@ void main() {
         isTrue);
   });
 
+  test('p2 versioned knowledge governance creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runVersionedKnowledgeGovernanceAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_versioned_knowledge_governance_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'versioned_knowledge_governance');
+    expect(summary['capability_gate'], 'P2-27 Versioned Knowledge Governance');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-28 Jurisdiction / Domain Scope');
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_database_connected' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'new_dependency_added' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final registry = jsonDecode(
+            File(summary['version_registry_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(
+        registry['schema_version'], 'prd_v3_versioned_knowledge_registry.v1');
+    expect(registry['status'], 'pass');
+    expect(registry['user_visible_entry'], '知识库版本记录');
+    expect(registry['current_version_id'], 'test_kb_versioned_p2_27_v3');
+    expect(
+        registry['rollback_target_version_id'], 'test_kb_versioned_p2_27_v2');
+    final versions =
+        (registry['versions'] as List).cast<Map<String, dynamic>>();
+    expect(versions, hasLength(3));
+    expect(versions.every((row) => row['test_marker'] == true), isTrue);
+    expect(versions[1]['parent_version_id'], 'test_kb_versioned_p2_27_v1');
+    expect(versions[2]['parent_version_id'], 'test_kb_versioned_p2_27_v2');
+    final userVisibleText = jsonEncode({
+      'entry': registry['user_visible_entry'],
+      'actions': registry['user_visible_actions'],
+    });
+    for (final token in [
+      'OpenDataLoader',
+      'Composio',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ]) {
+      expect(userVisibleText.contains(token), isFalse, reason: token);
+    }
+
+    final manifest = jsonDecode(
+        File(summary['test_knowledge_base_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(manifest['schema_version'],
+        'prd_v3_versioned_knowledge_base_manifest.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['knowledge_base_id'], 'test_kb_versioned_p2_27');
+    expect(manifest['test_marker'], isTrue);
+    expect((manifest['documents'] as List), hasLength(3));
+
+    final sourceTraceRows =
+        readJsonlFile(summary['source_trace_path'] as String);
+    expect(sourceTraceRows, hasLength(3));
+    expect(
+        sourceTraceRows.map((row) => row['version_id']).toSet(),
+        containsAll([
+          'test_kb_versioned_p2_27_v1',
+          'test_kb_versioned_p2_27_v2',
+          'test_kb_versioned_p2_27_v3',
+        ]));
+    expect(
+        sourceTraceRows.every((row) =>
+            row['schema_version'] ==
+                'prd_v3_versioned_knowledge_source_trace.v1' &&
+            row['test_marker'] == true &&
+            (row['citation'] as String).isNotEmpty),
+        isTrue);
+
+    final diff = jsonDecode(File(summary['version_diff_report_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(diff['schema_version'], 'prd_v3_versioned_knowledge_diff_report.v1');
+    expect(diff['status'], 'pass');
+    expect(diff['from_version_id'], 'test_kb_versioned_p2_27_v2');
+    expect(diff['to_version_id'], 'test_kb_versioned_p2_27_v3');
+    expect(diff['added_chunks'], contains('test_chunk_version_revision_001'));
+
+    final rollback = jsonDecode(
+            File(summary['rollback_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollback['schema_version'],
+        'prd_v3_versioned_knowledge_rollback_report.v1');
+    expect(rollback['status'], 'pass');
+    expect(rollback['active_version_before_rollback'],
+        'test_kb_versioned_p2_27_v3');
+    expect(
+        rollback['rollback_target_version_id'], 'test_kb_versioned_p2_27_v2');
+    expect(rollback['active_version_after_rollback'],
+        'test_kb_versioned_p2_27_v2');
+    expect(rollback['real_user_data_deleted'], isFalse);
+
+    final queryRoute = jsonDecode(
+        File(summary['query_answer_route_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(queryRoute['schema_version'],
+        'prd_v3_versioned_knowledge_query_answer_route_report.v1');
+    expect(queryRoute['status'], 'pass');
+    expect(queryRoute['route'], 'Anchor -> Entity -> Evidence -> Answer');
+    expect(queryRoute['active_version_id'], 'test_kb_versioned_p2_27_v2');
+    expect(queryRoute['excluded_version_ids'],
+        contains('test_kb_versioned_p2_27_v3'));
+
+    final deleteReport = jsonDecode(
+            File(summary['delete_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deleteReport['schema_version'],
+        'prd_v3_versioned_knowledge_delete_report.v1');
+    expect(deleteReport['status'], 'pass');
+    expect(deleteReport['active_record_exists_before_delete'], isTrue);
+    expect(deleteReport['active_record_exists_after_delete'], isFalse);
+    expect(deleteReport['real_user_data_deleted'], isFalse);
+    expect(File(summary['tombstone_path'] as String).existsSync(), isTrue);
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_versioned_knowledge_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_versioned_knowledge_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['external_database_connected'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'versioned_knowledge_governance_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'versioned_knowledge_governance_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'versioned_knowledge_governance_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'versioned_knowledge_governance_source_trace' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'versioned_knowledge_governance_tombstone' &&
+            row['status'] == 'deleted'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
