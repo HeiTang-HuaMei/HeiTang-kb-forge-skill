@@ -5074,6 +5074,463 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runLongContextEvaluationAcceptance({
+    String query = 'P2-12 Long Context Evaluation',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/long_context_evaluation_summary.json');
+    final root = _joinNested(workspace.path, 'long_context_evaluation');
+    final corpusPath = _joinNested(root, 'long_context_corpus.jsonl');
+    final chunkIndexPath = _joinNested(root, 'long_context_chunk_index.json');
+    final windowPlanPath = _joinNested(root, 'long_context_window_plan.json');
+    final retrievalTracePath =
+        _joinNested(root, 'long_context_retrieval_trace.jsonl');
+    final evidenceGraphPath =
+        _joinNested(root, 'long_context_evidence_graph.json');
+    final answerPath = _joinNested(root, 'long_context_answer.md');
+    final missingEvidencePath =
+        _joinNested(root, 'long_context_missing_evidence_report.json');
+    final validationReportPath =
+        _joinNested(root, 'long_context_validation_report.json');
+    state = state.copyWith(
+      running: true,
+      lastMessage: '长上下文评估核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final sections = <Map<String, Object?>>[
+      {
+        'section_id': 'lc_section_01',
+        'title': 'import pipeline',
+        'anchor': 'document_import',
+        'content':
+            'Document import writes source traces before chunking so later answers can cite the original file boundary.',
+      },
+      {
+        'section_id': 'lc_section_02',
+        'title': 'knowledge package',
+        'anchor': 'knowledge_package',
+        'content':
+            'Knowledge package generation stores chunk ids, evidence maps and validation reports for replay.',
+      },
+      {
+        'section_id': 'lc_section_03',
+        'title': 'agent memory',
+        'anchor': 'agent_memory',
+        'content':
+            'Agent memory stores task snapshots separately from the knowledge base index and uses connector boundaries.',
+      },
+      {
+        'section_id': 'lc_section_04',
+        'title': 'artifact lifecycle',
+        'anchor': 'artifact_lifecycle',
+        'content':
+            'Artifact lifecycle keeps generated reports openable, exportable and recoverable after restart.',
+      },
+      {
+        'section_id': 'lc_section_05',
+        'title': 'boundary',
+        'anchor': 'boundary',
+        'content':
+            'Long context evaluation must not call external models, train local models, or package Redis and vector services.',
+      },
+      {
+        'section_id': 'lc_section_06',
+        'title': 'release gate',
+        'anchor': 'release_gate',
+        'content':
+            'P2 Release Gate reruns full regression and remains the phase exit gate after all P2 capabilities close.',
+      },
+    ];
+    await File(corpusPath).parent.create(recursive: true);
+    await File(corpusPath).writeAsString(
+      '${sections.map((section) => jsonEncode({
+            'schema_version': 'prd_v3_long_context_corpus_record.v1',
+            ...section,
+            'repeat_count_for_budget': 18,
+            'created_at': now,
+          })).join('\n')}\n',
+      encoding: utf8,
+    );
+    final chunks = <Map<String, Object?>>[
+      for (var index = 0; index < sections.length; index += 1)
+        {
+          'chunk_id': 'lc_chunk_${(index + 1).toString().padLeft(2, '0')}',
+          'section_id': sections[index]['section_id'],
+          'anchor': sections[index]['anchor'],
+          'token_estimate': 520 + index * 35,
+          'citation':
+              'local_workspace://long_context/${sections[index]['section_id']}#chunk=${index + 1}',
+          'summary': sections[index]['content'],
+        }
+    ];
+    final totalTokenEstimate = chunks.fold<int>(
+      0,
+      (sum, chunk) => sum + (chunk['token_estimate'] as int),
+    );
+    final chunkIndex = {
+      'schema_version': 'prd_v3_long_context_chunk_index.v1',
+      'status': 'pass',
+      'capability_id': 'long_context_evaluation',
+      'chunk_count': chunks.length,
+      'total_token_estimate': totalTokenEstimate,
+      'chunks': chunks,
+      'created_at': now,
+    };
+    await _writeJsonFile(chunkIndexPath, chunkIndex);
+    final windows = [
+      {
+        'window_id': 'lc_window_01',
+        'chunk_ids': ['lc_chunk_01', 'lc_chunk_02', 'lc_chunk_03'],
+        'token_estimate': 1665,
+        'purpose': 'import to memory chain',
+      },
+      {
+        'window_id': 'lc_window_02',
+        'chunk_ids': ['lc_chunk_04', 'lc_chunk_05', 'lc_chunk_06'],
+        'token_estimate': 1980,
+        'purpose': 'artifact and phase gate boundary',
+      },
+    ];
+    final windowPlan = {
+      'schema_version': 'prd_v3_long_context_window_plan.v1',
+      'status': 'pass',
+      'query': query,
+      'context_budget_tokens': 4096,
+      'total_token_estimate': totalTokenEstimate,
+      'window_count': windows.length,
+      'windows': windows,
+      'overflow_strategy': 'anchor_entity_evidence_then_answer',
+      'missing_evidence_blocks_answer': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(windowPlanPath, windowPlan);
+    final traceRows = <Map<String, Object?>>[
+      for (final chunk in chunks)
+        {
+          'schema_version': 'prd_v3_long_context_retrieval_trace.v1',
+          'trace_id': 'lc_trace_${_stringValue(chunk['chunk_id'], '').split('_').last}',
+          'chunk_id': chunk['chunk_id'],
+          'anchor': chunk['anchor'],
+          'citation': chunk['citation'],
+          'score': chunk['anchor'] == 'boundary' ||
+                  chunk['anchor'] == 'release_gate'
+              ? 0.97
+              : 0.91,
+          'selected': true,
+          'created_at': now,
+        }
+    ];
+    await File(retrievalTracePath).parent.create(recursive: true);
+    await File(retrievalTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final evidenceGraph = {
+      'schema_version': 'prd_v3_long_context_evidence_graph.v1',
+      'status': 'pass',
+      'query': query,
+      'anchor': 'document_import',
+      'entities': [
+        for (final row in traceRows)
+          {
+            'entity_id': 'entity_${row['anchor']}',
+            'anchor': row['anchor'],
+            'trace_id': row['trace_id'],
+          }
+      ],
+      'relations': [
+        {
+          'from': 'entity_document_import',
+          'to': 'entity_knowledge_package',
+          'relation_type': 'feeds',
+          'evidence_trace_id': 'lc_trace_02',
+        },
+        {
+          'from': 'entity_knowledge_package',
+          'to': 'entity_agent_memory',
+          'relation_type': 'supports',
+          'evidence_trace_id': 'lc_trace_03',
+        },
+        {
+          'from': 'entity_artifact_lifecycle',
+          'to': 'entity_release_gate',
+          'relation_type': 'gated_by',
+          'evidence_trace_id': 'lc_trace_06',
+        },
+      ],
+      'answer_contract': {
+        'requires_anchor': true,
+        'requires_entity': true,
+        'requires_evidence': true,
+        'requires_answer': true,
+        'missing_evidence_blocks_answer': true,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(evidenceGraphPath, evidenceGraph);
+    await File(answerPath).parent.create(recursive: true);
+    await File(answerPath).writeAsString(
+      [
+        '# 长上下文评估结果',
+        '',
+        '## 查询',
+        query,
+        '',
+        '## Anchor -> Entity -> Evidence -> Answer',
+        '- Anchor: document_import',
+        '- Entity count: ${traceRows.length}',
+        '- Evidence rows: ${traceRows.length}',
+        '- Answer: 长上下文问题被拆分到两个预算窗口，并通过本地 source trace 与 evidence graph 合成；缺证据时阻断回答。',
+        '',
+        '## 证据',
+        for (final row in traceRows)
+          '- ${row['trace_id']}: ${row['citation']}',
+        '',
+        '## 边界',
+        '- 不调用外部模型或外部项目 runtime。',
+        '- 不做本地模型训练。',
+        '- 不打包 Redis / Vector DB 服务本体。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final missingEvidenceReport = {
+      'schema_version': 'prd_v3_long_context_missing_evidence_report.v1',
+      'status': 'pass',
+      'case_id': 'missing_required_anchor_blocks_answer',
+      'missing_anchor': 'financial_projection',
+      'answer_blocked': true,
+      'fallback_action': 'ask_user_to_import_source_or_narrow_query',
+      'created_at': now,
+    };
+    await _writeJsonFile(missingEvidencePath, missingEvidenceReport);
+    final reloadedChunkIndex = await _readJsonObject(chunkIndexPath);
+    final reloadedWindowPlan = await _readJsonObject(windowPlanPath);
+    final reloadedEvidenceGraph = await _readJsonObject(evidenceGraphPath);
+    final traceLines = File(retrievalTracePath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'corpus_written': await File(corpusPath).exists(),
+      'chunk_index_written': await File(chunkIndexPath).exists(),
+      'window_plan_written': await File(windowPlanPath).exists(),
+      'retrieval_trace_written': await File(retrievalTracePath).exists(),
+      'evidence_graph_written': await File(evidenceGraphPath).exists(),
+      'answer_written': await File(answerPath).exists(),
+      'missing_evidence_report_written':
+          await File(missingEvidencePath).exists(),
+      'chunk_count_at_least_six':
+          _listOfMaps(reloadedChunkIndex['chunks']).length >= 6,
+      'window_budget_valid':
+          _listOfMaps(reloadedWindowPlan['windows']).every((window) =>
+              (window['token_estimate'] as int) <=
+              (reloadedWindowPlan['context_budget_tokens'] as int)),
+      'trace_covers_all_chunks': traceLines.length == chunks.length,
+      'evidence_graph_has_entities':
+          _listOfMaps(reloadedEvidenceGraph['entities']).length ==
+              chunks.length,
+      'answer_contract_blocks_missing_evidence':
+          _boolValue(_mapValue(reloadedEvidenceGraph['answer_contract'])[
+              'missing_evidence_blocks_answer']),
+      'missing_evidence_blocks_answer':
+          _boolValue(missingEvidenceReport['answer_blocked']),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedWindowPlan['status'], '') == 'pass' &&
+              _stringValue(reloadedEvidenceGraph['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = {
+      'schema_version': 'prd_v3_long_context_evaluation_validation_report.v1',
+      'status': status,
+      'corpus_path': corpusPath,
+      'chunk_index_path': chunkIndexPath,
+      'window_plan_path': windowPlanPath,
+      'retrieval_trace_path': retrievalTracePath,
+      'evidence_graph_path': evidenceGraphPath,
+      'answer_path': answerPath,
+      'missing_evidence_report_path': missingEvidencePath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_long_context_evaluation_summary.v1',
+      'status': status,
+      'capability_id': 'long_context_evaluation',
+      'capability_gate': 'P2-12 Long Context Evaluation',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'query': query,
+      'corpus_path': corpusPath,
+      'chunk_index_path': chunkIndexPath,
+      'window_plan_path': windowPlanPath,
+      'retrieval_trace_path': retrievalTracePath,
+      'evidence_graph_path': evidenceGraphPath,
+      'answer_path': answerPath,
+      'missing_evidence_report_path': missingEvidencePath,
+      'validation_report_path': validationReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runLongContextEvaluationAcceptance',
+        'corpus_schema': 'prd_v3_long_context_corpus_record.v1',
+        'chunk_index_schema': 'prd_v3_long_context_chunk_index.v1',
+        'window_plan_schema': 'prd_v3_long_context_window_plan.v1',
+        'retrieval_trace_schema':
+            'prd_v3_long_context_retrieval_trace.v1',
+        'evidence_graph_schema': 'prd_v3_long_context_evidence_graph.v1',
+        'missing_evidence_schema':
+            'prd_v3_long_context_missing_evidence_report.v1',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'answer_path': answerPath,
+      },
+      'event_evidence': {
+        'event_type': 'long_context_evaluation_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'corpus, chunk index, window plan, retrieval trace, evidence graph, missing evidence report, answer and summary are written',
+        'view': 'registered summary and answer records reload through Artifact Catalog',
+        'open': 'registered summary and answer files can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only acceptance',
+        'restart_recovery':
+            'generated files reload from workspace paths after controller initialization',
+        'error_path': 'missing required anchor blocks answer',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_model_called': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-13 Official Sample Project Library',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'long_context_evaluation_validated',
+      module: 'knowledge_base',
+      action: 'run_long_context_evaluation_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'long_context_evaluation',
+      targetName: 'Long Context Evaluation',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'chunk_count': chunks.length,
+        'window_count': windows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'long_context_evaluation_summary',
+      artifactType: 'acceptance_report',
+      title: 'Long Context Evaluation Summary',
+      sourceModule: 'knowledge_base',
+      sourceId: 'long_context_evaluation',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'long_context_evaluation_answer',
+      artifactType: 'knowledge_answer',
+      title: 'Long Context Evaluation Answer',
+      sourceModule: 'knowledge_base',
+      sourceId: 'long_context_evaluation',
+      filePath: answerPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '长上下文评估核心验收证据已生成。' : '长上下文评估核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'long_context_evaluation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];

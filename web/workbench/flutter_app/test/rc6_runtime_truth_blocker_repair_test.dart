@@ -10339,6 +10339,135 @@ void main() {
         isTrue);
   });
 
+  test('p2 long context evaluation creates core evidence package', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runLongContextEvaluationAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_long_context_evaluation_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'long_context_evaluation');
+    expect(summary['capability_gate'], 'P2-12 Long Context Evaluation');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-13 Official Sample Project Library');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final chunkIndex = jsonDecode(
+        File(summary['chunk_index_path'] as String).readAsStringSync()) as Map;
+    expect(chunkIndex['schema_version'],
+        'prd_v3_long_context_chunk_index.v1');
+    expect((chunkIndex['chunks'] as List), hasLength(6));
+    final windowPlan = jsonDecode(
+        File(summary['window_plan_path'] as String).readAsStringSync()) as Map;
+    expect(windowPlan['schema_version'],
+        'prd_v3_long_context_window_plan.v1');
+    expect(windowPlan['window_count'], 2);
+    expect(windowPlan['missing_evidence_blocks_answer'], isTrue);
+    final traceRows =
+        readJsonlFile(summary['retrieval_trace_path'] as String);
+    expect(traceRows, hasLength(6));
+    expect(
+        traceRows.every((row) =>
+            row['trace_id'].toString().isNotEmpty &&
+            row['citation'].toString().isNotEmpty &&
+            row['selected'] == true),
+        isTrue);
+    final evidenceGraph = jsonDecode(
+            File(summary['evidence_graph_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(evidenceGraph['schema_version'],
+        'prd_v3_long_context_evidence_graph.v1');
+    expect((evidenceGraph['entities'] as List), hasLength(6));
+    expect(
+        (evidenceGraph['answer_contract']
+            as Map)['missing_evidence_blocks_answer'],
+        isTrue);
+    final missingEvidence = jsonDecode(
+            File(summary['missing_evidence_report_path'] as String)
+                .readAsStringSync())
+        as Map<String, dynamic>;
+    expect(missingEvidence['schema_version'],
+        'prd_v3_long_context_missing_evidence_report.v1');
+    expect(missingEvidence['answer_blocked'], isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_long_context_evaluation_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['answer_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'long_context_evaluation_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'long_context_evaluation_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'long_context_evaluation_answer' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

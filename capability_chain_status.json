@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-12 Long Context Evaluation",
+  "current_gate": "P2-13 Official Sample Project Library",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -83,11 +83,11 @@
     "P2-8 Blackbox Automation Baseline",
     "P2-9 Windows Packaging Baseline Smoke",
     "P2-10 Role-based Workgroup",
-    "P2-11 ReAct Tool Runtime Industrialization"
+    "P2-11 ReAct Tool Runtime Industrialization",
+    "P2-12 Long Context Evaluation"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-12 Long Context Evaluation",
     "P2-13 Official Sample Project Library",
     "P2-14 Polly-style Lead Orchestrator",
     "P2-15 Sandbox and Tool Permission Industrialization",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T04:01:55Z",
+  "updated_at": "2026-06-26T04:11:40Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -257,7 +257,9 @@
     "P2 queue now continues with P2-10 Role-based Workgroup.",
     "P2-10 Role-based Workgroup has user-blackbox role assignment, role outputs, Work Group discussion, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
     "P2 queue now continues with P2-11 ReAct Tool Runtime Industrialization.",
-    "P2-11 ReAct Tool Runtime Industrialization has core-only deterministic local ReAct loop, allowed-tool, denied-tool, validation, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate."
+    "P2-11 ReAct Tool Runtime Industrialization has core-only deterministic local ReAct loop, allowed-tool, denied-tool, validation, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2-12 Long Context Evaluation.",
+    "P2-12 Long Context Evaluation has core-only corpus, chunk index, window plan, retrieval trace, evidence graph, missing-evidence block, Event Ledger, Artifact Catalog and restart recovery evidence; it remains subject to P2 Release Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

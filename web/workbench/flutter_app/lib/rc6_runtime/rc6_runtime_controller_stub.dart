@@ -658,6 +658,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runLongContextEvaluationAcceptance({
+    String query = 'P2-12 Long Context Evaluation',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];
