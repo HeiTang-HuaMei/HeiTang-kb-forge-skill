@@ -10212,6 +10212,133 @@ void main() {
         isTrue);
   });
 
+  test('p2 react tool runtime industrialization creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runReactToolRuntimeIndustrialAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_react_tool_runtime_industrial_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'react_tool_runtime_industrial');
+    expect(summary['capability_gate'],
+        'P2-11 ReAct Tool Runtime Industrialization');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-12 Long Context Evaluation');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'external_runtime_executed' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final policy = jsonDecode(
+        File(summary['policy_path'] as String).readAsStringSync()) as Map;
+    expect(policy['schema_version'], 'prd_v3_react_tool_runtime_policy.v1');
+    expect(policy['allowlist'], contains('kb_retrieval'));
+    expect(policy['blocked_tools'], contains('arbitrary_shell'));
+    final loopRecords =
+        readJsonlFile(summary['loop_records_path'] as String);
+    expect(loopRecords, hasLength(5));
+    expect(loopRecords.any((row) => row['phase'] == 'thought'), isTrue);
+    expect(loopRecords.any((row) => row['phase'] == 'observation'), isTrue);
+    expect(
+        loopRecords.any((row) =>
+            row['tool_id'] == 'arbitrary_shell' &&
+            row['decision'] == 'deny' &&
+            row['executed'] == false),
+        isTrue);
+    final toolCalls =
+        readJsonlFile(summary['tool_call_log_path'] as String);
+    expect(
+        toolCalls.any((row) =>
+            row['tool_id'] == 'kb_retrieval' &&
+            row['decision'] == 'allow' &&
+            row['executed'] == true),
+        isTrue);
+    expect(
+        toolCalls.any((row) =>
+            row['tool_id'] == 'arbitrary_shell' &&
+            row['decision'] == 'deny' &&
+            row['executed'] == false &&
+            row['error_code'] == 'tool_not_allowlisted'),
+        isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_react_tool_runtime_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['error_report_path'] as String).existsSync(), isTrue);
+    expect(File(summary['answer_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'react_tool_runtime_industrial_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'react_tool_runtime_industrial_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'react_tool_runtime_answer' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();

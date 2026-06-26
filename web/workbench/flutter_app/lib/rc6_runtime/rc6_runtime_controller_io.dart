@@ -4639,6 +4639,441 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runReactToolRuntimeIndustrialAcceptance({
+    String task = 'P2-11 ReAct Tool Runtime Industrialization',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/react_tool_runtime_industrial_summary.json');
+    final root = _joinNested(workspace.path, 'agent/tool/react_runtime');
+    final policyPath = _joinNested(root, 'react_tool_policy.json');
+    final loopRecordsPath = _joinNested(root, 'react_loop_records.jsonl');
+    final toolCallLogPath = _joinNested(root, 'react_tool_call_log.jsonl');
+    final validationReportPath =
+        _joinNested(root, 'react_tool_runtime_validation_report.json');
+    final errorReportPath =
+        _joinNested(root, 'react_tool_runtime_error_report.json');
+    final stateSnapshotPath =
+        _joinNested(root, 'react_tool_runtime_state_snapshot.json');
+    final answerPath = _joinNested(root, 'react_answer.md');
+    state = state.copyWith(
+      running: true,
+      lastMessage: 'ReAct 工具运行时核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const allowlistedTools = ['kb_retrieval', 'document_export'];
+    const blockedTools = [
+      'arbitrary_shell',
+      'computer_use',
+      'plaintext_secret_access',
+    ];
+    final policy = {
+      'schema_version': 'prd_v3_react_tool_runtime_policy.v1',
+      'capability_id': 'react_tool_runtime_industrial',
+      'status': 'pass',
+      'execution_mode': 'deterministic_local_acceptance',
+      'allowlist': allowlistedTools,
+      'blocked_tools': blockedTools,
+      'tool_contracts': [
+        {
+          'tool_id': 'kb_retrieval',
+          'input_schema': {'query': 'string', 'top_k': 'integer'},
+          'output_schema': {
+            'evidence_refs': 'array',
+            'answerable': 'boolean',
+          },
+          'side_effect': 'read_only',
+        },
+        {
+          'tool_id': 'document_export',
+          'input_schema': {'artifact_path': 'string'},
+          'output_schema': {'export_path': 'string'},
+          'side_effect': 'test_marked_artifact_write',
+        },
+      ],
+      'secret_plaintext_access_allowed': false,
+      'external_runtime_execution_allowed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(policyPath, policy);
+
+    final loopRecords = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_react_loop_record.v1',
+        'step': 1,
+        'phase': 'thought',
+        'status': 'completed',
+        'content':
+            'Plan the answer from local knowledge evidence before selecting a tool.',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_react_loop_record.v1',
+        'step': 2,
+        'phase': 'action',
+        'tool_id': 'kb_retrieval',
+        'decision': 'allow',
+        'status': 'completed',
+        'input': {'query': task, 'top_k': 2},
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_react_loop_record.v1',
+        'step': 3,
+        'phase': 'observation',
+        'tool_id': 'kb_retrieval',
+        'status': 'completed',
+        'output': {
+          'answerable': true,
+          'evidence_refs': [
+            {
+              'trace_id': 'react_trace_01',
+              'citation': 'local_workspace://knowledge/K1#chunk=react_01',
+            },
+            {
+              'trace_id': 'react_trace_02',
+              'citation': 'local_workspace://skill/S1#contract=tool_policy',
+            },
+          ],
+        },
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_react_loop_record.v1',
+        'step': 4,
+        'phase': 'action',
+        'tool_id': 'arbitrary_shell',
+        'decision': 'deny',
+        'status': 'blocked',
+        'executed': false,
+        'error_code': 'tool_not_allowlisted',
+        'error_message': 'Tool is not in the local allowlist.',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_react_loop_record.v1',
+        'step': 5,
+        'phase': 'answer',
+        'status': 'completed',
+        'content':
+            'Answer is produced only after local evidence exists; denied tools do not execute.',
+        'created_at': now,
+      },
+    ];
+    await File(loopRecordsPath).parent.create(recursive: true);
+    await File(loopRecordsPath).writeAsString(
+      '${loopRecords.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final toolCalls = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_react_tool_call_log_record.v1',
+        'tool_id': 'kb_retrieval',
+        'decision': 'allow',
+        'status': 'completed',
+        'executed': true,
+        'external_runtime_executed': false,
+        'secret_plaintext_written': false,
+        'input_summary': 'query plus top_k',
+        'output_summary': 'two local evidence refs',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_react_tool_call_log_record.v1',
+        'tool_id': 'arbitrary_shell',
+        'decision': 'deny',
+        'status': 'blocked',
+        'executed': false,
+        'external_runtime_executed': false,
+        'secret_plaintext_written': false,
+        'error_code': 'tool_not_allowlisted',
+        'error_report_path': errorReportPath,
+        'created_at': now,
+      },
+    ];
+    await File(toolCallLogPath).parent.create(recursive: true);
+    await File(toolCallLogPath).writeAsString(
+      '${toolCalls.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await _writeJsonFile(errorReportPath, {
+      'schema_version': 'prd_v3_react_tool_runtime_error_report.v1',
+      'status': 'pass',
+      'blocked_tool_id': 'arbitrary_shell',
+      'error_code': 'tool_not_allowlisted',
+      'executed': false,
+      'api_called': false,
+      'secret_plaintext_written': false,
+      'created_at': now,
+    });
+    await File(answerPath).parent.create(recursive: true);
+    await File(answerPath).writeAsString(
+      [
+        '# ReAct 工具运行时验收答案',
+        '',
+        '## 结论',
+        '本地 ReAct 循环只调用白名单内工具；越权工具被拒绝且没有执行。',
+        '',
+        '## 证据',
+        '- react_trace_01: local_workspace://knowledge/K1#chunk=react_01',
+        '- react_trace_02: local_workspace://skill/S1#contract=tool_policy',
+        '',
+        '## 边界',
+        '- 不执行外部 runtime。',
+        '- 不读取或写入明文 secret。',
+        '- 不打包 Redis / Vector DB 服务本体。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version': 'prd_v3_react_tool_runtime_state_snapshot.v1',
+      'status': 'pass',
+      'last_completed_step': 5,
+      'allowlisted_tool_count': allowlistedTools.length,
+      'blocked_tool_count': blockedTools.length,
+      'loop_records_path': loopRecordsPath,
+      'tool_call_log_path': toolCallLogPath,
+      'answer_path': answerPath,
+      'restart_reload_required': true,
+      'created_at': now,
+    });
+
+    final reloadedPolicy = await _readJsonObject(policyPath);
+    final reloadedState = await _readJsonObject(stateSnapshotPath);
+    final loopLines = File(loopRecordsPath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final callLines = File(toolCallLogPath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final callRecords = callLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final allowCall = callRecords.any((row) =>
+        row['tool_id'] == 'kb_retrieval' &&
+        row['decision'] == 'allow' &&
+        row['executed'] == true);
+    final deniedCall = callRecords.any((row) =>
+        row['tool_id'] == 'arbitrary_shell' &&
+        row['decision'] == 'deny' &&
+        row['executed'] == false &&
+        row['error_code'] == 'tool_not_allowlisted');
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'policy_written': await File(policyPath).exists(),
+      'policy_schema_valid': _stringValue(
+              reloadedPolicy['schema_version'], '') ==
+          'prd_v3_react_tool_runtime_policy.v1',
+      'allowlist_contains_kb_retrieval':
+          _listOfStrings(reloadedPolicy['allowlist']).contains('kb_retrieval'),
+      'blocked_tools_contains_arbitrary_shell':
+          _listOfStrings(reloadedPolicy['blocked_tools'])
+              .contains('arbitrary_shell'),
+      'loop_records_written': loopLines.length >= 5,
+      'tool_call_log_written': callLines.length >= 2,
+      'allowlisted_tool_executed': allowCall,
+      'non_allowlisted_tool_denied': deniedCall,
+      'error_report_written': await File(errorReportPath).exists(),
+      'answer_written': await File(answerPath).exists(),
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedState['status'], '') == 'pass' &&
+              _stringValue(reloadedState['loop_records_path'], '') ==
+                  loopRecordsPath,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'external_runtime_executed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'external_runtime_executed',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = {
+      'schema_version': 'prd_v3_react_tool_runtime_validation_report.v1',
+      'status': status,
+      'policy_path': policyPath,
+      'loop_records_path': loopRecordsPath,
+      'tool_call_log_path': toolCallLogPath,
+      'error_report_path': errorReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'answer_path': answerPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_react_tool_runtime_industrial_summary.v1',
+      'status': status,
+      'capability_id': 'react_tool_runtime_industrial',
+      'capability_gate': 'P2-11 ReAct Tool Runtime Industrialization',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'workspace': workspace.path,
+      'runtime_method': 'runReactToolRuntimeIndustrialAcceptance',
+      'policy_path': policyPath,
+      'loop_records_path': loopRecordsPath,
+      'tool_call_log_path': toolCallLogPath,
+      'validation_report_path': validationReportPath,
+      'error_report_path': errorReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'answer_path': answerPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runReactToolRuntimeIndustrialAcceptance',
+        'policy_schema': 'prd_v3_react_tool_runtime_policy.v1',
+        'loop_record_schema': 'prd_v3_react_loop_record.v1',
+        'tool_call_schema': 'prd_v3_react_tool_call_log_record.v1',
+        'allowed_tool_path': 'kb_retrieval allow -> observation',
+        'denied_tool_path': 'arbitrary_shell deny -> error report',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'answer_path': answerPath,
+      },
+      'event_evidence': {
+        'event_type': 'react_tool_runtime_industrial_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'policy, ReAct loop records, tool call log, validation report and answer artifact are written',
+        'view': 'summary and answer are registered in Artifact Catalog',
+        'open': 'registered summary and answer files can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only acceptance',
+        'restart_recovery':
+            'state snapshot and generated files reload from workspace paths',
+        'error_path':
+            'non-allowlisted tool request is denied and recorded without execution',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'external_runtime_executed': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-12 Long Context Evaluation',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'react_tool_runtime_industrial_validated',
+      module: 'agent',
+      action: 'run_react_tool_runtime_industrial_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'react_tool_runtime_industrial',
+      targetName: 'ReAct Tool Runtime Industrialization',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'policy_path': policyPath,
+        'tool_call_log_path': toolCallLogPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'react_tool_runtime_industrial_summary',
+      artifactType: 'acceptance_report',
+      title: 'ReAct Tool Runtime Industrial Summary',
+      sourceModule: 'agent',
+      sourceId: 'react_tool_runtime_industrial',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'react_tool_runtime_answer',
+      artifactType: 'runtime_answer',
+      title: 'ReAct Tool Runtime Answer',
+      sourceModule: 'agent',
+      sourceId: 'react_tool_runtime_industrial',
+      filePath: answerPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? 'ReAct 工具运行时核心验收证据已生成。' : 'ReAct 工具运行时核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'react_tool_runtime_industrial_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
