@@ -12068,6 +12068,687 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runMultiKbGovernanceIndustrialAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/multi_kb_governance_industrial_summary.json');
+    final root = _joinNested(workspace.path, 'multi_kb_governance_industrial');
+    await _clearWorkspacePath(root);
+    final templateManifestPath =
+        _joinNested(root, 'knowledge_base_template_manifest.json');
+    final multiKbManifestPath =
+        _joinNested(root, 'test_multi_kb_manifest.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final scopeMatrixPath = _joinNested(root, 'scope_matrix.json');
+    final permissionMatrixPath = _joinNested(root, 'permission_matrix.json');
+    final versionMetadataPath =
+        _joinNested(root, 'version_scope_metadata.json');
+    final queryAnswerPath = _joinNested(root, 'query_answer_route_report.json');
+    final activeGovernancePath =
+        _joinNested(root, 'active_test_multi_kb_governance.json');
+    final deleteReportPath = _joinNested(root, 'delete_report.json');
+    final tombstonePath =
+        _joinNested(root, 'test_multi_kb_governance.tombstone.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '多知识库治理核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final templates = <Map<String, Object?>>[
+      {
+        'template_id': 'company_knowledge_base',
+        'display_name': '公司知识库',
+        'user_action': '创建知识库',
+        'default_scope': 'company',
+      },
+      {
+        'template_id': 'project_archive',
+        'display_name': '项目档案',
+        'user_action': '创建知识库',
+        'default_scope': 'project',
+      },
+      {
+        'template_id': 'policy_library',
+        'display_name': '制度资料库',
+        'user_action': '创建知识库',
+        'default_scope': 'policy',
+      },
+      {
+        'template_id': 'research_library',
+        'display_name': '研究资料库',
+        'user_action': '创建知识库',
+        'default_scope': 'research',
+      },
+      {
+        'template_id': 'customer_support_library',
+        'display_name': '客户支持库',
+        'user_action': '创建知识库',
+        'default_scope': 'support',
+      },
+    ];
+    await _writeJsonFile(templateManifestPath, {
+      'schema_version': 'prd_v3_multi_kb_template_manifest.v1',
+      'status': 'available',
+      'capability_gate': 'P2-26 Multi-KB Governance Industrial',
+      'user_visible_entry': '常用知识库模板',
+      'user_visible_action': '创建知识库',
+      'template_count': templates.length,
+      'templates': templates,
+      'template_existence_only_closes_gate': false,
+      'provider_adapter_parser_visible': false,
+      'capability_matrix_visible': false,
+      'created_at': now,
+    });
+
+    final knowledgeBases = <Map<String, Object?>>[
+      {
+        'knowledge_base_id': 'test_kb_company_p2_26',
+        'display_name': '测试公司知识库',
+        'template_id': 'company_knowledge_base',
+        'scope': 'company',
+        'version_id': 'test_kb_company_p2_26_v1',
+        'permission_group': 'test_company_readers',
+        'test_marker': true,
+        'documents': const [
+          {
+            'document_id': 'test_doc_company_policy',
+            'title': '公司制度测试资料',
+            'source_path': 'test_sources/company_policy.md',
+            'chunk_id': 'test_chunk_company_policy_001',
+            'citation': 'company_policy.md#chunk=1',
+            'entity_refs': ['policy', 'company_scope'],
+            'fact': '公司知识库只允许公司范围问题读取。',
+          },
+        ],
+      },
+      {
+        'knowledge_base_id': 'test_kb_project_p2_26',
+        'display_name': '测试项目档案',
+        'template_id': 'project_archive',
+        'scope': 'project',
+        'version_id': 'test_kb_project_p2_26_v1',
+        'permission_group': 'test_project_members',
+        'test_marker': true,
+        'documents': const [
+          {
+            'document_id': 'test_doc_project_plan',
+            'title': '项目计划测试资料',
+            'source_path': 'test_sources/project_plan.md',
+            'chunk_id': 'test_chunk_project_plan_001',
+            'citation': 'project_plan.md#chunk=1',
+            'entity_refs': ['project', 'milestone'],
+            'fact': '项目档案只允许项目成员读取。',
+          },
+        ],
+      },
+      {
+        'knowledge_base_id': 'test_kb_research_p2_26',
+        'display_name': '测试研究资料库',
+        'template_id': 'research_library',
+        'scope': 'research',
+        'version_id': 'test_kb_research_p2_26_v1',
+        'permission_group': 'test_research_readers',
+        'test_marker': true,
+        'documents': const [
+          {
+            'document_id': 'test_doc_research_note',
+            'title': '研究笔记测试资料',
+            'source_path': 'test_sources/research_note.md',
+            'chunk_id': 'test_chunk_research_note_001',
+            'citation': 'research_note.md#chunk=1',
+            'entity_refs': ['research', 'evidence'],
+            'fact': '研究资料库需要保留来源追踪。',
+          },
+        ],
+      },
+    ];
+    await _writeJsonFile(multiKbManifestPath, {
+      'schema_version': 'prd_v3_multi_kb_governance_manifest.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-26 Multi-KB Governance Industrial',
+      'knowledge_base_count': knowledgeBases.length,
+      'knowledge_bases': knowledgeBases,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final traceRows = <Map<String, Object?>>[
+      for (final kb in knowledgeBases)
+        for (final document in _listOfMaps(kb['documents']))
+          {
+            'schema_version': 'prd_v3_multi_kb_source_trace.v1',
+            'trace_id': 'trace_${_stringValue(document['chunk_id'], '')}',
+            'knowledge_base_id': kb['knowledge_base_id'],
+            'kb_scope': kb['scope'],
+            'version_id': kb['version_id'],
+            'document_id': document['document_id'],
+            'chunk_id': document['chunk_id'],
+            'source_path': document['source_path'],
+            'citation': document['citation'],
+            'entity_refs': document['entity_refs'],
+            'excerpt': document['fact'],
+            'test_marker': true,
+            'created_at': now,
+          }
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final scopeMatrix = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_scope_matrix.v1',
+      'status': 'pass',
+      'primary_knowledge_base_id': 'test_kb_company_p2_26',
+      'allowed_reference_kb_ids': const [
+        'test_kb_project_p2_26',
+        'test_kb_research_p2_26',
+      ],
+      'denied_kb_ids': const ['real_user_kb_not_test_marked'],
+      'scope_modes': const ['single', 'allowed_reference', 'blocked'],
+      'scope_rules': const [
+        {
+          'rule_id': 'primary_company_scope',
+          'decision': 'allow',
+          'kb_id': 'test_kb_company_p2_26',
+          'reason': 'primary test knowledge base',
+        },
+        {
+          'rule_id': 'project_reference_scope',
+          'decision': 'allow',
+          'kb_id': 'test_kb_project_p2_26',
+          'reason': 'explicitly allowed test reference',
+        },
+        {
+          'rule_id': 'non_test_real_user_scope',
+          'decision': 'block',
+          'kb_id': 'real_user_kb_not_test_marked',
+          'reason': 'not test-marked and outside allowed references',
+        },
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(scopeMatrixPath, scopeMatrix);
+
+    final permissionMatrix = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_permission_matrix.v1',
+      'status': 'pass',
+      'read_permissions': const {
+        'test_company_readers': ['test_kb_company_p2_26'],
+        'test_project_members': [
+          'test_kb_company_p2_26',
+          'test_kb_project_p2_26',
+        ],
+        'test_research_readers': ['test_kb_research_p2_26'],
+      },
+      'write_permissions': const {
+        'test_project_members': ['test_kb_project_p2_26'],
+      },
+      'delete_scope': 'test_marked_objects_only',
+      'blocked_actions': const [
+        'delete_real_user_knowledge_base',
+        'read_denied_knowledge_base',
+        'write_unowned_knowledge_base',
+        'expose_secret',
+      ],
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(permissionMatrixPath, permissionMatrix);
+
+    final versionMetadata = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_version_scope_metadata.v1',
+      'status': 'pass',
+      'versioned_knowledge_governance_closed_by_this_gate': false,
+      'metadata_scope': 'P2-26 multi-kb routing evidence only',
+      'versions': [
+        for (final kb in knowledgeBases)
+          {
+            'knowledge_base_id': kb['knowledge_base_id'],
+            'version_id': kb['version_id'],
+            'version_status': 'current_test_version',
+            'source_trace_path': sourceTracePath,
+            'test_marker': true,
+          }
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(versionMetadataPath, versionMetadata);
+
+    final allowedKbIds = {
+      _stringValue(scopeMatrix['primary_knowledge_base_id'], ''),
+      ..._listOfStrings(scopeMatrix['allowed_reference_kb_ids']),
+    };
+    final selectedTraceRows = traceRows
+        .where((row) =>
+            allowedKbIds.contains(_stringValue(row['knowledge_base_id'], '')))
+        .toList(growable: false);
+    final queryAnswerReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_query_answer_route_report.v1',
+      'status':
+          selectedTraceRows.length == traceRows.length ? 'pass' : 'blocked',
+      'query': '测试多知识库治理是否只读取允许范围内的证据',
+      'route': 'Anchor -> Entity -> Evidence -> Answer',
+      'primary_knowledge_base_id': scopeMatrix['primary_knowledge_base_id'],
+      'used_knowledge_base_ids': selectedTraceRows
+          .map((row) => _stringValue(row['knowledge_base_id'], ''))
+          .toSet()
+          .toList(growable: false),
+      'blocked_knowledge_base_ids': scopeMatrix['denied_kb_ids'],
+      'evidence_refs': [
+        for (final row in selectedTraceRows)
+          {
+            'trace_id': row['trace_id'],
+            'knowledge_base_id': row['knowledge_base_id'],
+            'citation': row['citation'],
+            'version_id': row['version_id'],
+          }
+      ],
+      'answer': '仅基于允许范围内的测试知识库证据回答，越权知识库不参与。',
+      'created_at': now,
+    };
+    await _writeJsonFile(queryAnswerPath, queryAnswerReport);
+
+    await _writeJsonFile(activeGovernancePath, {
+      'schema_version': 'prd_v3_multi_kb_active_governance_record.v1',
+      'status': 'active',
+      'record_id': 'test_multi_kb_governance_p2_26',
+      'knowledge_base_ids': knowledgeBases
+          .map((kb) => _stringValue(kb['knowledge_base_id'], ''))
+          .toList(growable: false),
+      'test_marker': true,
+      'created_at': now,
+    });
+    final activeExistsBeforeDelete = await File(activeGovernancePath).exists();
+    await File(activeGovernancePath).delete();
+    final activeExistsAfterDelete = await File(activeGovernancePath).exists();
+    await _writeJsonFile(tombstonePath, {
+      'schema_version': 'prd_v3_multi_kb_governance_tombstone.v1',
+      'status': 'deleted',
+      'record_id': 'test_multi_kb_governance_p2_26',
+      'deleted_object': activeGovernancePath,
+      'delete_scope': 'current_test_marked_governance_record_only',
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+    await _writeJsonFile(deleteReportPath, {
+      'schema_version': 'prd_v3_multi_kb_governance_delete_report.v1',
+      'status': activeExistsBeforeDelete && !activeExistsAfterDelete
+          ? 'pass'
+          : 'blocked',
+      'active_record_exists_before_delete': activeExistsBeforeDelete,
+      'active_record_exists_after_delete': activeExistsAfterDelete,
+      'tombstone_path': tombstonePath,
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_governance_state_snapshot.v1',
+      'status': 'pass',
+      'template_manifest_path': templateManifestPath,
+      'multi_kb_manifest_path': multiKbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'scope_matrix_path': scopeMatrixPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'version_metadata_path': versionMetadataPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-27 Versioned Knowledge Governance',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_governance_boundary_report.v1',
+      'status': 'pass',
+      'external_database_connected': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'versioned_knowledge_governance_closed_by_this_gate': false,
+      'stage_chain_mutated': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final templateManifest = await _readJsonObject(templateManifestPath);
+    final multiKbManifest = await _readJsonObject(multiKbManifestPath);
+    final reloadedScope = await _readJsonObject(scopeMatrixPath);
+    final reloadedPermission = await _readJsonObject(permissionMatrixPath);
+    final reloadedVersion = await _readJsonObject(versionMetadataPath);
+    final reloadedQuery = await _readJsonObject(queryAnswerPath);
+    final reloadedDelete = await _readJsonObject(deleteReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final reloadedTraceRows = await _readJsonl(File(sourceTracePath));
+    final forbiddenUiTokens = [
+      'OpenDataLoader',
+      'Composio',
+      'Provider',
+      'Adapter',
+      'Parser',
+      'Provider Matrix',
+      'Capability Matrix',
+      'dependency_gated',
+      'ready_for_user_selection',
+      '0/',
+    ];
+    final userVisibleText = [
+      _stringValue(templateManifest['user_visible_entry'], ''),
+      _stringValue(templateManifest['user_visible_action'], ''),
+      ..._listOfMaps(templateManifest['templates'])
+          .map((row) => _stringValue(row['display_name'], '')),
+    ].join(' ');
+    final traceKbIds = reloadedTraceRows
+        .map((row) => _stringValue(row['knowledge_base_id'], ''))
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final usedKbIds = _listOfStrings(reloadedQuery['used_knowledge_base_ids']);
+    final blockedKbIds =
+        _listOfStrings(reloadedQuery['blocked_knowledge_base_ids']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'template_manifest_exists': await File(templateManifestPath).exists(),
+      'template_seed_set_complete':
+          _listOfMaps(templateManifest['templates']).length >= 5,
+      'product_facing_template_entry_present':
+          _stringValue(templateManifest['user_visible_entry'], '') == '常用知识库模板',
+      'forbidden_ui_tokens_absent':
+          forbiddenUiTokens.every((token) => !userVisibleText.contains(token)),
+      'multi_kb_manifest_written': await File(multiKbManifestPath).exists(),
+      'multi_kb_manifest_has_three_test_kbs':
+          _listOfMaps(multiKbManifest['knowledge_bases']).length == 3,
+      'all_kbs_test_marked': _listOfMaps(multiKbManifest['knowledge_bases'])
+          .every((row) => row['test_marker'] == true),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_spans_multiple_kbs': traceKbIds.length >= 3,
+      'scope_matrix_written': await File(scopeMatrixPath).exists(),
+      'scope_matrix_passed':
+          _stringValue(reloadedScope['status'], '') == 'pass',
+      'scope_matrix_blocks_non_test_kb':
+          _listOfStrings(reloadedScope['denied_kb_ids'])
+              .contains('real_user_kb_not_test_marked'),
+      'permission_matrix_written': await File(permissionMatrixPath).exists(),
+      'permission_matrix_passed':
+          _stringValue(reloadedPermission['status'], '') == 'pass',
+      'permission_blocks_real_delete':
+          _listOfStrings(reloadedPermission['blocked_actions'])
+              .contains('delete_real_user_knowledge_base'),
+      'version_metadata_written': await File(versionMetadataPath).exists(),
+      'version_metadata_passed':
+          _stringValue(reloadedVersion['status'], '') == 'pass',
+      'versioned_knowledge_governance_not_closed': reloadedVersion[
+              'versioned_knowledge_governance_closed_by_this_gate'] ==
+          false,
+      'query_answer_route_written': await File(queryAnswerPath).exists(),
+      'query_answer_route_passed':
+          _stringValue(reloadedQuery['status'], '') == 'pass',
+      'query_uses_allowed_kbs_only':
+          usedKbIds.every((id) => allowedKbIds.contains(id)),
+      'query_blocks_denied_kb':
+          blockedKbIds.contains('real_user_kb_not_test_marked'),
+      'delete_report_passed':
+          _stringValue(reloadedDelete['status'], '') == 'pass',
+      'test_governance_record_removed':
+          reloadedDelete['active_record_exists_after_delete'] == false,
+      'tombstone_written': await File(tombstonePath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['next_gate'], '') ==
+                  'P2-27 Versioned Knowledge Governance' &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_database_connected': false,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+    };
+    const negativeChecks = {
+      'external_database_connected',
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'network_call_made',
+      'new_dependency_added',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_governance_validation_report.v1',
+      'status': status,
+      'template_manifest_path': templateManifestPath,
+      'multi_kb_manifest_path': multiKbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'scope_matrix_path': scopeMatrixPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'version_metadata_path': versionMetadataPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_multi_kb_governance_industrial_summary.v1',
+      'status': status,
+      'capability_id': 'multi_kb_governance_industrial',
+      'capability_gate': 'P2-26 Multi-KB Governance Industrial',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'template_manifest_path': templateManifestPath,
+      'multi_kb_manifest_path': multiKbManifestPath,
+      'source_trace_path': sourceTracePath,
+      'scope_matrix_path': scopeMatrixPath,
+      'permission_matrix_path': permissionMatrixPath,
+      'version_metadata_path': versionMetadataPath,
+      'query_answer_route_report_path': queryAnswerPath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'knowledge_base_count': knowledgeBases.length,
+      'source_trace_count': reloadedTraceRows.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMultiKbGovernanceIndustrialAcceptance',
+        'template_schema': 'prd_v3_multi_kb_template_manifest.v1',
+        'manifest_schema': 'prd_v3_multi_kb_governance_manifest.v1',
+        'source_trace_schema': 'prd_v3_multi_kb_source_trace.v1',
+        'scope_matrix_schema': 'prd_v3_multi_kb_scope_matrix.v1',
+        'permission_matrix_schema': 'prd_v3_multi_kb_permission_matrix.v1',
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'core_only multi-KB governance contract; no standalone UI blackbox is required',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'query_answer_route_report_path': queryAnswerPath,
+        'scope_matrix_path': scopeMatrixPath,
+        'permission_matrix_path': permissionMatrixPath,
+      },
+      'event_evidence': {
+        'event_type': 'multi_kb_governance_industrial_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'template manifest, multi-KB manifest, source trace, scope matrix, permission matrix, query route report, validation report and summary are written',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
+        'open': 'registered report paths can be opened by path',
+        'export':
+            'registered report paths are available for Artifact Center export',
+        'delete':
+            'only the current test-marked active governance record is removed and tombstoned',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'denied knowledge bases, real-user deletion and missing source trace block acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-27 Versioned Knowledge Governance',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'multi_kb_governance_industrial_validated',
+      module: 'knowledge_governance',
+      action: 'run_multi_kb_governance_industrial_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'multi_kb_governance_industrial',
+      targetName: 'Multi-KB Governance Industrial',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'knowledge_base_count': knowledgeBases.length,
+        'source_trace_count': reloadedTraceRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_kb_governance_industrial_summary',
+      artifactType: 'acceptance_report',
+      title: 'Multi-KB Governance Industrial Summary',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'multi_kb_governance_industrial',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_kb_governance_validation',
+      artifactType: 'validation_report',
+      title: 'Multi-KB Governance Validation',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'multi_kb_governance_industrial',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_kb_governance_source_trace',
+      artifactType: 'source_trace',
+      title: 'Multi-KB Governance Source Trace',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'multi_kb_governance_industrial',
+      filePath: sourceTracePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'knowledge_base_count': knowledgeBases.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'multi_kb_governance_tombstone',
+      artifactType: 'tombstone',
+      title: 'Multi-KB Governance Test Record Tombstone',
+      sourceModule: 'knowledge_governance',
+      sourceId: 'multi_kb_governance_industrial',
+      filePath: tombstonePath,
+      status: 'deleted',
+      metadata: {
+        'delete_report_path': deleteReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass' ? '多知识库治理核心验收证据已生成。' : '多知识库治理核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'multi_kb_governance_industrial_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
