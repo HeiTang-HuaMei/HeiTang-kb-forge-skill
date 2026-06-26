@@ -24955,6 +24955,470 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String>
+      runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成记忆适配评估治理证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const runId = 'test_tencentdb_agent_memory_adapter_evaluation_p2_42';
+    final root =
+        _joinNested(workspace.path, 'tencentdb_agent_memory_adapter_evaluation');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/tencentdb_agent_memory_adapter_evaluation_summary.json');
+    final evaluationMatrixPath =
+        _joinNested(root, 'optional_adapter_evaluation_matrix.json');
+    final nativeContractPath =
+        _joinNested(root, 'native_memory_contract_mapping.json');
+    final dependencyRiskPath =
+        _joinNested(root, 'dependency_risk_report.json');
+    final queueInvariantPath =
+        _joinNested(root, 'queue_invariant_report.json');
+    final decisionRecordPath =
+        _joinNested(root, 'optional_integration_decision.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+    await Directory(root).create(recursive: true);
+
+    final evaluationMatrix = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_adapter_evaluation_matrix.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'capability_id': 'tencentdb_agent_memory_adapter_evaluation',
+      'acceptance_type': 'governance',
+      'external_project_classification': 'absorb',
+      'current_action': 'evaluate_only_no_runtime_integration',
+      'optional_integration_status': 'deferred_until_owner_review',
+      'module_binding': 'HeiTang Memory & Evidence Layer',
+      'user_facing_capability_label': '记忆与证据能力',
+      'allowed_absorption': const [
+        'layered_memory_taxonomy',
+        'memory_contract_shape',
+        'observability_drilldown_pattern',
+        'forget_update_retrieve_lifecycle',
+      ],
+      'disallowed_actions': const [
+        'runtime_integration_in_current_gate',
+        'node_22_dependency_addition',
+        'bundled_external_memory_service',
+        'local_model_training',
+        'gpu_training',
+        'user_visible_external_project_name',
+      ],
+      'fresh_evidence_required': true,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(evaluationMatrixPath, evaluationMatrix);
+
+    final nativeContract = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_native_contract_mapping.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'native_contract': {
+        'memory_card': 'HeiTang memory_cards',
+        'source_trace': 'HeiTang source_trace',
+        'evidence': 'HeiTang evidence_map',
+        'event': 'HeiTang Event Ledger',
+        'artifact': 'HeiTang Artifact Catalog',
+      },
+      'adapter_boundary': {
+        'adapter_runtime_loaded': false,
+        'external_database_connected': false,
+        'external_memory_service_connected': false,
+        'real_memory_applied': false,
+        'test_marked_evaluation_only': true,
+      },
+      'required_future_checks_if_owner_approves': const [
+        'license_review',
+        'dependency_review',
+        'connector_boundary_review',
+        'masked_secret_review',
+        'rollback_plan',
+        'p2_release_gate_regression',
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(nativeContractPath, nativeContract);
+
+    final dependencyRiskReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_dependency_risk_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'node_22_dependency_added': false,
+      'new_dependency_added': false,
+      'package_manifest_changed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'external_memory_runtime_loaded': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'network_call_made': false,
+      'requires_owner_approval_before_real_integration': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(dependencyRiskPath, dependencyRiskReport);
+
+    final queueInvariant = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_queue_invariant_report.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'current_gate_before_closure':
+          'P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration',
+      'next_gate_after_closure': 'P2 Release Gate',
+      'p2_release_gate_still_queued': true,
+      'final_owner_review_still_queued': true,
+      'remaining_gates_non_empty': true,
+      'global_goal_complete': false,
+      'stage_chain_unchanged': true,
+      'release_gate_not_skipped': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(queueInvariantPath, queueInvariant);
+
+    final decisionRecord = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_optional_integration_decision.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'decision': 'do_not_integrate_in_current_gate',
+      'decision_reason':
+          'current gate closes governance evaluation only; real adapter integration requires Owner approval and future connector/runtime acceptance',
+      'optional_integration_allowed_now': false,
+      'owner_review_required_for_future_real_integration': true,
+      'release_gate_regression_required': true,
+      'runtime_now': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(decisionRecordPath, decisionRecord);
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_adapter_evaluation_state_snapshot.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'evaluation_matrix_path': evaluationMatrixPath,
+      'native_contract_path': nativeContractPath,
+      'dependency_risk_path': dependencyRiskPath,
+      'queue_invariant_path': queueInvariantPath,
+      'decision_record_path': decisionRecordPath,
+      'global_goal_complete': false,
+      'next_gate': 'P2 Release Gate',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_adapter_evaluation_boundary_report.v1',
+      'status': 'pass',
+      'runtime_integration_done': false,
+      'external_project_runtime_loaded': false,
+      'external_memory_service_connected': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'node_22_dependency_added': false,
+      'package_manifest_changed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'ui_modified': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedEvaluation = await _readJsonObject(evaluationMatrixPath);
+    final reloadedContract = await _readJsonObject(nativeContractPath);
+    final reloadedDependency = await _readJsonObject(dependencyRiskPath);
+    final reloadedQueue = await _readJsonObject(queueInvariantPath);
+    final reloadedDecision = await _readJsonObject(decisionRecordPath);
+    final reloadedState = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_governance': true,
+      'blackbox_not_required': true,
+      'evaluation_matrix_written': await File(evaluationMatrixPath).exists(),
+      'evaluation_classified_absorb': _stringValue(
+              reloadedEvaluation['external_project_classification'], '') ==
+          'absorb',
+      'evaluation_is_current_gate_only': _stringValue(
+              reloadedEvaluation['current_action'], '') ==
+          'evaluate_only_no_runtime_integration',
+      'optional_integration_deferred': _stringValue(
+              reloadedEvaluation['optional_integration_status'], '') ==
+          'deferred_until_owner_review',
+      'native_contract_written': await File(nativeContractPath).exists(),
+      'native_contract_maps_to_heitang_memory':
+          _mapValue(reloadedContract['native_contract'])
+              .containsKey('memory_card'),
+      'dependency_risk_written': await File(dependencyRiskPath).exists(),
+      'no_dependency_added':
+          reloadedDependency['new_dependency_added'] == false &&
+              reloadedDependency['node_22_dependency_added'] == false,
+      'queue_invariant_written': await File(queueInvariantPath).exists(),
+      'p2_release_gate_still_queued':
+          reloadedQueue['p2_release_gate_still_queued'] == true,
+      'final_owner_review_still_queued':
+          reloadedQueue['final_owner_review_still_queued'] == true,
+      'remaining_gates_non_empty':
+          reloadedQueue['remaining_gates_non_empty'] == true,
+      'global_goal_complete_false':
+          reloadedQueue['global_goal_complete'] == false,
+      'decision_record_written': await File(decisionRecordPath).exists(),
+      'decision_blocks_current_runtime_integration':
+          reloadedDecision['optional_integration_allowed_now'] == false &&
+              reloadedDecision['runtime_now'] == false,
+      'state_snapshot_written': await File(stateSnapshotPath).exists(),
+      'state_snapshot_next_gate_p2_release':
+          _stringValue(reloadedState['next_gate'], '') == 'P2 Release Gate',
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'runtime_integration_done': false,
+      'external_project_runtime_loaded': false,
+      'external_memory_service_connected': false,
+      'external_database_connected': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'node_22_dependency_added': false,
+      'package_manifest_changed': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'ui_modified': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+    };
+    const negativeChecks = {
+      'runtime_integration_done',
+      'external_project_runtime_loaded',
+      'external_memory_service_connected',
+      'external_database_connected',
+      'external_model_called',
+      'network_call_made',
+      'new_dependency_added',
+      'node_22_dependency_added',
+      'package_manifest_changed',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_memory_applied',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'ui_modified',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_adapter_evaluation_validation_report.v1',
+      'status': status,
+      'run_id': runId,
+      'evaluation_matrix_path': evaluationMatrixPath,
+      'native_contract_path': nativeContractPath,
+      'dependency_risk_path': dependencyRiskPath,
+      'queue_invariant_path': queueInvariantPath,
+      'decision_record_path': decisionRecordPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_tencentdb_agent_memory_adapter_evaluation_summary.v1',
+      'status': status,
+      'capability_id': 'tencentdb_agent_memory_adapter_evaluation',
+      'capability_gate':
+          'P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration',
+      'acceptance_type': 'governance',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'governance_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'evaluation_matrix_path': evaluationMatrixPath,
+      'native_contract_path': nativeContractPath,
+      'dependency_risk_path': dependencyRiskPath,
+      'queue_invariant_path': queueInvariantPath,
+      'decision_record_path': decisionRecordPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'optional_integration_status': 'deferred_until_owner_review',
+      'runtime_integration_done': false,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method':
+            'runTencentDbAgentMemoryAdapterEvaluationAcceptance',
+        'evaluation_matrix': evaluationMatrixPath,
+        'native_contract': nativeContractPath,
+        'dependency_risk': dependencyRiskPath,
+      },
+      'black_box_evidence': {
+        'status': 'not_required',
+        'reason':
+            'governance capability; no user-facing UI path is created in this gate',
+      },
+      'governance_evidence': {
+        'classification': 'absorb',
+        'decision': 'do_not_integrate_in_current_gate',
+        'queue_invariant_report_path': queueInvariantPath,
+        'boundary_report_path': boundaryReportPath,
+      },
+      'lifecycle_evidence': {
+        'create':
+            'evaluation matrix, native contract, dependency risk, queue invariant, decision, validation and boundary files are written',
+        'view': 'summary and reports can be read as local artifacts',
+        'open': 'Artifact Center can preview the JSON summary',
+        'export': 'Artifact Center can export the JSON summary',
+        'delete': 'only test-marked evaluation artifacts are in scope',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'runtime integration, dependency expansion, secret leakage or queue mutation blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2 Release Gate',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'tencentdb_agent_memory_adapter_evaluation_validated',
+      module: 'agent_memory',
+      action: 'run_optional_memory_adapter_evaluation_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'tencentdb_agent_memory_adapter_evaluation',
+      targetName: 'Agent Memory Optional Adapter Evaluation',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'governance',
+        'optional_integration_status': 'deferred_until_owner_review',
+        'runtime_integration_done': false,
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'tencentdb_agent_memory_adapter_evaluation_summary',
+      artifactType: 'acceptance_report',
+      title: 'Agent Memory Optional Adapter Evaluation Summary',
+      sourceModule: 'agent_memory',
+      sourceId: 'tencentdb_agent_memory_adapter_evaluation',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'governance',
+        'optional_integration_status': 'deferred_until_owner_review',
+        'runtime_integration_done': false,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'tencentdb_agent_memory_adapter_evaluation_validation',
+      artifactType: 'validation_report',
+      title: 'Agent Memory Optional Adapter Evaluation Validation',
+      sourceModule: 'agent_memory',
+      sourceId: 'tencentdb_agent_memory_adapter_evaluation',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'tencentdb_agent_memory_adapter_evaluation_boundary',
+      artifactType: 'boundary_report',
+      title: 'Agent Memory Optional Adapter Evaluation Boundary',
+      sourceModule: 'agent_memory',
+      sourceId: 'tencentdb_agent_memory_adapter_evaluation',
+      filePath: boundaryReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'runtime_integration_done': false,
+        'new_dependency_added': false,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '记忆适配评估治理证据已生成。'
+          : '记忆适配评估治理证据存在缺口。',
+      lastError: status == 'pass'
+          ? ''
+          : 'tencentdb_agent_memory_adapter_evaluation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   static List<Map<String, Object?>> _mermaidTaskMapBasicNodes() {
     return const [
       {

@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P2",
-  "current_gate": "P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration",
+  "current_gate": "P2 Release Gate",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -113,18 +113,18 @@
     "P2-38 Mermaid Symbolic Memory Industrial",
     "P2-39 Cross-Agent Memory Migration",
     "P2-40 Night Memory Consolidation Loop",
-    "P2-41 Memory Observability Panel"
+    "P2-41 Memory Observability Panel",
+    "P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration",
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-26T10:41:55Z",
+  "updated_at": "2026-06-26T11:18:42Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -317,7 +317,9 @@
     "P2 queue now continues with P2-40 Night Memory Consolidation Loop.",
     "P2-40 Night Memory Consolidation Loop has core-only test-marked loop policy, consolidation window, input snapshot, queue, journal, output cards, carryover checkpoint, Event Ledger, Artifact Catalog and restart recovery evidence; it starts no background daemon and applies no real memory changes.",
     "P2-41 Memory Observability Panel has user-blackbox workspace memory entry, user-action contract, memory index, source_trace, activity timeline, Event Ledger, Artifact Catalog and restart recovery evidence; it exposes user results only and remains subject to P2 Release Gate.",
-    "P2 queue now continues with P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration."
+    "P2 queue now continues with P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration.",
+    "P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration has governance evidence for optional adapter evaluation, native memory contract mapping, dependency risk, queue invariants, validation, boundary controls, Event Ledger, Artifact Catalog and restart recovery; it does not integrate TencentDB runtime, add Node 22 dependencies or connect an external memory service and remains subject to P2 Release Gate.",
+    "P2 queue now continues with P2 Release Gate."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

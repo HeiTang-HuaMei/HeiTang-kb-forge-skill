@@ -17654,6 +17654,219 @@ void main() {
         isTrue);
   });
 
+  test('p2 tencentdb agent memory adapter evaluation creates governance evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runTencentDbAgentMemoryAdapterEvaluationAcceptance();
+    final summaryText = File(summaryPath).readAsStringSync();
+    expect(summaryText, isNot(contains('Authorization')));
+    expect(summaryText, isNot(contains('Bearer ')));
+    final summary = jsonDecode(summaryText) as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_tencentdb_agent_memory_adapter_evaluation_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(
+        summary['capability_id'], 'tencentdb_agent_memory_adapter_evaluation');
+    expect(summary['acceptance_type'], 'governance');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['governance_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2 Release Gate');
+    expect(summary['optional_integration_status'],
+        'deferred_until_owner_review');
+    expect(summary['runtime_integration_done'], isFalse);
+    expect(summary['failed_checks'], isEmpty);
+
+    final evaluation = jsonDecode(
+        File(summary['evaluation_matrix_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(evaluation['schema_version'],
+        'prd_v3_tencentdb_agent_memory_adapter_evaluation_matrix.v1');
+    expect(evaluation['status'], 'pass');
+    expect(evaluation['external_project_classification'], 'absorb');
+    expect(evaluation['current_action'],
+        'evaluate_only_no_runtime_integration');
+    expect(evaluation['optional_integration_status'],
+        'deferred_until_owner_review');
+    expect(evaluation['user_facing_capability_label'], '记忆与证据能力');
+    expect((evaluation['disallowed_actions'] as List),
+        contains('runtime_integration_in_current_gate'));
+
+    final nativeContract = jsonDecode(
+        File(summary['native_contract_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(nativeContract['schema_version'],
+        'prd_v3_tencentdb_agent_memory_native_contract_mapping.v1');
+    expect(nativeContract['status'], 'pass');
+    expect((nativeContract['native_contract'] as Map)['event'],
+        'HeiTang Event Ledger');
+    expect((nativeContract['adapter_boundary'] as Map)['adapter_runtime_loaded'],
+        isFalse);
+    expect(
+        (nativeContract['adapter_boundary'] as Map)['external_database_connected'],
+        isFalse);
+
+    final dependencyRisk = jsonDecode(
+        File(summary['dependency_risk_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(dependencyRisk['schema_version'],
+        'prd_v3_tencentdb_agent_memory_dependency_risk_report.v1');
+    expect(dependencyRisk['status'], 'pass');
+    expect(dependencyRisk['node_22_dependency_added'], isFalse);
+    expect(dependencyRisk['new_dependency_added'], isFalse);
+    expect(dependencyRisk['external_memory_runtime_loaded'], isFalse);
+    expect(dependencyRisk['requires_owner_approval_before_real_integration'],
+        isTrue);
+
+    final queueInvariant = jsonDecode(
+        File(summary['queue_invariant_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(queueInvariant['schema_version'],
+        'prd_v3_tencentdb_agent_memory_queue_invariant_report.v1');
+    expect(queueInvariant['status'], 'pass');
+    expect(queueInvariant['next_gate_after_closure'], 'P2 Release Gate');
+    expect(queueInvariant['p2_release_gate_still_queued'], isTrue);
+    expect(queueInvariant['final_owner_review_still_queued'], isTrue);
+    expect(queueInvariant['global_goal_complete'], isFalse);
+
+    final decision = jsonDecode(
+        File(summary['decision_record_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(decision['schema_version'],
+        'prd_v3_tencentdb_agent_memory_optional_integration_decision.v1');
+    expect(decision['decision'], 'do_not_integrate_in_current_gate');
+    expect(decision['optional_integration_allowed_now'], isFalse);
+    expect(decision['runtime_now'], isFalse);
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_tencentdb_agent_memory_adapter_evaluation_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+
+    final boundary = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundary['schema_version'],
+        'prd_v3_tencentdb_agent_memory_adapter_evaluation_boundary_report.v1');
+    expect(boundary['status'], 'pass');
+    expect(boundary['runtime_integration_done'], isFalse);
+    expect(boundary['external_project_runtime_loaded'], isFalse);
+    expect(boundary['external_memory_service_connected'], isFalse);
+    expect(boundary['external_database_connected'], isFalse);
+    expect(boundary['external_model_called'], isFalse);
+    expect(boundary['network_call_made'], isFalse);
+    expect(boundary['new_dependency_added'], isFalse);
+    expect(boundary['node_22_dependency_added'], isFalse);
+    expect(boundary['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(boundary['local_model_training_used'], isFalse);
+    expect(boundary['gpu_training_used'], isFalse);
+    expect(boundary['real_memory_applied'], isFalse);
+    expect(boundary['real_user_data_deleted'], isFalse);
+    expect(boundary['secret_plaintext_written'], isFalse);
+    expect(boundary['external_project_name_user_visible'], isFalse);
+    expect(boundary['provider_adapter_parser_user_visible'], isFalse);
+    expect(boundary['capability_matrix_user_visible'], isFalse);
+
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'runtime_integration_done' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_memory_service_connected' ||
+          entry.key == 'external_database_connected' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'new_dependency_added' ||
+          entry.key == 'node_22_dependency_added' ||
+          entry.key == 'package_manifest_changed' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_memory_applied' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'ui_modified' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] ==
+                'tencentdb_agent_memory_adapter_evaluation_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'tencentdb_agent_memory_adapter_evaluation_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'tencentdb_agent_memory_adapter_evaluation_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'tencentdb_agent_memory_adapter_evaluation_boundary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.eventType ==
+            'tencentdb_agent_memory_adapter_evaluation_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId ==
+                'tencentdb_agent_memory_adapter_evaluation_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('memory adapter research writes core evidence and reloads', () async {
     final workspace = await createWorkspace();
     Rc6RuntimeController buildController() => Rc6RuntimeController(

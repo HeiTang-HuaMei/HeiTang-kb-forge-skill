@@ -261,6 +261,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String>
+      runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runTaskExperienceReuseBasicAcceptance() async {
     await initialize();
     return '';
