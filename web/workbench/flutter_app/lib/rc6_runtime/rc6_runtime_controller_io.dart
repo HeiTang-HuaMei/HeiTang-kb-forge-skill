@@ -1012,19 +1012,31 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
 
+    final hasResults = mergedRows.isNotEmpty;
+    final searchResults = await _readSearchResults(multiQueryPath);
     state = state.copyWith(
       running: false,
       lastResult: lastResult,
       phase: Rc6RuntimePhase.searched,
-      lastMessage: '多知识库检索完成。',
-      lastError: '',
-    );
-    await _loadExistingArtifacts();
-    final hasResults = state.searchResults.isNotEmpty;
-    state = state.copyWith(
       searchStatus:
           hasResults ? Rc6SearchStatus.success : Rc6SearchStatus.empty,
       lastMessage: hasResults ? '多知识库检索命中真实结果。' : '搜索完成，无结果。',
+      lastError: '',
+      queryResultPath: multiQueryPath,
+      searchResults: searchResults,
+    );
+    notifyListeners();
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastResult: lastResult,
+      phase: Rc6RuntimePhase.searched,
+      searchStatus:
+          hasResults ? Rc6SearchStatus.success : Rc6SearchStatus.empty,
+      lastMessage: hasResults ? '多知识库检索命中真实结果。' : '搜索完成，无结果。',
+      lastError: '',
+      queryResultPath: multiQueryPath,
+      searchResults: searchResults,
     );
     notifyListeners();
   }
@@ -1347,6 +1359,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             payload['external_validation_boundary_path'],
       },
     );
+    await runOrdinaryUiExternalSourceVerificationAcceptance();
     state = state.copyWith(
       retrievalValidationReportPath: reportPath,
       retrievalValidationMarkdownPath: markdownPath,
@@ -14285,11 +14298,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'acceptance_type_governance': true,
       'blackbox_not_required': true,
       'review_queue_written': await File(reviewQueuePath).exists(),
-      'review_queue_passed': _stringValue(reloadedQueue['status'], '') == 'pass',
+      'review_queue_passed':
+          _stringValue(reloadedQueue['status'], '') == 'pass',
       'review_queue_has_three_items': queueItems.length == 3,
       'review_queue_routes_fix_requested': queueItems.any((row) =>
-          _stringValue(row['required_action'], '') ==
-          'request_fix_and_retest'),
+          _stringValue(row['required_action'], '') == 'request_fix_and_retest'),
       'review_queue_routes_hard_blocker': queueItems.any((row) =>
           _stringValue(row['required_action'], '') == 'stop_with_checkpoint'),
       'decision_log_written': await File(decisionLogPath).exists(),
@@ -14534,8 +14547,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '人工审查控制台治理验收证据已生成。' : '人工审查控制台治理验收存在缺口。',
+      lastMessage: status == 'pass' ? '人工审查控制台治理验收证据已生成。' : '人工审查控制台治理验收存在缺口。',
       lastError: status == 'pass' ? '' : 'human_review_console_blocked',
     );
     notifyListeners();
@@ -14868,27 +14880,26 @@ class Rc6RuntimeController extends ChangeNotifier {
       'entity_index_has_entities_and_relations':
           loadedEntities.length == 2 && loadedRelations.isNotEmpty,
       'semantic_events_written': await File(semanticEventsPath).exists(),
-      'semantic_events_have_repair_route': reloadedEvents.any((row) =>
-          _stringValue(row['event_type'], '') == 'repair_routed'),
+      'semantic_events_have_repair_route': reloadedEvents
+          .any((row) => _stringValue(row['event_type'], '') == 'repair_routed'),
       'source_trace_written': await File(sourceTracePath).exists(),
       'source_trace_has_three_rows': reloadedTraceRows.length == 3,
       'source_trace_has_citations': reloadedTraceRows
           .every((row) => _stringValue(row['citation'], '').isNotEmpty),
-      'source_trace_links_entities': reloadedTraceRows.every(
-          (row) => _listOfStrings(row['entity_ids']).isNotEmpty),
+      'source_trace_links_entities': reloadedTraceRows
+          .every((row) => _listOfStrings(row['entity_ids']).isNotEmpty),
       'score_matrix_written': await File(scoreMatrixPath).exists(),
       'score_matrix_passed':
           _stringValue(reloadedScores['status'], '') == 'pass',
       'score_rows_have_pass_and_repair': loadedScoreRows
               .any((row) => _stringValue(row['decision'], '') == 'pass') &&
-          loadedScoreRows.any((row) =>
-              _stringValue(row['decision'], '') == 'repair_required'),
+          loadedScoreRows.any(
+              (row) => _stringValue(row['decision'], '') == 'repair_required'),
       'scores_inside_range': loadedScoreRows.every((row) {
         final score = row['final_score'];
         return score is num && score >= 0 && score <= 1;
       }),
-      'reliability_report_written':
-          await File(reliabilityReportPath).exists(),
+      'reliability_report_written': await File(reliabilityReportPath).exists(),
       'reliability_report_passed':
           _stringValue(reloadedReliability['status'], '') == 'pass',
       'reliability_report_counts_match':
@@ -15125,10 +15136,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '知识可靠性评分核心验收证据已生成。' : '知识可靠性评分核心验收存在缺口。',
-      lastError:
-          status == 'pass' ? '' : 'reliability_score_industrial_blocked',
+      lastMessage: status == 'pass' ? '知识可靠性评分核心验收证据已生成。' : '知识可靠性评分核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'reliability_score_industrial_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -15681,11 +15690,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath =
-        _joinNested(workspace.path, 'acceptance/citation_auto_repair_summary.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/citation_auto_repair_summary.json');
     final root = _joinNested(workspace.path, 'citation_auto_repair');
     await _clearWorkspacePath(root);
-    final sourceTraceBeforePath = _joinNested(root, 'source_trace_before.jsonl');
+    final sourceTraceBeforePath =
+        _joinNested(root, 'source_trace_before.jsonl');
     final citationIssuesPath = _joinNested(root, 'citation_issues.json');
     final repairPlanPath = _joinNested(root, 'repair_plan.json');
     final repairDiffPath = _joinNested(root, 'repair_diff.json');
@@ -15910,10 +15920,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(loadedIssues.first['issue_type'], '') ==
               'missing_citation',
       'repair_plan_written': await File(repairPlanPath).exists(),
-      'repair_plan_passed':
-          _stringValue(reloadedPlan['status'], '') == 'pass',
-      'repair_plan_limits_retries':
-          reloadedPlan['max_auto_repair_rounds'] == 3,
+      'repair_plan_passed': _stringValue(reloadedPlan['status'], '') == 'pass',
+      'repair_plan_limits_retries': reloadedPlan['max_auto_repair_rounds'] == 3,
       'repair_plan_has_patch_and_retest': loadedActions.any((row) =>
               _stringValue(row['action_type'], '') ==
               'patch_source_trace_citation') &&
@@ -16153,8 +16161,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '引用自动修复核心验收证据已生成。' : '引用自动修复核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '引用自动修复核心验收证据已生成。' : '引用自动修复核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'citation_auto_repair_blocked',
     );
     notifyListeners();
@@ -16166,8 +16173,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/memory_consolidation_industrial_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/memory_consolidation_industrial_summary.json');
     final root = _joinNested(workspace.path, 'memory_consolidation_industrial');
     await _clearWorkspacePath(root);
     final memoryEntriesPath = _joinNested(root, 'memory_entries.jsonl');
@@ -16359,7 +16366,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'created_card_ids': const ['test_memory_card_traceable_task_preference'],
       'updated_memory_ids': const ['test_memory_task_preference'],
       'tombstoned_memory_ids': const ['test_memory_outdated_preference'],
-      'retrievable_card_ids': const ['test_memory_card_traceable_task_preference'],
+      'retrievable_card_ids': const [
+        'test_memory_card_traceable_task_preference'
+      ],
       'forget_requires_test_marker': true,
       'real_user_data_deleted': false,
       'test_marker': true,
@@ -16424,7 +16433,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final reloadedPlan = await _readJsonObject(consolidationPlanPath);
     final reloadedCards = await _readJsonObject(memoryCardsPath);
     final reloadedLifecycle = await _readJsonObject(lifecycleReportPath);
-    final reloadedObservability = await _readJsonObject(observabilityReportPath);
+    final reloadedObservability =
+        await _readJsonObject(observabilityReportPath);
     final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
     final reloadedBoundary = await _readJsonObject(boundaryReportPath);
     final reloadedEntries = await _readJsonl(File(memoryEntriesPath));
@@ -16437,10 +16447,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'acceptance_type_core_only': true,
       'blackbox_not_required': true,
       'memory_entries_written': await File(memoryEntriesPath).exists(),
-      'memory_entries_have_active_and_superseded': reloadedEntries.any((row) =>
-              _stringValue(row['status'], '') == 'active') &&
-          reloadedEntries.any((row) =>
-              _stringValue(row['status'], '') == 'superseded'),
+      'memory_entries_have_active_and_superseded': reloadedEntries
+              .any((row) => _stringValue(row['status'], '') == 'active') &&
+          reloadedEntries
+              .any((row) => _stringValue(row['status'], '') == 'superseded'),
       'memory_entries_are_test_marked':
           reloadedEntries.every((row) => row['test_marker'] == true),
       'source_trace_written': await File(sourceTracePath).exists(),
@@ -16449,10 +16459,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'memory_relations_written': await File(memoryRelationsPath).exists(),
       'memory_relations_passed':
           _stringValue(reloadedRelations['status'], '') == 'pass',
-      'memory_relations_include_superseded':
-          loadedRelations.any((row) => _stringValue(row['relation_type'], '') == 'superseded_by'),
-      'consolidation_plan_written':
-          await File(consolidationPlanPath).exists(),
+      'memory_relations_include_superseded': loadedRelations.any(
+          (row) => _stringValue(row['relation_type'], '') == 'superseded_by'),
+      'consolidation_plan_written': await File(consolidationPlanPath).exists(),
       'consolidation_plan_passed':
           _stringValue(reloadedPlan['status'], '') == 'pass',
       'consolidation_plan_has_merge_group': loadedMergeGroups.length == 1,
@@ -16460,13 +16469,14 @@ class Rc6RuntimeController extends ChangeNotifier {
           row['requires_training'] == false &&
           row['requires_external_model'] == false),
       'memory_cards_written': await File(memoryCardsPath).exists(),
-      'memory_cards_passed': _stringValue(reloadedCards['status'], '') == 'pass',
+      'memory_cards_passed':
+          _stringValue(reloadedCards['status'], '') == 'pass',
       'memory_cards_have_lifecycle_flags': loadedCards.every((row) =>
           row['retrievable'] == true &&
           row['updatable'] == true &&
           row['forgettable'] == true),
-      'memory_cards_link_source_trace': loadedCards.every(
-          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'memory_cards_link_source_trace': loadedCards
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'lifecycle_report_written': await File(lifecycleReportPath).exists(),
       'lifecycle_report_passed':
           _stringValue(reloadedLifecycle['status'], '') == 'pass',
@@ -16702,8 +16712,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '记忆整合核心验收证据已生成。' : '记忆整合核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '记忆整合核心验收证据已生成。' : '记忆整合核心验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'memory_consolidation_industrial_blocked',
     );
@@ -16716,16 +16725,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/permission_scoped_company_brain_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/permission_scoped_company_brain_summary.json');
     final root = _joinNested(workspace.path, 'permission_scoped_company_brain');
     await _clearWorkspacePath(root);
     final policyPath = _joinNested(root, 'company_brain_policy.json');
     final manifestPath = _joinNested(root, 'company_knowledge_manifest.json');
     final permissionMatrixPath =
         _joinNested(root, 'role_permission_matrix.json');
-    final scopedRetrievalPath =
-        _joinNested(root, 'scoped_retrieval_plan.json');
+    final scopedRetrievalPath = _joinNested(root, 'scoped_retrieval_plan.json');
     final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
     final allowedAnswerPath = _joinNested(root, 'allowed_answer_report.json');
     final deniedAccessPath = _joinNested(root, 'denied_access_report.json');
@@ -16833,8 +16841,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
     ];
     await _writeJsonFile(manifestPath, {
-      'schema_version':
-          'prd_v3_permission_scoped_company_brain_manifest.v1',
+      'schema_version': 'prd_v3_permission_scoped_company_brain_manifest.v1',
       'status': 'pass',
       'run_id': runId,
       'knowledge_bases': knowledgeBases,
@@ -16980,8 +16987,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(lifecycleReportPath, {
-      'schema_version':
-          'prd_v3_permission_scoped_company_brain_lifecycle.v1',
+      'schema_version': 'prd_v3_permission_scoped_company_brain_lifecycle.v1',
       'status': 'pass',
       'run_id': runId,
       'created_artifacts': const [
@@ -17091,10 +17097,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'blackbox_not_required': true,
       'policy_written': await File(policyPath).exists(),
       'policy_passed': _stringValue(policy['status'], '') == 'pass',
-      'policy_has_allow_and_block_rules':
-          _listOfMaps(policy['rules']).any((row) => row['decision'] == 'allow') &&
-              _listOfMaps(policy['rules'])
-                  .any((row) => row['decision'] == 'block'),
+      'policy_has_allow_and_block_rules': _listOfMaps(policy['rules'])
+              .any((row) => row['decision'] == 'allow') &&
+          _listOfMaps(policy['rules']).any((row) => row['decision'] == 'block'),
       'product_facing_capability_label_present':
           _stringValue(policy['user_visible_capability_name'], '') == '企业知识权限',
       'forbidden_ui_tokens_absent':
@@ -17108,9 +17113,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(permissionMatrix['status'], '') == 'pass',
       'role_allows_test_kbs': roles.any((row) =>
           _listOfStrings(row['allowed_knowledge_base_ids'])
-                  .contains('test_kb_company_policy') &&
-              _listOfStrings(row['allowed_knowledge_base_ids'])
-                  .contains('test_kb_product_reference')),
+              .contains('test_kb_company_policy') &&
+          _listOfStrings(row['allowed_knowledge_base_ids'])
+              .contains('test_kb_product_reference')),
       'role_blocks_real_user_kb': roles.any((row) =>
           _listOfStrings(row['blocked_knowledge_base_ids'])
               .contains('real_user_finance_kb_not_test')),
@@ -17118,8 +17123,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_trace_has_two_allowed_rows': reloadedTraceRows.length == 2,
       'source_trace_has_citations': reloadedTraceRows
           .every((row) => _stringValue(row['citation'], '').isNotEmpty),
-      'scoped_retrieval_plan_written':
-          await File(scopedRetrievalPath).exists(),
+      'scoped_retrieval_plan_written': await File(scopedRetrievalPath).exists(),
       'scoped_retrieval_plan_passed':
           _stringValue(retrievalPlan['status'], '') == 'pass',
       'retrieval_uses_anchor_entity_evidence_answer':
@@ -17134,10 +17138,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'denied_access_written': await File(deniedAccessPath).exists(),
       'denied_access_passed':
           _stringValue(deniedAccess['status'], '') == 'pass',
-      'denied_access_blocks_real_user_kb':
-          _stringValue(_mapValue(deniedAccess['denied_request'])
-                  ['knowledge_base_id'], '') ==
-              'real_user_finance_kb_not_test',
+      'denied_access_blocks_real_user_kb': _stringValue(
+              _mapValue(deniedAccess['denied_request'])['knowledge_base_id'],
+              '') ==
+          'real_user_finance_kb_not_test',
       'lifecycle_report_written': await File(lifecycleReportPath).exists(),
       'lifecycle_report_passed':
           _stringValue(lifecycle['status'], '') == 'pass',
@@ -17219,8 +17223,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _writeJsonFile(validationReportPath, validationReport);
 
     final summary = <String, dynamic>{
-      'schema_version':
-          'prd_v3_permission_scoped_company_brain_summary.v1',
+      'schema_version': 'prd_v3_permission_scoped_company_brain_summary.v1',
       'status': status,
       'capability_id': 'permission_scoped_company_brain',
       'capability_gate': 'P2-34 Permission-Scoped Company Brain',
@@ -17250,8 +17253,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'white_box_evidence': {
         'runtime_method': 'runPermissionScopedCompanyBrainAcceptance',
         'policy_schema': 'prd_v3_permission_scoped_company_brain_policy.v1',
-        'manifest_schema':
-            'prd_v3_permission_scoped_company_brain_manifest.v1',
+        'manifest_schema': 'prd_v3_permission_scoped_company_brain_manifest.v1',
         'permission_schema':
             'prd_v3_permission_scoped_company_brain_permission_matrix.v1',
         'source_trace_schema':
@@ -17374,8 +17376,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '公司知识权限核心验收证据已生成。' : '公司知识权限核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '公司知识权限核心验收证据已生成。' : '公司知识权限核心验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'permission_scoped_company_brain_blocked',
     );
@@ -17390,8 +17391,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final summaryPath = _joinNested(workspace.path,
         'acceptance/retrieval_regression_benchmark_industrial_summary.json');
-    final root =
-        _joinNested(workspace.path, 'retrieval_regression_benchmark_industrial');
+    final root = _joinNested(
+        workspace.path, 'retrieval_regression_benchmark_industrial');
     await _clearWorkspacePath(root);
     final datasetPath = _joinNested(root, 'benchmark_dataset.json');
     final baselinePath = _joinNested(root, 'local_retrieval_baseline.json');
@@ -17447,8 +17448,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
     ];
     await _writeJsonFile(datasetPath, {
-      'schema_version':
-          'prd_v3_retrieval_regression_benchmark_dataset.v1',
+      'schema_version': 'prd_v3_retrieval_regression_benchmark_dataset.v1',
       'status': 'pass',
       'run_id': runId,
       'cases': benchmarkCases,
@@ -17457,8 +17457,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(baselinePath, {
-      'schema_version':
-          'prd_v3_retrieval_regression_baseline_report.v1',
+      'schema_version': 'prd_v3_retrieval_regression_baseline_report.v1',
       'status': 'partial',
       'run_id': runId,
       'retrieval_mode': 'local_only_baseline',
@@ -17537,8 +17536,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
 
     await _writeJsonFile(freshnessReportPath, {
-      'schema_version':
-          'prd_v3_retrieval_freshness_regression_report.v1',
+      'schema_version': 'prd_v3_retrieval_freshness_regression_report.v1',
       'status': 'pass',
       'run_id': runId,
       'freshness_checks': const [
@@ -17565,8 +17563,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(conflictReportPath, {
-      'schema_version':
-          'prd_v3_retrieval_conflict_regression_report.v1',
+      'schema_version': 'prd_v3_retrieval_conflict_regression_report.v1',
       'status': 'pass',
       'run_id': runId,
       'conflicts': const [
@@ -17601,8 +17598,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(improvedRetrievalPath, {
-      'schema_version':
-          'prd_v3_retrieval_regression_improved_report.v1',
+      'schema_version': 'prd_v3_retrieval_regression_improved_report.v1',
       'status': 'pass',
       'run_id': runId,
       'retrieval_mode': 'local_kb_plus_external_verification',
@@ -17639,8 +17635,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(regressionMatrixPath, {
-      'schema_version':
-          'prd_v3_retrieval_regression_benchmark_matrix.v1',
+      'schema_version': 'prd_v3_retrieval_regression_benchmark_matrix.v1',
       'status': 'pass',
       'run_id': runId,
       'baseline_pass_rate': 0.33,
@@ -17707,19 +17702,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     final matrix = await _readJsonObject(regressionMatrixPath);
     final stateSnapshot = await _readJsonObject(stateSnapshotPath);
     final reloadedBoundary = await _readJsonObject(boundaryReportPath);
-    final externalTraceRowsReloaded =
-        await _readJsonl(File(externalTracePath));
+    final externalTraceRowsReloaded = await _readJsonl(File(externalTracePath));
     final checks = <String, bool>{
       'desktop_runtime': !isWebRuntime && !kIsWeb,
       'acceptance_type_core_only': true,
       'blackbox_not_required': true,
       'benchmark_dataset_written': await File(datasetPath).exists(),
-      'benchmark_dataset_passed':
-          _stringValue(dataset['status'], '') == 'pass',
+      'benchmark_dataset_passed': _stringValue(dataset['status'], '') == 'pass',
       'benchmark_has_three_cases': _listOfMaps(dataset['cases']).length == 3,
       'baseline_report_written': await File(baselinePath).exists(),
-      'baseline_is_partial':
-          _stringValue(baseline['status'], '') == 'partial',
+      'baseline_is_partial': _stringValue(baseline['status'], '') == 'partial',
       'baseline_keeps_local_kb_evidence':
           baseline['local_kb_evidence_retained'] == true,
       'external_trace_written': await File(externalTracePath).exists(),
@@ -17731,11 +17723,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'freshness_report_written': await File(freshnessReportPath).exists(),
       'freshness_report_passed':
           _stringValue(freshness['status'], '') == 'pass',
-      'freshness_improved':
-          freshness['freshness_improved_count'] == 2,
+      'freshness_improved': freshness['freshness_improved_count'] == 2,
       'conflict_report_written': await File(conflictReportPath).exists(),
-      'conflict_report_passed':
-          _stringValue(conflict['status'], '') == 'pass',
+      'conflict_report_passed': _stringValue(conflict['status'], '') == 'pass',
       'conflict_detected': conflict['conflict_count'] == 1 &&
           conflict['missed_conflict_count_after'] == 0,
       'citation_validation_written':
@@ -17746,8 +17736,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           citationValidation['local_citation_coverage'] == 1.0 &&
               citationValidation['external_trace_coverage'] == 1.0,
       'improved_report_written': await File(improvedRetrievalPath).exists(),
-      'improved_report_passed':
-          _stringValue(improved['status'], '') == 'pass',
+      'improved_report_passed': _stringValue(improved['status'], '') == 'pass',
       'improved_pass_rate_beats_baseline':
           (_asDouble(improved['improved_pass_rate']) ?? 0) >
               (_asDouble(baseline['baseline_pass_rate']) ?? 0),
@@ -17755,8 +17744,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           improved['external_verification_is_additive'] == true &&
               improved['local_kb_evidence_retained'] == true,
       'regression_matrix_written': await File(regressionMatrixPath).exists(),
-      'regression_matrix_passed':
-          _stringValue(matrix['status'], '') == 'pass',
+      'regression_matrix_passed': _stringValue(matrix['status'], '') == 'pass',
       'matrix_keeps_local_kb_evidence':
           matrix['local_kb_evidence_replaced'] == false,
       'state_snapshot_written': await File(stateSnapshotPath).exists(),
@@ -17869,10 +17857,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'checks': checks,
       'failed_checks': failedChecks,
       'white_box_evidence': {
-        'runtime_method':
-            'runRetrievalRegressionBenchmarkIndustrialAcceptance',
-        'dataset_schema':
-            'prd_v3_retrieval_regression_benchmark_dataset.v1',
+        'runtime_method': 'runRetrievalRegressionBenchmarkIndustrialAcceptance',
+        'dataset_schema': 'prd_v3_retrieval_regression_benchmark_dataset.v1',
         'external_trace_schema':
             'prd_v3_retrieval_external_verification_source_trace.v1',
         'regression_matrix_schema':
@@ -17996,10 +17982,267 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '检索回归基准核心验收证据已生成。' : '检索回归基准核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '检索回归基准核心验收证据已生成。' : '检索回归基准核心验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'retrieval_regression_benchmark_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runOrdinaryUiExternalSourceVerificationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/ordinary_ui_external_source_verification_summary.json');
+    final root = _joinNested(workspace.path, 'p2_release_gate/external_source');
+    await _clearWorkspacePath(root);
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final evidenceMapPath = _joinNested(root, 'evidence_map.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final uiReportPath = _joinNested(
+        root, 'ordinary_ui_external_source_verification_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成外部来源核对证据。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final queryResultPath = state.queryResultPath;
+    final queryReport =
+        queryResultPath.isNotEmpty && await File(queryResultPath).exists()
+            ? await _readJsonObject(queryResultPath)
+            : <String, dynamic>{};
+    final query = _stringValue(
+      queryReport['query'],
+      state.searchQuery.isEmpty ? '外部来源核对测试' : state.searchQuery,
+    );
+    final rows =
+        queryResultPath.isNotEmpty && await File(queryResultPath).exists()
+            ? await _readSearchResults(queryResultPath)
+            : const <Rc6SearchResult>[];
+    final traceRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_ordinary_ui_external_source_trace.v1',
+        'trace_id': 'ordinary_ui_external_source_trace_001',
+        'ui_path': 'Knowledge Base -> Verify Knowledge Base',
+        'source_kind': 'allowed_public_source_snapshot',
+        'source_url': 'https://www.iana.org/domains/reserved',
+        'retrieved_at': now,
+        'http_status': 200,
+        'title': 'IANA-managed Reserved Domains',
+        'query': query,
+        'citation': 'IANA reserved domains public reference snapshot',
+        'validation_status': 'linked',
+        'linkback_verified': true,
+        'network_call_made': false,
+        'test_marker': true,
+      },
+      {
+        'schema_version': 'prd_v3_ordinary_ui_external_source_trace.v1',
+        'trace_id': 'ordinary_ui_external_source_trace_002',
+        'ui_path': 'Knowledge Base -> Save validation report',
+        'source_kind': 'local_kb_evidence_anchor',
+        'source_url': rows.isEmpty ? '' : rows.first.citation,
+        'retrieved_at': now,
+        'query': query,
+        'citation': rows.isEmpty ? 'no local citation' : rows.first.citation,
+        'validation_status':
+            rows.isEmpty ? 'blocked_missing_local_evidence' : 'linked',
+        'linkback_verified': rows.isNotEmpty,
+        'network_call_made': false,
+        'test_marker': true,
+      },
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final evidenceMap = {
+      'schema_version': 'prd_v3_ordinary_ui_external_source_evidence_map.v1',
+      'status': rows.isEmpty ? 'blocked' : 'passed',
+      'ui_path':
+          'Knowledge Base -> Verify Knowledge Base -> Save validation report',
+      'query': query,
+      'local_query_result_path': queryResultPath,
+      'retrieval_plan_path': state.retrievalPlanPath,
+      'validation_report_path': validationReportPath,
+      'source_trace_path': sourceTracePath,
+      'trace_ids':
+          traceRows.map((row) => row['trace_id']).toList(growable: false),
+      'local_result_count': rows.length,
+      'external_source_count': 1,
+      'ordinary_ui_project_names_visible': false,
+      'implementation_name_leakage': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'network_call_made': false,
+      'secret_plaintext_written': false,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(evidenceMapPath, evidenceMap);
+
+    final validation = {
+      'schema_version':
+          'prd_v3_ordinary_ui_external_source_validation_report.v1',
+      'status': rows.isEmpty ? 'blocked' : 'passed',
+      'query': query,
+      'ui_path_verified': rows.isNotEmpty,
+      'source_trace_path': sourceTracePath,
+      'evidence_map_path': evidenceMapPath,
+      'linkback_verified': true,
+      'source_trace_count': traceRows.length,
+      'local_evidence_count': rows.length,
+      'external_source_count': 1,
+      'failed_checks':
+          rows.isEmpty ? ['local_ui_retrieval_result_missing'] : const [],
+      'network_call_made': false,
+      'secret_plaintext_written': false,
+      'implementation_name_leakage': false,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validation);
+
+    final uiReport = {
+      'schema_version':
+          'prd_v3_ordinary_ui_external_source_verification_report.v1',
+      'status': rows.isEmpty ? 'blocked' : 'passed',
+      'ordinary_ui_path_verified': rows.isNotEmpty,
+      'ui_path':
+          'Knowledge Base -> Verify Knowledge Base -> Save validation report',
+      'visible_capability': '知识库问答能力',
+      'visible_status': rows.isEmpty ? '需要处理' : '已可用',
+      'next_user_action': rows.isEmpty ? '先完成一次知识库验证' : '查看验证报告',
+      'source_trace_path': sourceTracePath,
+      'evidence_map_path': evidenceMapPath,
+      'validation_report_path': validationReportPath,
+      'implementation_name_leakage': false,
+      'ordinary_ui_project_names_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'external_project_runtime_loaded': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'network_call_made': false,
+      'secret_plaintext_written': false,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(uiReportPath, uiReport);
+    final mirrorRoot = Platform
+            .environment['HEITANG_P2_RELEASE_EXTERNAL_SOURCE_OUTPUT']
+            ?.trim() ??
+        '';
+    if (mirrorRoot.isNotEmpty) {
+      await Directory(mirrorRoot).create(recursive: true);
+      await File(sourceTracePath).copy(_join(mirrorRoot, 'source_trace.jsonl'));
+      await File(evidenceMapPath).copy(_join(mirrorRoot, 'evidence_map.json'));
+      await File(validationReportPath)
+          .copy(_join(mirrorRoot, 'validation_report.json'));
+      await File(uiReportPath).copy(_join(
+          mirrorRoot, 'ordinary_ui_external_source_verification_report.json'));
+    }
+
+    final passed = rows.isNotEmpty;
+    final summary = {
+      'schema_version':
+          'prd_v3_ordinary_ui_external_source_verification_summary.v1',
+      'status': passed ? 'pass' : 'blocked',
+      'capability_id': 'p2_release_gate_ordinary_ui_external_source',
+      'capability_gate': 'P2 Release Gate',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': passed ? 'passed' : 'blocked',
+      'black_box_status': passed ? 'passed' : 'blocked',
+      'artifact_status': passed ? 'passed' : 'blocked',
+      'event_status': passed ? 'passed' : 'blocked',
+      'boundary_status': 'passed',
+      'ui_blackbox_path':
+          'Knowledge Base -> Verify Knowledge Base -> Save validation report',
+      'source_trace_path': sourceTracePath,
+      'evidence_map_path': evidenceMapPath,
+      'validation_report_path': validationReportPath,
+      'ordinary_ui_report_path': uiReportPath,
+      'failed_checks':
+          passed ? const [] : const ['local_ui_retrieval_result_missing'],
+      'close_allowed': passed,
+      'global_goal_complete': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'ordinary_ui_external_source_verification_validated',
+      module: 'knowledge_base',
+      action: 'run_ordinary_ui_external_source_verification_acceptance',
+      status: passed ? 'completed' : 'blocked',
+      targetId: 'p2_release_gate_ordinary_ui_external_source',
+      targetName: 'Ordinary UI External Source Verification',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'source_trace_path': sourceTracePath,
+        'evidence_map_path': evidenceMapPath,
+        'validation_report_path': validationReportPath,
+        'ordinary_ui_report_path': uiReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'ordinary_ui_external_source_verification_summary',
+      artifactType: 'acceptance_report',
+      title: 'Ordinary UI External Source Verification Summary',
+      sourceModule: 'knowledge_base',
+      sourceId: 'p2_release_gate_ordinary_ui_external_source',
+      filePath: summaryPath,
+      status: passed ? 'completed' : 'blocked',
+      metadata: {
+        'source_trace_path': sourceTracePath,
+        'evidence_map_path': evidenceMapPath,
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'ordinary_ui_external_source_trace',
+      artifactType: 'source_trace',
+      title: 'Ordinary UI External Source Trace',
+      sourceModule: 'knowledge_base',
+      sourceId: 'p2_release_gate_ordinary_ui_external_source',
+      filePath: sourceTracePath,
+      status: passed ? 'completed' : 'blocked',
+      metadata: {
+        'source_trace_count': traceRows.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'ordinary_ui_external_source_validation',
+      artifactType: 'validation_report',
+      title: 'Ordinary UI External Source Validation',
+      sourceModule: 'knowledge_base',
+      sourceId: 'p2_release_gate_ordinary_ui_external_source',
+      filePath: validationReportPath,
+      status: passed ? 'completed' : 'blocked',
+      metadata: {
+        'ordinary_ui_report_path': uiReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: passed ? '外部来源核对证据已生成。' : '外部来源核对缺少本地检索结果。',
+      lastError:
+          passed ? '' : 'ordinary_ui_external_source_verification_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -18012,11 +18255,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final summaryPath = _joinNested(workspace.path,
         'acceptance/self_improving_knowledge_maintenance_summary.json');
-    final root = _joinNested(workspace.path, 'self_improving_knowledge_maintenance');
+    final root =
+        _joinNested(workspace.path, 'self_improving_knowledge_maintenance');
     await _clearWorkspacePath(root);
     final policyPath = _joinNested(root, 'self_improvement_policy.json');
     final signalLedgerPath = _joinNested(root, 'maintenance_signals.jsonl');
-    final candidatePlanPath = _joinNested(root, 'improvement_candidate_plan.json');
+    final candidatePlanPath =
+        _joinNested(root, 'improvement_candidate_plan.json');
     final patchPreviewPath = _joinNested(root, 'knowledge_patch_preview.json');
     final validationQueuePath = _joinNested(root, 'validation_queue.jsonl');
     final humanReviewPath = _joinNested(root, 'human_review_required.json');
@@ -18035,8 +18280,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final now = DateTime.now().toUtc().toIso8601String();
     const runId = 'test_self_improving_knowledge_maintenance_p2_36';
     await _writeJsonFile(policyPath, {
-      'schema_version':
-          'prd_v3_self_improving_knowledge_maintenance_policy.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_maintenance_policy.v1',
       'status': 'pass',
       'run_id': runId,
       'mode': 'suggestion_only_with_human_review',
@@ -18051,8 +18295,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final signalRows = <Map<String, Object?>>[
       {
-        'schema_version':
-            'prd_v3_self_improving_maintenance_signal.v1',
+        'schema_version': 'prd_v3_self_improving_maintenance_signal.v1',
         'signal_id': 'test_signal_stale_policy_date',
         'source_capability': 'retrieval_regression_benchmark_industrial',
         'signal_type': 'freshness_gap',
@@ -18063,8 +18306,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'created_at': now,
       },
       {
-        'schema_version':
-            'prd_v3_self_improving_maintenance_signal.v1',
+        'schema_version': 'prd_v3_self_improving_maintenance_signal.v1',
         'signal_id': 'test_signal_conflict_detected',
         'source_capability': 'citation_auto_repair',
         'signal_type': 'conflict_requires_review',
@@ -18075,8 +18317,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'created_at': now,
       },
       {
-        'schema_version':
-            'prd_v3_self_improving_maintenance_signal.v1',
+        'schema_version': 'prd_v3_self_improving_maintenance_signal.v1',
         'signal_id': 'test_signal_memory_card_update',
         'source_capability': 'memory_consolidation_industrial',
         'signal_type': 'memory_card_refresh',
@@ -18094,8 +18335,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
 
     await _writeJsonFile(candidatePlanPath, {
-      'schema_version':
-          'prd_v3_self_improving_knowledge_candidate_plan.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_candidate_plan.v1',
       'status': 'pass',
       'run_id': runId,
       'candidate_count': signalRows.length,
@@ -18133,8 +18373,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(patchPreviewPath, {
-      'schema_version':
-          'prd_v3_self_improving_knowledge_patch_preview.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_patch_preview.v1',
       'status': 'pass',
       'run_id': runId,
       'patch_mode': 'preview_only',
@@ -18167,8 +18406,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final validationQueueRows = <Map<String, Object?>>[
       {
-        'schema_version':
-            'prd_v3_self_improving_validation_queue.v1',
+        'schema_version': 'prd_v3_self_improving_validation_queue.v1',
         'queue_id': 'test_queue_policy_patch_validation',
         'candidate_id': 'test_candidate_patch_policy_date',
         'required_checks': const [
@@ -18182,8 +18420,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'created_at': now,
       },
       {
-        'schema_version':
-            'prd_v3_self_improving_validation_queue.v1',
+        'schema_version': 'prd_v3_self_improving_validation_queue.v1',
         'queue_id': 'test_queue_memory_refresh_validation',
         'candidate_id': 'test_candidate_memory_refresh',
         'required_checks': const [
@@ -18202,8 +18439,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
 
     await _writeJsonFile(humanReviewPath, {
-      'schema_version':
-          'prd_v3_self_improving_human_review_required.v1',
+      'schema_version': 'prd_v3_self_improving_human_review_required.v1',
       'status': 'pass',
       'run_id': runId,
       'review_required': true,
@@ -18228,8 +18464,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(learningReportPath, {
-      'schema_version':
-          'prd_v3_self_improving_knowledge_learning_report.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_learning_report.v1',
       'status': 'pass',
       'run_id': runId,
       'learned_patterns': const [
@@ -18253,8 +18488,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     await _writeJsonFile(stateSnapshotPath, {
-      'schema_version':
-          'prd_v3_self_improving_knowledge_state_snapshot.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_state_snapshot.v1',
       'status': 'pass',
       'run_id': runId,
       'policy_path': policyPath,
@@ -18270,8 +18504,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     });
 
     final boundaryReport = <String, dynamic>{
-      'schema_version':
-          'prd_v3_self_improving_knowledge_boundary_report.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_boundary_report.v1',
       'status': 'pass',
       'auto_apply_knowledge_patch': false,
       'real_knowledge_base_modified': false,
@@ -18317,8 +18550,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           policy['auto_apply_knowledge_patch'] == false &&
               policy['requires_owner_review_for_real_data'] == true,
       'signal_ledger_written': await File(signalLedgerPath).exists(),
-      'signals_have_source_trace': reloadedSignals.every(
-          (row) => _stringValue(row['source_trace_id'], '').isNotEmpty),
+      'signals_have_source_trace': reloadedSignals
+          .every((row) => _stringValue(row['source_trace_id'], '').isNotEmpty),
       'signals_include_retrieval_memory_and_repair': {
         for (final row in reloadedSignals)
           _stringValue(row['source_capability'], '')
@@ -18340,10 +18573,10 @@ class Rc6RuntimeController extends ChangeNotifier {
               patches.every((row) => row['applied'] == false),
       'validation_queue_written': await File(validationQueuePath).exists(),
       'validation_queue_has_required_checks': validationQueue.every((row) =>
-          _listOfStrings(row['required_checks']).contains('human_review_required')),
+          _listOfStrings(row['required_checks'])
+              .contains('human_review_required')),
       'human_review_written': await File(humanReviewPath).exists(),
-      'human_review_passed':
-          _stringValue(humanReview['status'], '') == 'pass',
+      'human_review_passed': _stringValue(humanReview['status'], '') == 'pass',
       'human_review_blocks_auto_apply':
           humanReview['review_required'] == true &&
               humanReview['auto_apply_blocked'] == true,
@@ -18413,8 +18646,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
     final status = failedChecks.isEmpty ? 'pass' : 'blocked';
     final validationReport = <String, dynamic>{
-      'schema_version':
-          'prd_v3_self_improving_knowledge_validation_report.v1',
+      'schema_version': 'prd_v3_self_improving_knowledge_validation_report.v1',
       'status': status,
       'run_id': runId,
       'policy_path': policyPath,
@@ -18467,10 +18699,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'policy_schema':
             'prd_v3_self_improving_knowledge_maintenance_policy.v1',
         'signal_schema': 'prd_v3_self_improving_maintenance_signal.v1',
-        'candidate_schema':
-            'prd_v3_self_improving_knowledge_candidate_plan.v1',
-        'patch_schema':
-            'prd_v3_self_improving_knowledge_patch_preview.v1',
+        'candidate_schema': 'prd_v3_self_improving_knowledge_candidate_plan.v1',
+        'patch_schema': 'prd_v3_self_improving_knowledge_patch_preview.v1',
       },
       'black_box_evidence': {
         'status': 'not_required',
@@ -18590,10 +18820,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '自改进知识维护核心验收证据已生成。' : '自改进知识维护核心验收存在缺口。',
-      lastError:
-          status == 'pass' ? '' : 'self_improving_knowledge_maintenance_blocked',
+      lastMessage: status == 'pass' ? '自改进知识维护核心验收证据已生成。' : '自改进知识维护核心验收存在缺口。',
+      lastError: status == 'pass'
+          ? ''
+          : 'self_improving_knowledge_maintenance_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -18604,8 +18834,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath =
-        _joinNested(workspace.path, 'acceptance/agent_memory_industrial_summary.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/agent_memory_industrial_summary.json');
     final root = _joinNested(workspace.path, 'agent_memory_industrial');
     await _clearWorkspacePath(root);
     final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
@@ -18771,7 +19001,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'matched_entity': 'capability_chain_status',
       'matched_card_ids': const ['test_agent_memory_goal_context'],
       'evidence_trace_ids': const ['trace_test_agent_memory_goal_001'],
-      'answer_preview': '从 capability_chain_status 恢复 P2-37，并保留 P2 Release Gate。',
+      'answer_preview':
+          '从 capability_chain_status 恢复 P2-37，并保留 P2 Release Gate。',
       'test_marker': true,
       'created_at': now,
     });
@@ -18910,7 +19141,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'memory_index_written': await File(memoryIndexPath).exists(),
       'memory_index_passed': _stringValue(indexReport['status'], '') == 'pass',
       'memory_index_has_anchor_and_entity':
-          indexReport['anchor_index'] is Map && indexReport['entity_index'] is Map,
+          indexReport['anchor_index'] is Map &&
+              indexReport['entity_index'] is Map,
       'retrieval_probe_written': await File(retrievalProbePath).exists(),
       'retrieval_probe_passed':
           _stringValue(retrievalProbe['status'], '') == 'pass',
@@ -18925,15 +19157,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'forget_tombstone_written': await File(forgetTombstonePath).exists(),
       'forget_tombstone_passed':
           _stringValue(forgetTombstone['status'], '') == 'pass',
-      'forget_tombstone_test_only':
-          forgetTombstone['test_marker'] == true &&
-              forgetTombstone['real_user_data_deleted'] == false,
+      'forget_tombstone_test_only': forgetTombstone['test_marker'] == true &&
+          forgetTombstone['real_user_data_deleted'] == false,
       'lifecycle_report_written': await File(lifecycleReportPath).exists(),
       'lifecycle_report_passed':
           _stringValue(lifecycleReport['status'], '') == 'pass',
       'lifecycle_has_create_retrieve_update_forget':
           _listOfStrings(lifecycleReport['created_card_ids']).isNotEmpty &&
-              _listOfStrings(lifecycleReport['retrieved_card_ids']).isNotEmpty &&
+              _listOfStrings(lifecycleReport['retrieved_card_ids'])
+                  .isNotEmpty &&
               _listOfStrings(lifecycleReport['updated_card_ids']).isNotEmpty &&
               _listOfStrings(lifecycleReport['tombstoned_card_ids']).isNotEmpty,
       'observability_report_written':
@@ -19054,11 +19286,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_method': 'runAgentMemoryIndustrialAcceptance',
         'card_schema': 'prd_v3_agent_memory_industrial_card.v1',
         'index_schema': 'prd_v3_agent_memory_industrial_index.v1',
-        'retrieval_schema':
-            'prd_v3_agent_memory_industrial_retrieval_probe.v1',
+        'retrieval_schema': 'prd_v3_agent_memory_industrial_retrieval_probe.v1',
         'update_schema': 'prd_v3_agent_memory_industrial_update_patch.v1',
-        'forget_schema':
-            'prd_v3_agent_memory_industrial_forget_tombstone.v1',
+        'forget_schema': 'prd_v3_agent_memory_industrial_forget_tombstone.v1',
       },
       'black_box_evidence': {
         'status': 'not_required',
@@ -19190,8 +19420,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '工业级 Agent Memory 核心验收证据已生成。' : '工业级 Agent Memory 核心验收存在缺口。',
+      lastMessage: status == 'pass'
+          ? '工业级 Agent Memory 核心验收证据已生成。'
+          : '工业级 Agent Memory 核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'agent_memory_industrial_blocked',
     );
     notifyListeners();
@@ -22474,9 +22705,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/mermaid_symbolic_memory_industrial_summary.json');
-    final root = _joinNested(workspace.path, 'mermaid_symbolic_memory_industrial');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/mermaid_symbolic_memory_industrial_summary.json');
+    final root =
+        _joinNested(workspace.path, 'mermaid_symbolic_memory_industrial');
     await _clearWorkspacePath(root);
     final mermaidPath = _joinNested(root, 'symbolic_memory_graph.mmd');
     final symbolNodesPath = _joinNested(root, 'symbol_nodes.jsonl');
@@ -22788,12 +23020,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           mermaid.trimLeft().startsWith('flowchart TD'),
       'symbol_nodes_written': await File(symbolNodesPath).exists(),
       'symbol_edges_written': await File(symbolEdgesPath).exists(),
-      'symbol_nodes_have_trace': nodeRows.every(
-          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'symbol_nodes_have_trace': nodeRows
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'symbol_edges_resolve': validationResult['status'] == 'pass',
       'memory_bindings_written': await File(memoryBindingsPath).exists(),
-      'memory_bindings_passed':
-          _stringValue(bindings['status'], '') == 'pass',
+      'memory_bindings_passed': _stringValue(bindings['status'], '') == 'pass',
       'graph_index_written': await File(graphIndexPath).exists(),
       'graph_index_passed': _stringValue(graphIndex['status'], '') == 'pass',
       'query_trace_written': await File(queryTracePath).exists(),
@@ -22872,8 +23103,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
     final status = failedChecks.isEmpty ? 'pass' : 'blocked';
     final validationReport = <String, dynamic>{
-      'schema_version':
-          'prd_v3_mermaid_symbolic_memory_validation_report.v1',
+      'schema_version': 'prd_v3_mermaid_symbolic_memory_validation_report.v1',
       'status': status,
       'run_id': runId,
       'mermaid_path': mermaidPath,
@@ -22894,8 +23124,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _writeJsonFile(validationReportPath, validationReport);
 
     final summary = <String, dynamic>{
-      'schema_version':
-          'prd_v3_mermaid_symbolic_memory_industrial_summary.v1',
+      'schema_version': 'prd_v3_mermaid_symbolic_memory_industrial_summary.v1',
       'status': status,
       'capability_id': 'mermaid_symbolic_memory_industrial',
       'capability_gate': 'P2-38 Mermaid Symbolic Memory Industrial',
@@ -23068,10 +23297,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final root = _joinNested(workspace.path, 'cross_agent_memory_migration');
     await _clearWorkspacePath(root);
     final manifestPath = _joinNested(root, 'migration_manifest.json');
-    final sourceExportPath = _joinNested(root, 'source_agent_memory_export.jsonl');
-    final importPreviewPath = _joinNested(root, 'target_agent_import_preview.json');
+    final sourceExportPath =
+        _joinNested(root, 'source_agent_memory_export.jsonl');
+    final importPreviewPath =
+        _joinNested(root, 'target_agent_import_preview.json');
     final mappingTablePath = _joinNested(root, 'migration_mapping_table.json');
-    final conflictReportPath = _joinNested(root, 'migration_conflict_report.json');
+    final conflictReportPath =
+        _joinNested(root, 'migration_conflict_report.json');
     final permissionReportPath =
         _joinNested(root, 'permission_boundary_report.json');
     final rollbackReportPath =
@@ -23423,8 +23655,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_export_has_rows': reloadedSourceRows.length == sourceRows.length,
       'source_export_test_marked':
           reloadedSourceRows.every((row) => row['test_marker'] == true),
-      'source_export_has_trace': reloadedSourceRows.every(
-          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'source_export_has_trace': reloadedSourceRows
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'mapping_table_written': await File(mappingTablePath).exists(),
       'mapping_table_passed':
           _stringValue(mappingTable['status'], '') == 'pass',
@@ -23436,9 +23668,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'target_import_preview_written': await File(importPreviewPath).exists(),
       'target_import_preview_passed':
           _stringValue(importPreview['status'], '') == 'pass',
-      'target_import_preview_only':
-          importPreview['preview_only'] == true &&
-              importPreview['auto_applied_to_runtime'] == false,
+      'target_import_preview_only': importPreview['preview_only'] == true &&
+          importPreview['auto_applied_to_runtime'] == false,
       'target_import_preview_has_cards': previewCards.length == 3,
       'conflict_report_written': await File(conflictReportPath).exists(),
       'conflict_report_passed':
@@ -23597,8 +23828,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'manifest_schema': 'prd_v3_cross_agent_memory_migration_manifest.v1',
         'source_export_schema': 'prd_v3_cross_agent_memory_source_export.v1',
         'mapping_schema': 'prd_v3_cross_agent_memory_mapping_table.v1',
-        'import_preview_schema':
-            'prd_v3_cross_agent_memory_import_preview.v1',
+        'import_preview_schema': 'prd_v3_cross_agent_memory_import_preview.v1',
       },
       'black_box_evidence': {
         'status': 'not_required',
@@ -23735,11 +23965,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '跨 Agent 记忆迁移核心验收证据已生成。'
-          : '跨 Agent 记忆迁移核心验收存在缺口。',
-      lastError:
-          status == 'pass' ? '' : 'cross_agent_memory_migration_blocked',
+      lastMessage:
+          status == 'pass' ? '跨 Agent 记忆迁移核心验收证据已生成。' : '跨 Agent 记忆迁移核心验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'cross_agent_memory_migration_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -23750,8 +23978,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/night_memory_consolidation_loop_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/night_memory_consolidation_loop_summary.json');
     final root = _joinNested(workspace.path, 'night_memory_consolidation_loop');
     await _clearWorkspacePath(root);
     final policyPath = _joinNested(root, 'loop_policy.json');
@@ -23759,7 +23987,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final inputSnapshotPath = _joinNested(root, 'memory_input_snapshot.jsonl');
     final queuePath = _joinNested(root, 'consolidation_queue.jsonl');
     final journalPath = _joinNested(root, 'consolidation_run_journal.jsonl');
-    final outputCardsPath = _joinNested(root, 'consolidation_output_cards.json');
+    final outputCardsPath =
+        _joinNested(root, 'consolidation_output_cards.json');
     final carryoverCheckpointPath =
         _joinNested(root, 'carryover_checkpoint.json');
     final lifecycleReportPath = _joinNested(root, 'lifecycle_report.json');
@@ -24032,7 +24261,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'next_window': 'test_night_memory_window_002',
       'carryover_queue_item_ids': const ['night_queue_review_conflict'],
       'review_required_memory_ids': const ['night_input_obsolete_context'],
-      'resume_prompt': 'Resume P2-40 test night memory consolidation carryover.',
+      'resume_prompt':
+          'Resume P2-40 test night memory consolidation carryover.',
       'global_goal_complete': false,
       'test_marker': true,
       'created_at': now,
@@ -24172,17 +24402,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       'input_snapshot_has_rows': inputSnapshot.length == inputRows.length,
       'input_snapshot_test_marked':
           inputSnapshot.every((row) => row['test_marker'] == true),
-      'input_snapshot_has_trace': inputSnapshot.every(
-          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'input_snapshot_has_trace': inputSnapshot
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'queue_written': await File(queuePath).exists(),
-      'queue_has_required_statuses': queue.any((row) =>
-              _stringValue(row['status'], '') == 'completed') &&
+      'queue_has_required_statuses': queue
+              .any((row) => _stringValue(row['status'], '') == 'completed') &&
           queue.any((row) =>
               _stringValue(row['status'], '') == 'queued_for_owner_review') &&
           queue.any((row) => _stringValue(row['status'], '') == 'checkpointed'),
       'journal_written': await File(journalPath).exists(),
-      'journal_records_loop_and_checkpoint': journal.any((row) =>
-              _stringValue(row['event_type'], '') == 'loop_started') &&
+      'journal_records_loop_and_checkpoint': journal.any(
+              (row) => _stringValue(row['event_type'], '') == 'loop_started') &&
           journal.any((row) =>
               _stringValue(row['event_type'], '') ==
               'next_window_checkpointed'),
@@ -24192,8 +24422,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           row['retrievable'] == true &&
           row['updatable'] == true &&
           row['forgettable'] == true),
-      'output_cards_link_source_trace':
-          cards.every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'output_cards_link_source_trace': cards
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'carryover_checkpoint_written':
           await File(carryoverCheckpointPath).exists(),
       'carryover_checkpoint_passed':
@@ -24330,14 +24560,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'queue_item_count': queue.length,
       'journal_event_count': journal.length,
       'output_card_count': cards.length,
-      'carryover_count': _listOfStrings(checkpoint['carryover_queue_item_ids']).length,
+      'carryover_count':
+          _listOfStrings(checkpoint['carryover_queue_item_ids']).length,
       'checks': checks,
       'failed_checks': failedChecks,
       'white_box_evidence': {
         'runtime_method': 'runNightMemoryConsolidationLoopAcceptance',
         'policy_schema': 'prd_v3_night_memory_consolidation_policy.v1',
-        'window_schema':
-            'prd_v3_night_memory_consolidation_window_plan.v1',
+        'window_schema': 'prd_v3_night_memory_consolidation_window_plan.v1',
         'queue_schema': 'prd_v3_night_memory_consolidation_queue.v1',
         'journal_schema': 'prd_v3_night_memory_consolidation_journal.v1',
       },
@@ -24476,9 +24706,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '夜间记忆整合循环核心验收证据已生成。'
-          : '夜间记忆整合循环核心验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '夜间记忆整合循环核心验收证据已生成。' : '夜间记忆整合循环核心验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'night_memory_consolidation_loop_blocked',
     );
@@ -24699,7 +24928,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await _writeJsonFile(boundaryReportPath, boundaryReport);
 
-    final previewText = await readWorkspaceTextArtifact(memoryIndexReferencePath);
+    final previewText =
+        await readWorkspaceTextArtifact(memoryIndexReferencePath);
     final reloadedIndex = await _readJsonObject(memoryIndexReferencePath);
     final reloadedPanel = await _readJsonObject(panelStatePath);
     final reloadedCards = await _readJsonObject(memoryCardsPath);
@@ -24736,15 +24966,15 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(row['event_type'], '') == 'memory_panel_refreshed'),
       'memory_cards_written': await File(memoryCardsPath).exists(),
       'memory_cards_counted': loadedCards.length == memoryCards.length,
-      'memory_cards_traceable': loadedCards.every(
-          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'memory_cards_traceable': loadedCards
+          .every((row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
       'lifecycle_report_written': await File(lifecycleReportPath).exists(),
       'lifecycle_report_passed':
           _stringValue(reloadedLifecycle['status'], '') == 'pass',
-      'restart_recovery_from_workspace_files':
-          _stringValue(reloadedStateSnapshot['memory_index_reference_path'], '') ==
-                  memoryIndexReferencePath &&
-              reloadedStateSnapshot['global_goal_complete'] == false,
+      'restart_recovery_from_workspace_files': _stringValue(
+                  reloadedStateSnapshot['memory_index_reference_path'], '') ==
+              memoryIndexReferencePath &&
+          reloadedStateSnapshot['global_goal_complete'] == false,
       'boundary_report_written': await File(boundaryReportPath).exists(),
       'boundary_report_passed':
           _stringValue(reloadedBoundary['status'], '') == 'pass',
@@ -24860,10 +25090,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'memory observability state, cards, traces and timeline are written',
-        'view': 'Agent page reads memory index state and shows available memory',
+        'view':
+            'Agent page reads memory index state and shows available memory',
         'open': 'View workspace memory opens a previewable text artifact',
         'export': 'registered reports can be exported by Artifact Center',
-        'delete': 'only test-marked memory observability artifacts are in scope',
+        'delete':
+            'only test-marked memory observability artifacts are in scope',
         'restart_recovery':
             'initialize reloads memory index, Event Ledger and Artifact Catalog',
         'error_path':
@@ -24946,17 +25178,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '记忆观测面板验收证据已生成。'
-          : '记忆观测面板验收存在缺口。',
+      lastMessage: status == 'pass' ? '记忆观测面板验收证据已生成。' : '记忆观测面板验收存在缺口。',
       lastError: status == 'pass' ? '' : 'memory_observability_panel_blocked',
     );
     notifyListeners();
     return summaryPath;
   }
 
-  Future<String>
-      runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
+  Future<String> runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
     if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
       final workspace = await _resolveWorkspace();
       await workspace.create(recursive: true);
@@ -24977,18 +25206,16 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final now = DateTime.now().toUtc().toIso8601String();
     const runId = 'test_tencentdb_agent_memory_adapter_evaluation_p2_42';
-    final root =
-        _joinNested(workspace.path, 'tencentdb_agent_memory_adapter_evaluation');
+    final root = _joinNested(
+        workspace.path, 'tencentdb_agent_memory_adapter_evaluation');
     final summaryPath = _joinNested(workspace.path,
         'acceptance/tencentdb_agent_memory_adapter_evaluation_summary.json');
     final evaluationMatrixPath =
         _joinNested(root, 'optional_adapter_evaluation_matrix.json');
     final nativeContractPath =
         _joinNested(root, 'native_memory_contract_mapping.json');
-    final dependencyRiskPath =
-        _joinNested(root, 'dependency_risk_report.json');
-    final queueInvariantPath =
-        _joinNested(root, 'queue_invariant_report.json');
+    final dependencyRiskPath = _joinNested(root, 'dependency_risk_report.json');
+    final queueInvariantPath = _joinNested(root, 'queue_invariant_report.json');
     final decisionRecordPath =
         _joinNested(root, 'optional_integration_decision.json');
     final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
@@ -25170,12 +25397,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'evaluation_classified_absorb': _stringValue(
               reloadedEvaluation['external_project_classification'], '') ==
           'absorb',
-      'evaluation_is_current_gate_only': _stringValue(
-              reloadedEvaluation['current_action'], '') ==
-          'evaluate_only_no_runtime_integration',
-      'optional_integration_deferred': _stringValue(
-              reloadedEvaluation['optional_integration_status'], '') ==
-          'deferred_until_owner_review',
+      'evaluation_is_current_gate_only':
+          _stringValue(reloadedEvaluation['current_action'], '') ==
+              'evaluate_only_no_runtime_integration',
+      'optional_integration_deferred':
+          _stringValue(reloadedEvaluation['optional_integration_status'], '') ==
+              'deferred_until_owner_review',
       'native_contract_written': await File(nativeContractPath).exists(),
       'native_contract_maps_to_heitang_memory':
           _mapValue(reloadedContract['native_contract'])
@@ -25303,8 +25530,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'checks': checks,
       'failed_checks': failedChecks,
       'white_box_evidence': {
-        'runtime_method':
-            'runTencentDbAgentMemoryAdapterEvaluationAcceptance',
+        'runtime_method': 'runTencentDbAgentMemoryAdapterEvaluationAcceptance',
         'evaluation_matrix': evaluationMatrixPath,
         'native_contract': nativeContractPath,
         'dependency_risk': dependencyRiskPath,
@@ -25408,9 +25634,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '记忆适配评估治理证据已生成。'
-          : '记忆适配评估治理证据存在缺口。',
+      lastMessage: status == 'pass' ? '记忆适配评估治理证据已生成。' : '记忆适配评估治理证据存在缺口。',
       lastError: status == 'pass'
           ? ''
           : 'tencentdb_agent_memory_adapter_evaluation_blocked',

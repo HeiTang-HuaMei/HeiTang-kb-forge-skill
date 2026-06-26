@@ -270,10 +270,13 @@ class _RetrievalVerificationViewState
               automationKey: 'workbench.retrieval.test_kb_button',
               onPressed: runtime.running || rc6 == null
                   ? null
-                  : () {
+                  : () async {
                       setState(() => retrievalPrepared = true);
-                      rc6.searchKnowledgeBases(
+                      await rc6.searchKnowledgeBases(
                           _queryController.text, selectedKbIds.toList());
+                      if (mounted) {
+                        setState(() {});
+                      }
                     },
               icon: Icons.play_arrow_outlined,
             ),

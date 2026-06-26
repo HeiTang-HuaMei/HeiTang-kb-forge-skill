@@ -261,8 +261,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
-  Future<String>
-      runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
+  Future<String> runTencentDbAgentMemoryAdapterEvaluationAcceptance() async {
     await initialize();
     return '';
   }
@@ -812,6 +811,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<String> runRetrievalRegressionBenchmarkIndustrialAcceptance() async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> runOrdinaryUiExternalSourceVerificationAcceptance() async {
     await initialize();
     return '';
   }
