@@ -630,6 +630,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runRoleBasedWorkgroupAcceptance({
+    String topic = 'P2-10 Role-based Workgroup',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runA2aTenAgentTemplateAcceptance({
     String topic = 'P2-4 A2A >= 10 Agents',
   }) async {

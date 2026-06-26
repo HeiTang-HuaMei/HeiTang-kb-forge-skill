@@ -9606,6 +9606,228 @@ void main() {
         isTrue);
   });
 
+  test('p2 role-based workgroup creates role evidence package', () async {
+    final workspace = await createWorkspace();
+    writeWorkgroupAgentSkillFixture(
+      workspace,
+      agentId: 'test_role_workgroup_agent',
+      agentName: '角色分工测试助手',
+      description: '用于 P2-10 角色分工工作组验收。',
+      role: '处理当前角色分工任务',
+    );
+    writeResearchAnalysisQueryFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runRoleBasedWorkgroupAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'], 'prd_v3_role_based_workgroup_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'role_based_workgroup');
+    expect(summary['capability_gate'], 'P2-10 Role-based Workgroup');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-11 ReAct Tool Runtime Industrialization');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_project_name_user_visible' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final roleManifest = jsonDecode(
+        File(summary['role_assignment_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(roleManifest['schema_version'],
+        'prd_v3_role_based_workgroup_assignment.v1');
+    expect(roleManifest['role_count'], greaterThanOrEqualTo(4));
+    final assignments =
+        (roleManifest['assignments'] as List).cast<Map<String, dynamic>>();
+    expect(assignments.map((row) => row['display_name']),
+        containsAll(['任务负责人', '证据复核', '风险复核', '文档整理']));
+    expect(
+        assignments.every((row) =>
+            row['agent_id'].toString().isNotEmpty &&
+            row['external_runtime_loaded'] == false),
+        isTrue);
+
+    final roleOutputs = readJsonlFile(summary['role_outputs_path'] as String);
+    expect(roleOutputs, hasLength(assignments.length));
+    expect(
+        roleOutputs.every((row) =>
+            row['status'] == 'completed' &&
+            (row['evidence_refs'] as List).length >= 3),
+        isTrue);
+    final validation = jsonDecode(
+        File(summary['role_validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_role_based_workgroup_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(File(summary['role_review_report_path'] as String).existsSync(),
+        isTrue);
+    expect(
+        File(summary['workgroup_summary_path'] as String).existsSync(), isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'role_based_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'role_based_workgroup_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'role_based_workgroup_review' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
+  testWidgets('p2 role-based workgroup button creates role evidence',
+      (tester) async {
+    late Directory workspace;
+    await pumpWorkbench(
+      tester,
+      initialSelectedIndex: 7,
+      surfaceSize: const Size(1440, 900),
+      captureWorkspace: (dir) => workspace = dir,
+      setupWorkspace: (workspace) async {
+        writeWorkgroupAgentSkillFixture(
+          workspace,
+          agentId: 'test_role_workgroup_agent',
+          agentName: '角色分工测试助手',
+          description: '用于 P2-10 角色分工工作组黑盒验收。',
+          role: '处理当前角色分工任务',
+        );
+        writeResearchAnalysisQueryFixture(workspace);
+      },
+      waitForRuntimeReady: true,
+    );
+
+    expect(find.byKey(const Key('agent-primary-entry-switch')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('agent-primary-entry-工作小组')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    final input = find.byKey(const Key('a2a-topic-input'));
+    expect(input, findsOneWidget);
+    final editable = find.descendant(
+      of: input,
+      matching: find.byType(EditableText),
+    );
+    expect(editable, findsOneWidget);
+    final editableText = tester.widget<EditableText>(editable);
+    editableText.controller.text = 'P2-10 角色分工：按负责人、证据、风险、文档整理协作。';
+    editableText.controller.selection = TextSelection.collapsed(
+      offset: editableText.controller.text.length,
+    );
+    await tester.pumpAndSettle();
+
+    final button =
+        find.byKey(const Key('workgroup-basic-runtime-evidence-button'));
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (button.evaluate().isNotEmpty &&
+          tester.widget<FilledButton>(button).onPressed != null) {
+        break;
+      }
+    }
+    expect(button, findsOneWidget);
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      tester.widget<FilledButton>(button).onPressed?.call();
+      await Future<void>.delayed(const Duration(seconds: 1));
+    });
+
+    final summaryPath =
+        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}role_based_workgroup_summary.json';
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 250)));
+      await tester.pumpAndSettle();
+      if (File(summaryPath).existsSync()) {
+        break;
+      }
+    }
+    expect(tester.takeException(), isNull);
+    expect(File(summaryPath).existsSync(), isTrue);
+    final summary = jsonDecode(File(summaryPath).readAsStringSync()) as Map;
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'role_based_workgroup');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['ui_blackbox_path'],
+        'Agent -> Work Group -> Collaboration task input -> Start Work Group');
+    expect(
+        File(summary['role_assignment_manifest_path'] as String).existsSync(),
+        isTrue);
+    expect(File(summary['role_outputs_path'] as String).existsSync(), isTrue);
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'role_based_workgroup_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(find.textContaining('0/'), findsNothing);
+  });
+
   testWidgets('p2 a2a ten-agent template button creates user-path evidence',
       (tester) async {
     late Directory workspace;

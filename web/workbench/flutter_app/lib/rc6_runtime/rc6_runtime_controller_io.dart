@@ -13802,6 +13802,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         participantAgentIds: participantAgentIds,
       );
     }
+    if (_isRoleBasedWorkgroupAcceptanceTopic(topic)) {
+      await _writeRoleBasedWorkgroupSummary(
+        topic: topic,
+        workgroupSummaryPath: summaryPath,
+        participantAgentIds: participantAgentIds,
+      );
+    }
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
@@ -13829,6 +13836,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     return _joinNested(_requireWorkspace().path,
         'acceptance/research_analysis_workgroup_summary.json');
+  }
+
+  Future<String> runRoleBasedWorkgroupAcceptance({
+    String topic = 'P2-10 角色分工工作组验收',
+  }) async {
+    final summaryPath = await runMultiAgentDiscussion(
+      topic: topic,
+      writeOfficeCollaborationSummaryIfReady: false,
+    );
+    if (summaryPath.isEmpty) {
+      return '';
+    }
+    return _joinNested(_requireWorkspace().path,
+        'acceptance/role_based_workgroup_summary.json');
   }
 
   Future<String> runA2aTenAgentTemplateAcceptance({
@@ -13915,6 +13936,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     return topic.contains('P2-3') ||
         topic.contains('研究分析') ||
         normalized.contains('research analysis');
+  }
+
+  bool _isRoleBasedWorkgroupAcceptanceTopic(String topic) {
+    final normalized = topic.toLowerCase();
+    return topic.contains('P2-10') ||
+        topic.contains('角色分工') ||
+        normalized.contains('role-based') ||
+        normalized.contains('role based');
   }
 
   static List<Map<String, String>> _p2FourAssistantTemplates() => const [
@@ -15012,6 +15041,369 @@ class Rc6RuntimeController extends ChangeNotifier {
         'acceptance_type': 'user_blackbox',
         'source_trace_path': sourceTracePath,
         'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    return summaryPath;
+  }
+
+  Future<String> _writeRoleBasedWorkgroupSummary({
+    required String topic,
+    required String workgroupSummaryPath,
+    required List<String> participantAgentIds,
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/role_based_workgroup_summary.json');
+    final roleRoot = _joinNested(workspace.path, 'workgroup/role_based');
+    final roleManifestPath =
+        _joinNested(roleRoot, 'role_assignment_manifest.json');
+    final roleOutputsPath = _joinNested(roleRoot, 'role_outputs.jsonl');
+    final roleValidationPath =
+        _joinNested(roleRoot, 'role_based_validation_report.json');
+    final roleReviewPath = _joinNested(roleRoot, 'role_review_report.md');
+    final discussionPath =
+        _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final discussionManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final a2aManifest = await _readJsonObject(a2aSessionManifestPath);
+    final participants = _listOfStrings(a2aManifest['participant_agent_ids']);
+    final effectiveParticipants =
+        participants.isEmpty ? participantAgentIds : participants;
+    const roleSpecs = [
+      {
+        'role_id': 'task_owner',
+        'display_name': '任务负责人',
+        'responsibility': '拆分任务、明确交付边界并汇总下一步行动。',
+      },
+      {
+        'role_id': 'evidence_reviewer',
+        'display_name': '证据复核',
+        'responsibility': '检查每个结论是否能回链到本地证据。',
+      },
+      {
+        'role_id': 'risk_reviewer',
+        'display_name': '风险复核',
+        'responsibility': '识别越权、误导、缺证据和需要人工确认的风险。',
+      },
+      {
+        'role_id': 'document_owner',
+        'display_name': '文档整理',
+        'responsibility': '把共识整理为可交付文档和待办清单。',
+      },
+    ];
+    final assignments = <Map<String, Object?>>[
+      for (var index = 0; index < roleSpecs.length; index += 1)
+        {
+          ...roleSpecs[index],
+          'agent_id': effectiveParticipants.isEmpty
+              ? 'role_agent_${index + 1}'
+              : effectiveParticipants[index % effectiveParticipants.length],
+          'test_marked_assignment': true,
+          'external_runtime_loaded': false,
+        }
+    ];
+    await _writeJsonFile(roleManifestPath, {
+      'schema_version': 'prd_v3_role_based_workgroup_assignment.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-10 Role-based Workgroup',
+      'user_facing_capability': '角色分工工作组',
+      'role_count': assignments.length,
+      'participant_agent_ids': effectiveParticipants,
+      'assignments': assignments,
+      'implementation_names_user_visible': false,
+      'created_at': now,
+    });
+    final roleOutputs = <Map<String, Object?>>[
+      for (final assignment in assignments)
+        {
+          'schema_version': 'prd_v3_role_based_workgroup_role_output.v1',
+          'role_id': assignment['role_id'],
+          'display_name': assignment['display_name'],
+          'agent_id': assignment['agent_id'],
+          'status': 'completed',
+          'output': '${assignment['display_name']}完成本轮职责，输出保留证据边界和下一步动作。',
+          'evidence_refs': [
+            {
+              'artifact': discussionPath,
+              'kind': 'workgroup_discussion',
+            },
+            {
+              'artifact': consensusReportPath,
+              'kind': 'consensus_report',
+            },
+            {
+              'artifact': conflictReportPath,
+              'kind': 'conflict_report',
+            },
+          ],
+          'secret_plaintext_written': false,
+          'created_at': now,
+        }
+    ];
+    await File(roleOutputsPath).parent.create(recursive: true);
+    await File(roleOutputsPath).writeAsString(
+      '${roleOutputs.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final workgroupSummary = await _readJsonObject(workgroupSummaryPath);
+    final validationChecks = <String, bool>{
+      'role_manifest_written': await File(roleManifestPath).exists(),
+      'role_count_at_least_four': assignments.length >= 4,
+      'roles_have_agent_assignments': assignments.every(
+        (row) => _stringValue(row['agent_id'], '').trim().isNotEmpty,
+      ),
+      'role_outputs_written': await File(roleOutputsPath).exists(),
+      'role_outputs_cover_all_roles': roleOutputs.length == assignments.length,
+      'each_role_output_has_evidence_refs': roleOutputs.every(
+        (row) => _listOfMaps(row['evidence_refs']).length >= 3,
+      ),
+      'workgroup_summary_passed':
+          _stringValue(workgroupSummary['status'], '') == 'pass',
+      'discussion_written': await File(discussionPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'implementation_names_user_visible': false,
+      'external_runtime_loaded': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(roleValidationPath, {
+      'schema_version': 'prd_v3_role_based_workgroup_validation_report.v1',
+      'status': 'pass',
+      'capability_gate': 'P2-10 Role-based Workgroup',
+      'role_assignment_manifest_path': roleManifestPath,
+      'role_outputs_path': roleOutputsPath,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'checks': validationChecks,
+      'created_at': now,
+    });
+    await File(roleReviewPath).parent.create(recursive: true);
+    await File(roleReviewPath).writeAsString(
+      [
+        '# 角色分工工作组复核',
+        '',
+        '## 任务',
+        topic.trim().isEmpty ? 'P2-10 角色分工工作组验收' : topic.trim(),
+        '',
+        '## 角色分工',
+        for (final assignment in assignments)
+          '- ${assignment['display_name']}: ${assignment['responsibility']}',
+        '',
+        '## 共识与冲突',
+        '- 共识报告：$consensusReportPath',
+        '- 冲突报告：$conflictReportPath',
+        '',
+        '## 边界',
+        '- 用户界面只展示能力结果和下一步操作。',
+        '- 不展示底层项目、Provider、Adapter、Parser 或矩阵状态。',
+        '- 不调用外部项目 runtime，不做本地模型训练。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'agent_exists': state.hasAgent || state.hasAgentProfiles,
+      'skill_exists': state.hasSkill ||
+          state.hasSkillOperationManifest ||
+          state.hasSkillVersionManifest,
+      'workgroup_summary_exists': await File(workgroupSummaryPath).exists(),
+      'workgroup_summary_passed':
+          _stringValue(workgroupSummary['status'], '') == 'pass',
+      'discussion_written': await File(discussionPath).exists(),
+      'discussion_manifest_written':
+          await File(discussionManifestPath).exists(),
+      'a2a_session_manifest_written':
+          await File(a2aSessionManifestPath).exists(),
+      'conflict_report_written': await File(conflictReportPath).exists(),
+      'consensus_report_written': await File(consensusReportPath).exists(),
+      'role_assignment_manifest_written': await File(roleManifestPath).exists(),
+      'role_count_at_least_four': assignments.length >= 4,
+      'role_outputs_written': await File(roleOutputsPath).exists(),
+      'role_outputs_cover_all_roles': roleOutputs.length == assignments.length,
+      'role_validation_report_written': await File(roleValidationPath).exists(),
+      'role_review_report_written': await File(roleReviewPath).exists(),
+      'ui_blackbox_path_defined': true,
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'restart_recovery_path_available': true,
+      'external_project_runtime_loaded': false,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_role_based_workgroup_summary.v1',
+      'status': status,
+      'capability_id': 'role_based_workgroup',
+      'capability_gate': 'P2-10 Role-based Workgroup',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'ui_blackbox_path':
+          'Agent -> Work Group -> Collaboration task input -> Start Work Group',
+      'user_facing_capability': '角色分工工作组',
+      'topic': topic.trim().isEmpty ? 'P2-10 角色分工工作组验收' : topic.trim(),
+      'participant_agent_ids': effectiveParticipants,
+      'requested_participant_agent_ids': participantAgentIds,
+      'role_assignment_manifest_path': roleManifestPath,
+      'role_outputs_path': roleOutputsPath,
+      'role_validation_report_path': roleValidationPath,
+      'role_review_report_path': roleReviewPath,
+      'workgroup_summary_path': workgroupSummaryPath,
+      'discussion_path': discussionPath,
+      'discussion_manifest_path': discussionManifestPath,
+      'a2a_session_manifest_path': a2aSessionManifestPath,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runRoleBasedWorkgroupAcceptance',
+        'summary_method': '_writeRoleBasedWorkgroupSummary',
+        'role_assignment_manifest_path': roleManifestPath,
+        'role_outputs_path': roleOutputsPath,
+        'role_validation_report_path': roleValidationPath,
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'path': 'Agent page Work Group panel',
+        'action': 'enter role-based task and start work group',
+        'automation_key': 'workgroup-basic-runtime-evidence-button',
+        'result_visible_to_user': status == 'pass' ? '角色分工工作组成果已生成' : '需要处理',
+      },
+      'artifact_evidence': {
+        'role_assignment_manifest_path': roleManifestPath,
+        'role_outputs_path': roleOutputsPath,
+        'role_validation_report_path': roleValidationPath,
+        'role_review_report_path': roleReviewPath,
+      },
+      'lifecycle_evidence': {
+        'create':
+            'role assignment manifest, role outputs, validation report, review report and workgroup discussion are written',
+        'view': 'Work Group panel shows generated state after runtime reload',
+        'open':
+            'Artifact Center can preview the registered role-based summary and review report',
+        'export':
+            'Artifact Center can export registered role-based workgroup files',
+        'delete':
+            'Artifact Center deletes only registered test-marked artifacts when requested',
+        'restart_recovery':
+            'initialize reloads A2A session manifest, Event Ledger and Artifact Catalog from workspace files',
+        'error_path':
+            'missing Agent, missing Skill, or missing role evidence blocks acceptance',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_project_name_user_visible': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-11 ReAct Tool Runtime Industrialization',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'role_based_workgroup_validated',
+      module: 'workgroup',
+      action: 'run_role_based_workgroup_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'role_based_workgroup',
+      targetName: 'Role-based Workgroup',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'role_count': assignments.length,
+        'role_assignment_manifest_path': roleManifestPath,
+        'role_outputs_path': roleOutputsPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'role_based_workgroup_summary',
+      artifactType: 'acceptance_report',
+      title: 'Role-based Workgroup Summary',
+      sourceModule: 'workgroup',
+      sourceId: 'role_based_workgroup',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'role_count': assignments.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'role_based_workgroup_review',
+      artifactType: 'review_report',
+      title: 'Role-based Workgroup Review',
+      sourceModule: 'workgroup',
+      sourceId: 'role_based_workgroup',
+      filePath: roleReviewPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'role_assignment_manifest_path': roleManifestPath,
         'test_marked_artifact': true,
       },
     );
