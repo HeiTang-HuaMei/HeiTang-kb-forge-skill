@@ -670,6 +670,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runPollyStyleLeadOrchestratorAcceptance({
+    String task = 'P2-14 Polly-style Lead Orchestrator',
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
     await initialize();
     return const <Rc6AgentProfile>[];

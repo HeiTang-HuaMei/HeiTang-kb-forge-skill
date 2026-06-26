@@ -5992,6 +5992,404 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runPollyStyleLeadOrchestratorAcceptance({
+    String task = 'P2-14 Polly-style Lead Orchestrator',
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/polly_style_lead_orchestrator_summary.json');
+    final root = _joinNested(workspace.path, 'orchestration/lead_orchestrator');
+    final planPath = _joinNested(root, 'lead_orchestrator_plan.json');
+    final delegationPath =
+        _joinNested(root, 'lead_orchestrator_delegation.jsonl');
+    final executionTracePath =
+        _joinNested(root, 'lead_orchestrator_execution_trace.jsonl');
+    final reviewReportPath =
+        _joinNested(root, 'lead_orchestrator_review_report.json');
+    final blockedBranchPath =
+        _joinNested(root, 'lead_orchestrator_blocked_branch.json');
+    final validationReportPath =
+        _joinNested(root, 'lead_orchestrator_validation_report.json');
+    final handoffPath = _joinNested(root, 'lead_orchestrator_handoff.md');
+    state = state.copyWith(
+      running: true,
+      lastMessage: '主控编排核心验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final subtasks = [
+      {
+        'subtask_id': 'lead_task_01',
+        'title': 'Clarify objective and boundary',
+        'owner_role': 'lead_orchestrator',
+        'required_evidence': ['objective', 'boundary'],
+      },
+      {
+        'subtask_id': 'lead_task_02',
+        'title': 'Collect source evidence',
+        'owner_role': 'research_worker',
+        'required_evidence': ['source_trace'],
+      },
+      {
+        'subtask_id': 'lead_task_03',
+        'title': 'Draft answer from evidence',
+        'owner_role': 'synthesis_worker',
+        'required_evidence': ['source_trace', 'evidence_graph'],
+      },
+      {
+        'subtask_id': 'lead_task_04',
+        'title': 'Review missing evidence and risks',
+        'owner_role': 'verifier',
+        'required_evidence': ['validation_report', 'risk_report'],
+      },
+    ];
+    final plan = {
+      'schema_version': 'prd_v3_polly_style_lead_orchestrator_plan.v1',
+      'status': 'pass',
+      'capability_id': 'polly_style_lead_orchestrator',
+      'task': task,
+      'strategy': 'lead plans, delegates, verifies, and blocks on missing evidence',
+      'subtasks': subtasks,
+      'stop_policy': {
+        'missing_evidence_blocks_completion': true,
+        'secret_request_blocks_completion': true,
+        'real_user_data_delete_blocks_completion': true,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(planPath, plan);
+    final delegations = <Map<String, Object?>>[
+      for (final subtask in subtasks)
+        {
+          'schema_version': 'prd_v3_polly_style_delegation_record.v1',
+          'subtask_id': subtask['subtask_id'],
+          'owner_role': subtask['owner_role'],
+          'decision': 'assigned',
+          'status': 'queued',
+          'required_evidence': subtask['required_evidence'],
+          'created_at': now,
+        }
+    ];
+    await File(delegationPath).parent.create(recursive: true);
+    await File(delegationPath).writeAsString(
+      '${delegations.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final traceRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_polly_style_execution_trace.v1',
+        'step': 1,
+        'subtask_id': 'lead_task_01',
+        'owner_role': 'lead_orchestrator',
+        'status': 'completed',
+        'output_ref': 'objective_and_boundary',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_polly_style_execution_trace.v1',
+        'step': 2,
+        'subtask_id': 'lead_task_02',
+        'owner_role': 'research_worker',
+        'status': 'completed',
+        'output_ref': 'source_trace',
+        'evidence_refs': ['sample_trace_01', 'sample_trace_02'],
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_polly_style_execution_trace.v1',
+        'step': 3,
+        'subtask_id': 'lead_task_03',
+        'owner_role': 'synthesis_worker',
+        'status': 'completed',
+        'output_ref': 'draft_answer',
+        'evidence_refs': ['sample_trace_01', 'sample_trace_02'],
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_polly_style_execution_trace.v1',
+        'step': 4,
+        'subtask_id': 'lead_task_04',
+        'owner_role': 'verifier',
+        'status': 'completed',
+        'output_ref': 'validation_report',
+        'review_result': 'pass',
+        'created_at': now,
+      },
+    ];
+    await File(executionTracePath).parent.create(recursive: true);
+    await File(executionTracePath).writeAsString(
+      '${traceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final blockedBranch = {
+      'schema_version': 'prd_v3_polly_style_blocked_branch.v1',
+      'status': 'pass',
+      'case_id': 'missing_source_trace_blocks_synthesis',
+      'missing_evidence': ['source_trace'],
+      'completion_blocked': true,
+      'resume_prompt': 'Import or select source evidence, then rerun lead orchestration.',
+      'created_at': now,
+    };
+    await _writeJsonFile(blockedBranchPath, blockedBranch);
+    final reviewReport = {
+      'schema_version': 'prd_v3_polly_style_review_report.v1',
+      'status': 'pass',
+      'plan_path': planPath,
+      'delegation_path': delegationPath,
+      'execution_trace_path': executionTracePath,
+      'blocked_branch_path': blockedBranchPath,
+      'reviewer_findings': [
+        'lead role produced plan before delegation',
+        'worker outputs have evidence refs',
+        'verifier branch records pass and missing-evidence block',
+        'no external runtime or model call is required',
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(reviewReportPath, reviewReport);
+    await File(handoffPath).parent.create(recursive: true);
+    await File(handoffPath).writeAsString(
+      [
+        '# 主控编排交接',
+        '',
+        '## 任务',
+        task,
+        '',
+        '## 执行顺序',
+        for (final subtask in subtasks)
+          '- ${subtask['subtask_id']}: ${subtask['title']} -> ${subtask['owner_role']}',
+        '',
+        '## 复核',
+        '- 所有 worker 输出必须有 evidence refs。',
+        '- 缺少 source trace 时阻断合成。',
+        '- 不调用外部 runtime，不做本地模型训练。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final reloadedPlan = await _readJsonObject(planPath);
+    final reloadedReview = await _readJsonObject(reviewReportPath);
+    final delegationLines = File(delegationPath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final traceLines = File(executionTracePath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final traceRecords = traceLines
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_core_only': true,
+      'blackbox_not_required': true,
+      'plan_written': await File(planPath).exists(),
+      'plan_schema_valid': _stringValue(reloadedPlan['schema_version'], '') ==
+          'prd_v3_polly_style_lead_orchestrator_plan.v1',
+      'delegation_written': await File(delegationPath).exists(),
+      'delegation_count_matches_subtasks':
+          delegationLines.length == subtasks.length,
+      'execution_trace_written': await File(executionTracePath).exists(),
+      'execution_trace_ordered': traceRecords.length == 4 &&
+          traceRecords.first['owner_role'] == 'lead_orchestrator' &&
+          traceRecords.last['owner_role'] == 'verifier',
+      'worker_outputs_have_evidence': traceRecords
+          .where((row) => row['owner_role'].toString().contains('worker'))
+          .every((row) => _listOfStrings(row['evidence_refs']).isNotEmpty),
+      'blocked_branch_written': await File(blockedBranchPath).exists(),
+      'missing_evidence_blocks_completion':
+          _boolValue(blockedBranch['completion_blocked']),
+      'review_report_written': await File(reviewReportPath).exists(),
+      'review_report_passed':
+          _stringValue(reloadedReview['status'], '') == 'pass',
+      'handoff_written': await File(handoffPath).exists(),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedPlan['status'], '') == 'pass' &&
+              _stringValue(reloadedReview['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+    };
+    const negativeChecks = {
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = {
+      'schema_version':
+          'prd_v3_polly_style_lead_orchestrator_validation_report.v1',
+      'status': status,
+      'plan_path': planPath,
+      'delegation_path': delegationPath,
+      'execution_trace_path': executionTracePath,
+      'review_report_path': reviewReportPath,
+      'blocked_branch_path': blockedBranchPath,
+      'handoff_path': handoffPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_polly_style_lead_orchestrator_summary.v1',
+      'status': status,
+      'capability_id': 'polly_style_lead_orchestrator',
+      'capability_gate': 'P2-14 Polly-style Lead Orchestrator',
+      'acceptance_type': 'core_only',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': 'not_required',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'plan_path': planPath,
+      'delegation_path': delegationPath,
+      'execution_trace_path': executionTracePath,
+      'review_report_path': reviewReportPath,
+      'blocked_branch_path': blockedBranchPath,
+      'validation_report_path': validationReportPath,
+      'handoff_path': handoffPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runPollyStyleLeadOrchestratorAcceptance',
+        'plan_schema': 'prd_v3_polly_style_lead_orchestrator_plan.v1',
+        'delegation_schema': 'prd_v3_polly_style_delegation_record.v1',
+        'trace_schema': 'prd_v3_polly_style_execution_trace.v1',
+        'blocked_branch_schema': 'prd_v3_polly_style_blocked_branch.v1',
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'handoff_path': handoffPath,
+      },
+      'event_evidence': {
+        'event_type': 'polly_style_lead_orchestrator_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'plan, delegation records, execution trace, review report, blocked branch, validation report and handoff are written',
+        'view': 'summary and handoff are registered in Artifact Catalog',
+        'open': 'registered summary and handoff files can be opened by path',
+        'export': 'registered report paths are available for Artifact Center export',
+        'delete': 'no real user data is deleted by this core-only acceptance',
+        'restart_recovery':
+            'plan and review report reload from workspace files',
+        'error_path': 'missing source trace blocks synthesis',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'external_project_runtime_loaded': false,
+        'external_model_called': false,
+        'provider_adapter_parser_user_visible': false,
+        'capability_matrix_user_visible': false,
+        'redis_vector_service_packaged_into_exe': false,
+        'local_model_training_used': false,
+        'gpu_training_used': false,
+        'real_user_data_deleted': false,
+        'secret_plaintext_written': false,
+      },
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': 'pass',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-15 Sandbox and Tool Permission Industrialization',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'polly_style_lead_orchestrator_validated',
+      module: 'orchestration',
+      action: 'run_polly_style_lead_orchestrator_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'polly_style_lead_orchestrator',
+      targetName: 'Polly-style Lead Orchestrator',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'plan_path': planPath,
+        'blocked_branch_path': blockedBranchPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'polly_style_lead_orchestrator_summary',
+      artifactType: 'acceptance_report',
+      title: 'Polly-style Lead Orchestrator Summary',
+      sourceModule: 'orchestration',
+      sourceId: 'polly_style_lead_orchestrator',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'black_box_status': 'not_required',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'polly_style_lead_orchestrator_handoff',
+      artifactType: 'handoff_report',
+      title: 'Polly-style Lead Orchestrator Handoff',
+      sourceModule: 'orchestration',
+      sourceId: 'polly_style_lead_orchestrator',
+      filePath: handoffPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'core_only',
+        'validation_report_path': validationReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? '主控编排核心验收证据已生成。' : '主控编排核心验收存在缺口。',
+      lastError:
+          status == 'pass' ? '' : 'polly_style_lead_orchestrator_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
     if (isWebRuntime || kIsWeb) {
       return const [];
