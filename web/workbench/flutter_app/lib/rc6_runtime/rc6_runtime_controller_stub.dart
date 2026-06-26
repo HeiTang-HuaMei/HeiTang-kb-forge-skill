@@ -241,6 +241,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runMermaidSymbolicMemoryIndustrialAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runTaskExperienceReuseBasicAcceptance() async {
     await initialize();
     return '';
