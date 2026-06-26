@@ -50,4 +50,11 @@ flutter test --concurrency=1
 flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1
 ```
 
+If local Flutter tests are run behind a VPN or proxy, bypass loopback addresses first so the test shell can reach its own listener:
+
+```powershell
+$env:NO_PROXY='localhost,127.0.0.1,::1'
+$env:no_proxy='localhost,127.0.0.1,::1'
+```
+
 Build or release gates are required only when the change affects packaging, release policy, or executable behavior.

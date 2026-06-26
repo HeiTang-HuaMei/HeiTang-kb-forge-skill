@@ -15,6 +15,81 @@ Scores are only `pass`, `partial`, or `fail`. Any required dimension scored `fai
 | governance | files/status/queues are consistent | not required | registry/report evidence exists | queue/status persistence and invariants hold | governance fast gate and phase regression pass | no duplicate ledgers or forbidden positive claims | governance_status passes |
 | composite | substrate core evidence passes | no standalone fake UI; linked scenarios pass | artifact/event/governance evidence exists | linked scenario lifecycle and restart evidence pass | linked user-path regression passes | no boundary violation | Core + artifact/event/governance + linked cases pass |
 
+## Cross-Cutting P2 Token Mode Acceptance
+
+P2 token economy behavior must be validated with white-box, grey-box and black-box evidence before P2 Release Gate. This is a cross-cutting runtime policy for document parsing/OCR, knowledge retrieval, document generation, Skill generation, Agent/workgroup execution and external information source verification.
+
+Required mode distinction:
+
+| Mode | Required Distinction |
+| --- | --- |
+| Economy | Minimizes LLM and external verification usage by relying on local parsing, cache, source_trace, confidence gates and small evidence packets. |
+| Standard | Balances cost and quality with selective LLM validation for weak, conflicting, stale, important or missing evidence. |
+| Deep | Expands evidence collection and review depth for important work while still enforcing bounded prompt input and token budgets. |
+
+Required acceptance layers:
+
+| Layer | Required Evidence |
+| --- | --- |
+| White-box | Policy model for global default and per-module override; different budgets, retrieval depths, validation triggers and external-verification behavior; Event Ledger or runtime report fields for selected mode and trigger reason. |
+| Grey-box | Product-facing module settings can set different modes for different modules; UI uses Economy, Standard and Deep language only; mode changes persist where the module has durable configuration. |
+| Black-box | Economy skips LLM for clear OCR and high-confidence retrieval; Standard validates ambiguous evidence; Deep performs broader cross-document or Agent review with bounded evidence packets; external verification runs only for latest, stale, conflicting, insufficient or high-risk claims. |
+
+No P2 capability may use token mode as closure evidence by itself. It must still pass its own core, blackbox or linked scenario, artifact, event, lifecycle, regression and boundary checks.
+
+## Cross-Cutting P2 Model Gateway Acceptance
+
+All P2 capabilities use the P2 industrial acceptance bar. Model Gateway broad API adaptation is a deferred cross-cutting P2 acceptance requirement, not a weaker alternate path and not a retroactive addition to a completed P2 gate. It must be validated with white-box, grey-box and black-box evidence before P2 Release Gate. It covers broad domestic and international external model API adaptation, multi-Provider onboarding, capability probing, availability smoke, model selection policy, module-level binding, fallback, cost/token strategy, error degradation and audit records.
+
+Required scope:
+
+| Area | Required Evidence |
+| --- | --- |
+| Multi-Provider onboarding | Representative domestic, international, custom endpoint and embedding provider paths have config schema, masked secret handling and readiness evidence. |
+| Capability probing | Probe report records supported roles, context-window class, cost class, latency class, health status, fallback priority and embedding dimension where applicable. |
+| Availability smoke | Harmless minimal request smoke for chat-like models, sample embedding smoke, timeout, auth, rate-limit and invalid-model failure paths. |
+| Selection policy | Deterministic selection by module, task role, token mode, cost class, latency class, context window, health status and fallback priority. |
+| Module binding | At least two modules can bind different model roles without silently changing other modules. |
+| Fallback and degradation | Failing or unsupported roles disable only the affected role/module and show a clear user action. |
+| Cost/token strategy | Economy, Standard and Deep modes alter budget and validation behavior without bypassing configured roles or evidence boundaries. |
+| Audit | Event Ledger or runtime report records selected model alias, role, mode, decision reason, fallback reason, latency class, cost class and masked secret state. |
+
+Required acceptance layers:
+
+| Layer | Required Evidence |
+| --- | --- |
+| White-box | Provider schema, capability probe, deterministic selector, module binding, fallback policy, error handling and no-secret report checks. |
+| Grey-box | Product configuration uses ordinary language such as AI model service, embedding service, verification model and test connection; provider/project internals are not exposed as product modules. |
+| Black-box | User can configure and test representative model paths, run module-bound tasks, see masked status, trigger fallback, and verify Event Ledger plus validation_report evidence. |
+
+Model Gateway evidence cannot close a P2 capability by itself. It supports the owning P2 capability only after that capability also passes its required core, blackbox or linked scenario, artifact, event, lifecycle, regression and boundary checks.
+
+## Cross-Cutting P2 External Source Verification Acceptance
+
+P2 must prove that outside information checking is available through an ordinary product path, not only through internal core tests or architecture documents. The user-facing labels must remain product language such as "search sources", "external check", "paste link" or "add evidence"; implementation names such as `OpenCLI`, provider, adapter, parser, router, matrix, dependency gate or project names must not appear in ordinary UI.
+
+Required scope:
+
+| Area | Required Evidence |
+| --- | --- |
+| Ordinary user path | A user can start an external check or source search from product UI and get a visible result or next action. |
+| Source search | OpenCLI-backed Source Searcher is used for configured and authorized candidate discovery, with unavailable/degraded evidence when it cannot run. |
+| URL fetch separation | Public URL body extraction uses the fetcher path and must not be misreported as OpenCLI search. |
+| Manual evidence | User-supplied evidence is traceable, labeled as manual and protected by secret/private-data guards. |
+| Evidence convergence | All accepted outside evidence converges to source_trace, evidence_map and validation_report before it can support answers, documents, Skills, Agents or workgroups. |
+| Knowledge handoff | Accepted source evidence can enter the document library or knowledge-base verification path with backlinks preserved. |
+| Boundary safety | No broad crawling, paywall/CAPTCHA bypass, cookie/token import, private-source fetch, plaintext secret persistence or full-page prompt dump is allowed. |
+
+Required acceptance layers:
+
+| Layer | Required Evidence |
+| --- | --- |
+| White-box | Source Searcher, Source Fetcher and Manual Evidence Importer are separated; OpenCLI-backed search writes candidate/confidence/trace/evidence/report artifacts; degraded paths and no-secret checks are covered. |
+| Grey-box | Product UI starts the path with ordinary labels, shows clear next actions for unavailable/unconfigured states, and preserves trace/report links without showing implementation names. |
+| Black-box | A test-marked ordinary UI flow creates non-empty source_trace, evidence_map and validation_report, uses accepted evidence in a retrieval/answer/document/Skill/Agent/workgroup path or records why it was skipped, and passes UI leakage and boundary scans. |
+
+External source verification evidence cannot close a P2 capability by itself. It supports the owning P2 capability only after that capability also passes its required core, user path or linked scenario, artifact, event, lifecycle, regression and boundary checks.
+
 ## Capability Rubric Matrix
 
 | phase | capability_id | acceptance_type | required_dimensions | initial_expected_score | repair_action | close_allowed_condition |

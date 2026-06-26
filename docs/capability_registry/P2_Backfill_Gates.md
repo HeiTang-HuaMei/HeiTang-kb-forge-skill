@@ -19,7 +19,7 @@ P2 must not begin until:
 | --- | --- | --- |
 | Workgroup / A2A | `a2a_workgroup`, `office_collaboration_workgroup`, `research_analysis_workgroup`, `role_based_workgroup`, `multi_agent_rag_deepening` | Workgroup runtime, A2A, multi-agent retrieval and role collaboration. |
 | Industrial Connectors and Runtime | `project_config_industrial_isolation`, `connector_industrialization`, `react_tool_runtime_industrial`, `sandbox_tool_permission`, `session_share_fork_replay`, `cloud_disposable_sandbox` | Isolation, connectors, tool runtime, sandbox and replay. |
-| Release-Adjacent Automation | `blackbox_automation_baseline`, `windows_packaging_baseline_smoke`, `official_sample_project_library`, `remote_task_control` | Automation baseline, packaging smoke baseline, samples and remote control; final full matrix and final packaging regression remain P2 Release Gate duties. |
+| Release-Adjacent Automation | `blackbox_automation_baseline`, `windows_packaging_baseline_smoke`, `official_sample_project_library`, `remote_task_control` | Automation baseline, packaging smoke baseline, Windows EXE Core/UI decoupling reservation, samples and remote control; final full matrix and final packaging regression remain P2 Release Gate duties. |
 | Industrial Knowledge Governance | `multi_kb_governance_industrial`, `versioned_knowledge_governance`, `jurisdiction_domain_scope`, `human_review_console`, `reliability_score_industrial` | Multi-KB, versioning, jurisdiction, review and scoring. |
 | Maintenance and Self-Improvement | `night_knowledge_maintenance`, `citation_auto_repair`, `memory_consolidation_industrial`, `retrieval_regression_benchmark_industrial`, `self_improving_knowledge_maintenance` | Maintenance loops, repair suggestions and benchmarks with human review. |
 | Agent Memory Industrial | `agent_memory_industrial`, `mermaid_symbolic_memory_industrial`, `cross_agent_memory_migration`, `night_memory_consolidation_loop`, `memory_observability_panel`, `tencentdb_agent_memory_adapter_evaluation` | Industrial task memory, symbolic memory, migration, observability and optional adapter evaluation. |
@@ -74,7 +74,9 @@ Template acceptance rules:
 
 External projects classified as `absorb`, `learn`, or `reference` must not be treated as successfully absorbed by registration alone. Their project names must remain outside ordinary product UI, and they must not become runtime dependencies unless separately reclassified and accepted as `real_integration`.
 
-This requirement is deliberately late in P2 order. It must not interrupt `P2-4 A2A >= 10 Agents`, must not create a new main Gate, and must not move any external project ahead of its owning P2 capability. Each owning P2 capability should record absorption proof only when it naturally closes, and the consolidated check belongs after the related P2 capability evidence exists and before `P2 Release Gate`.
+This requirement is deliberately late in P2 order. It must not interrupt or rewrite the active P2 chain, must not create a new main Gate, and must not move any external project ahead of its owning P2 capability. Each owning P2 capability should record absorption proof only when it naturally closes, and the consolidated check belongs after the related P2 capability evidence exists and before or during `P2 Release Gate` regression.
+
+Rolling-chain correction: the active P2 position must be read from `capability_chain_status.json` at evidence time. Any P0, P1, or P2 Gate that is not currently present in `remaining_gates` is historical fit only. It must not be used as retrospective acceptance evidence, active binding, closure proof, or status-machine write-back. Fresh absorption evidence can only attach to a P2 Gate still present in `remaining_gates`, to `P2 Release Gate` regression, or to a later Owner-approved capability. If a listed landing Gate leaves `remaining_gates` before absorption evidence is produced, that Gate automatically moves to historical fit.
 
 Minimum absorption proof:
 
@@ -105,26 +107,32 @@ P2 product-improvement rubric:
 
 Deferred P2 landing points:
 
-| External Project Pattern | Owning P2 Landing Point | Required Absorption Evidence |
-| --- | --- | --- |
-| Knowledge reliability references such as WeKnora and GBrain | `P2-35 Retrieval Regression Benchmark Industrial`; `P2-36 Self-Improving Knowledge Maintenance` | benchmark, regression, source_trace, reliability report, or self-maintenance evidence that proves HeiTang reliability improved without exposing the reference project |
-| Memory references such as MeMo / MEMO, LLM Wiki v2, and TencentDB Agent Memory | `P2-33 Memory Consolidation Industrial`; `P2-37 Agent Memory Industrial`; `P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration` | memory cards, consolidation report, migration/observability evidence, or optional-adapter evaluation with no local model training and no bundled external memory service |
-| Agent orchestration and governance references such as Fugu, Omnigent, ECC, and Autoresearch / evo | `P2-18 Fugu-style Multi-Model Orchestration`; `P2-19 Loop Orchestrator Industrial`; `P2-20 Human Brake and Judgment Gate`; `P2-23 CLI Agent Hub Evaluation` | role protocol, loop governance, checkpoint/failure/resume, human-brake, or harness evidence proving a HeiTang-native improvement |
-| Workgroup product-shape references such as WorkBuddy / DeerFlow and gstack | `P2-10 Role-based Workgroup`; `P2-14 Polly-style Lead Orchestrator` | role template, workgroup task, conflict/consensus, Event Ledger, Artifact Catalog, restart, and test-only delete evidence |
-| Product workflow and UI-quality references such as AionUi and taste-skill | `P2-8 Blackbox Automation Baseline`; `P2-13 Official Sample Project Library`; `P2-22 Workbench Native Skills Library`; `P2-25 Office Agent Industrialization`; `P2 Release Gate` | route-level blackbox, responsive/taste regression, template/workflow evidence, generated artifact evidence, and no external project name in ordinary UI |
-| Local-first knowledge workspace references such as Obsidian-Skills | `P2-22 Workbench Native Skills Library`; `P2-26 Multi-KB Governance Industrial`; `P2-27 Versioned Knowledge Governance`; `P2-34 Permission-Scoped Company Brain` | native open-format knowledge/Skill workflow, backlinks/source trace, multi-KB/version/scope evidence, and no cloned external workspace module |
-| Connector and external-service references such as connect-apps, Redis Connector, Vector DB Connector, n8n, and OpenCLI Source Connector | `P2-7 Connector Industrialization`; `P2-15 Sandbox and Tool Permission Industrialization`; `P2-24 Remote Task Control`; `P2-35 Retrieval Regression Benchmark Industrial`; `P2 Release Gate` | connector health, permission boundary, masked-secret, fallback, audit, rollback, user-owned service boundary, source_trace/evidence_map/validation_report, and ordinary UI path evidence where applicable |
-| Skill, template, and engineering-method references such as Composio / awesome-codex-skills, brooks-lint, codebase-recon, MMSkills, Jellyfish, story-flicks, seedance2-skill, RAG-Anything, and skill-prompt-generator | `P2-8 Blackbox Automation Baseline`; `P2-13 Official Sample Project Library`; `P2-22 Workbench Native Skills Library`; `P2-23 CLI Agent Hub Evaluation`; `P2-25 Office Agent Industrialization` | native Skill/template/harness/test-matrix evidence showing the idea improved HeiTang without exposing the project name; story/video references may only contribute document/Skill structure and must not introduce GPU video generation |
-| Advanced parsing candidates such as OpenDataLoader PDF, PaddleOCR, MinerU, Docling, Unstructured, Marker, and Surya | `P2-9 Windows Packaging Baseline Smoke`; `P2-35 Retrieval Regression Benchmark Industrial` | optional advanced parsing install/test/fallback evidence, document parsing quality evidence, and no default parser-runtime dependency |
+| External Project Pattern | Historical Fit Only, No Retroactive Evidence | Rolling P2 Landing Point | Required Absorption Evidence |
+| --- | --- | --- | --- |
+| Knowledge reliability references such as WeKnora and GBrain | none | `P2-35 Retrieval Regression Benchmark Industrial`; `P2-36 Self-Improving Knowledge Maintenance` | benchmark, regression, source_trace, reliability report, or self-maintenance evidence that proves HeiTang reliability improved without exposing the reference project |
+| Memory references such as MeMo / MEMO, LLM Wiki v2, and TencentDB Agent Memory | `P0-4C Agent Memory Minimal Core Gate`; `P1-48 Agent Memory Layer Basic` | `P2-33 Memory Consolidation Industrial`; `P2-37 Agent Memory Industrial`; `P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration` | memory cards, consolidation report, migration/observability evidence, or optional-adapter evaluation with no local model training and no bundled external memory service |
+| Agent orchestration and governance references such as Fugu, Omnigent, ECC, and Autoresearch / evo | `P2-18 Fugu-style Multi-Model Orchestration`; `P2-19 Loop Orchestrator Industrial`; `P2-20 Human Brake and Judgment Gate`; `P2-21 DataAgent Foundation Industrial` | `P2-23 CLI Agent Hub Evaluation` | role protocol, loop governance, checkpoint/failure/resume, human-brake, or harness evidence proving a HeiTang-native improvement |
+| Workgroup product-shape references such as WorkBuddy / DeerFlow and gstack | `P2-10 Role-based Workgroup`; `P2-14 Polly-style Lead Orchestrator` | `P2 Release Gate` | closed workgroup-shape fit can be regression context only; fresh evidence must wait for release-gate regression or a later Owner-approved capability |
+| Product workflow and UI-quality references such as AionUi and taste-skill | `P2-8 Blackbox Automation Baseline`; `P2-13 Official Sample Project Library` | `P2-22 Workbench Native Skills Library`; `P2-25 Office Agent Industrialization`; `P2 Release Gate` | route-level blackbox, responsive/taste regression, template/workflow evidence, generated artifact evidence, and no external project name in ordinary UI |
+| Local-first knowledge workspace references such as Obsidian-Skills | none | `P2-22 Workbench Native Skills Library`; `P2-26 Multi-KB Governance Industrial`; `P2-27 Versioned Knowledge Governance`; `P2-34 Permission-Scoped Company Brain` | native open-format knowledge/Skill workflow, backlinks/source trace, multi-KB/version/scope evidence, and no cloned external workspace module |
+| Current P2 absorption candidates such as OpenKnowledge | `P2-13 Official Sample Project Library` | `P2-22 Workbench Native Skills Library`; `P2-26 Multi-KB Governance Industrial`; `P2-27 Versioned Knowledge Governance`; `P2-34 Permission-Scoped Company Brain`; `P2-37 Agent Memory Industrial` | local-first Markdown/LLM Wiki direction, native knowledge package, durable memory, source trace, version/scope metadata, permission boundary, git-friendly collaboration evidence, and no external project name in ordinary UI |
+| Current P2 absorption candidates such as SAG / SQL-augmented retrieval architecture references | `P1-4 Evidence Graph Basic`; `P1-7 Knowledge Reliability Eval Suite Basic`; `P1-8 Retrieval Regression Basic`; `P1-37 Heitang Native Knowledge Format Semantic Schema`; `P2-21 DataAgent Foundation Industrial` | `P2-26 Multi-KB Governance Industrial`; `P2-27 Versioned Knowledge Governance`; `P2-30 Reliability Score Industrial`; `P2-35 Retrieval Regression Benchmark Industrial`; `P2-36 Self-Improving Knowledge Maintenance`; `P2 Release Gate` | semantic event storage design, entity-index/source_trace mapping, SQL-join local graph or hyperedge retrieval benchmark, incremental update report, cross-document multi-hop retrieval regression, and no runtime/dependency/UI/project-name leakage |
+| Current P2 absorption candidates such as RubyLLM / unified model interface | `P2-7 Connector Industrialization`; `P2-18 Fugu-style Multi-Model Orchestration` | `P2 Release Gate` | P2 Release Gate may regression-check unified model configuration, model-role routing, fallback, cost/token policy and masked-secret evidence without adopting the referenced runtime |
+| Current P2 absorption candidates such as goal-first Skill learning flows | none | `P2-22 Workbench Native Skills Library`; `P2-23 CLI Agent Hub Evaluation`; `P2-25 Office Agent Industrialization` | native Skill template, learning plan artifact, Skill validation, export/open/delete evidence and no new learning main entry before Owner review |
+| Current P2 absorption candidates for Agent memory productization | `P0-4C Agent Memory Minimal Core Gate`; `P1-48 Agent Memory Layer Basic` | `P2-33 Memory Consolidation Industrial`; `P2-37 Agent Memory Industrial`; `P2-41 Memory Observability Panel` | retrievable/updatable/forgettable memory cards, consolidation report, lifecycle checks, observability summary, restart recovery and test-only delete evidence |
+| Connector and external-service references such as connect-apps, Redis Connector, Vector DB Connector, n8n, and OpenCLI Source Connector | `P2-7 Connector Industrialization`; `P2-15 Sandbox and Tool Permission Industrialization` | `P2-24 Remote Task Control`; `P2-35 Retrieval Regression Benchmark Industrial`; `P2 Release Gate` | connector health, permission boundary, masked-secret, fallback, audit, rollback, user-owned service boundary, source_trace/evidence_map/validation_report, and ordinary UI path evidence where applicable |
+| Skill, template, and engineering-method references such as Composio / awesome-codex-skills, brooks-lint, codebase-recon, MMSkills, Jellyfish, story-flicks, seedance2-skill, RAG-Anything, and skill-prompt-generator | `P2-8 Blackbox Automation Baseline`; `P2-13 Official Sample Project Library` | `P2-22 Workbench Native Skills Library`; `P2-23 CLI Agent Hub Evaluation`; `P2-25 Office Agent Industrialization`; `P2-35 Retrieval Regression Benchmark Industrial` | native Skill/template/harness/test-matrix evidence showing the idea improved HeiTang without exposing the project name; story/video references may only contribute document/Skill structure and must not introduce GPU video generation |
+| Advanced parsing candidates such as OpenDataLoader PDF, PaddleOCR, MinerU, Docling, Unstructured, Marker, and Surya | `P2-9 Windows Packaging Baseline Smoke` | `P2-35 Retrieval Regression Benchmark Industrial` | optional advanced parsing install/test/fallback evidence, document parsing quality evidence, and no default parser-runtime dependency |
 
 Absorption cannot close a P2 capability by itself. It only supports the owning capability after that capability also passes its required core, blackbox or linked scenario, artifact, event, lifecycle, regression, and boundary checks.
 
 P2 landing completeness rule:
 
-1. Every non-rejected external project row must name at least one P2 landing point, even when it also has P0/P1 historical or closed-reference context.
+1. Every non-rejected external project row must name at least one P2 landing point, even when it also has P0/P1 or already-run P2 historical or closed-reference context.
 2. `reject` rows intentionally have no P2 landing point and must keep the rejection reason.
 3. If a project has only P0/P1 ownership and no P2 landing point, the registry is incomplete until it is either mapped to an existing P2 capability or explicitly rejected/deferred with Owner review.
 4. A P2 landing point is not evidence. It only identifies which P2 capability must later prove real HeiTang-native improvement.
+5. Historical fit rows do not authorize rerunning or rewriting closed P0/P1/P2 gates; they are regression/reference context only.
 
 ## P2 Module-Level Token Mode Landing Requirement
 
@@ -248,6 +256,33 @@ Required black-box evidence:
 6. Economy, Standard and Deep modes select different allowed budget/validation behavior without bypassing the configured model role.
 7. At least one domestic family path, one international family path, one custom endpoint path and one embedding path are represented by smoke or documented blocked evidence before P2 Release Gate.
 
+## P2 Source-Neutral Connectivity Policy
+
+P2 treats outbound API connectivity as source-neutral. Ordinary product UI may ask only for a reachable endpoint, key/reference, model alias and a test action. It must not ask the user to classify the source as domestic, international, VPN-backed, or proxy-backed, and it must not expose VPN controls or bundled proxy logic.
+
+1. If the user can reach the API under the current network environment, the product treats the service as usable.
+2. The product may respect the user's existing system proxy settings for outbound access, but it does not bundle or manage VPN.
+3. Local loopback traffic used by the app or test harness (`localhost`, `127.0.0.1`, `::1`) should bypass proxy routing by default so local UI and smoke tests remain stable.
+4. Connection failures must report reachable/unreachable, auth, timeout, DNS, proxy, or rate-limit states without implying the source is the problem.
+5. This policy is owned by `P2-7 Connector Industrialization`, `P2-18 Fugu-style Multi-Model Orchestration`, and `P2 Release Gate`.
+
+## P2 Windows EXE Core/UI Decoupling Landing Requirement
+
+`P2-9 Windows Packaging Baseline Smoke` must reserve the Core/UI decoupling contract needed by the Windows EXE path and future browser-hosted workbench paths. This is a packaging baseline requirement, not a macOS native-client rewrite and not final packaging acceptance.
+
+Minimum baseline proof:
+
+1. The core service can be described, started, health-checked, stopped and restarted independently from the Windows UI shell.
+2. The UI shell talks to the core through an explicit local connection contract, such as a local endpoint, port, IPC channel or equivalent descriptor, instead of relying on hidden in-process assumptions.
+3. Packaging smoke records startup, local service health, UI availability, config path, log/report path, exit/restart behavior and permission boundary for the current Windows build.
+4. Redis, vector database, external model services and optional parsing engines remain external services or optional connectors; their service binaries must not be packaged into the EXE.
+5. `P2-15 Sandbox and Tool Permission Industrialization` owns the path, permission, local-service boundary, secret masking and tool sandbox checks related to this decoupling contract.
+6. macOS browser mode means local core service plus browser workbench access. It must not be treated as rebuilding a macOS native client.
+7. Plugin or connector manifests that need platform targeting must reserve `platform_id` values such as `windows-x64`, `macos-arm64`, `macos-x64` and `linux-x64`.
+8. `P2 Release Gate` must rerun final packaging, install, config, permission, rollback and Core/UI decoupling checks after all later P2 capabilities have landed.
+
+This requirement must not retroactively rewrite completed P2 evidence. It becomes evidence only when `P2-9`, `P2-15` or `P2 Release Gate` records fresh smoke, report and regression output for the relevant slice.
+
 ## P2 External Source Verification User-Path Landing Requirement
 
 P2 must prove that external source verification is not an internal-only capability. Ordinary product UI must provide a real user path for checking outside information, while still hiding implementation names from users. The user-facing path uses ordinary actions such as "search sources", "external check", "paste link", or "add manual evidence"; it must not show `OpenCLI`, provider, adapter, parser, router, matrix, or project names in ordinary UI.
@@ -323,7 +358,7 @@ P2 Release Gate must:
 5. Confirm broad external model API adaptation has white-box, grey-box and black-box evidence for representative domestic, international, custom endpoint and embedding provider paths.
 6. Confirm ordinary UI external source verification has white-box, grey-box and black-box evidence, including source trace, evidence map, validation report, document/KB handoff, no-secret scan and no implementation-name leakage.
 7. Rerun the final full blackbox matrix, including all P2-1 through P2-42 cases appended after the P2-8 baseline.
-8. Rerun final packaging/install/config/permission/rollback checks, including all capabilities added after the P2-9 baseline.
+8. Rerun final packaging/install/config/permission/rollback and Core/UI decoupling checks, including all capabilities added after the P2-9 baseline.
 9. Write only `p2_release_gate_passed_needs_owner_review`.
 10. Keep `global_goal_complete=false` until Final Owner Review remains.
 

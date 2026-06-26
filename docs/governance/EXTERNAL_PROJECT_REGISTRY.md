@@ -34,8 +34,9 @@ Every external project must first be classified. Do not treat every external pro
 - `absorb`, `learn`, and `reference` entries must be folded into existing HeiTang modules instead of creating separate product modules named after the external project.
 - Ordinary users should not see external project names as product modules.
 - Governance docs may list external project status; product UI should expose natural capability improvements.
-- Every non-rejected project must bind to existing P1/P2 capability gates, or be marked `deferred_with_blocker` with the blocker and Owner confirmation need recorded.
-- P1/P2 queue binding is registry/status mapping only; it must not complete any P1/P2 gate or change the stage chain.
-- Closed P1 gates may be named only as future regression/reference context; they must not receive retrospective evidence or active bindings after closure.
+- Every non-rejected project must bind to existing capability gates, or be marked `deferred_with_blocker` with the blocker and Owner confirmation need recorded.
+- P0/P1/P2 queue binding is registry/status mapping only; it must not complete any P0/P1/P2 gate or change the stage chain.
+- Closed P0, P1, or already-run P2 gates may be named only as historical fit, regression, or reference context; they must not receive retrospective evidence, acceptance write-back, or active bindings after closure.
+- At any P2 chain position, only P2 gates still present in `remaining_gates`, `P2 Release Gate` regression, or a later Owner-approved capability may accept fresh external-project absorption evidence.
 - If no existing gate can own the external project, do not add a new main Gate automatically; mark `deferred_with_blocker` and request Owner confirmation for any new capability row.
 - Stage chain must remain P0 -> P0 Release Gate -> P1 -> P1 Release Gate -> P2 -> P2 Release Gate -> Final Owner Review.
