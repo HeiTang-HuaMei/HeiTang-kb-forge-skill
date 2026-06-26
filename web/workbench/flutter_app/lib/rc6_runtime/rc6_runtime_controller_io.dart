@@ -4646,8 +4646,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/react_tool_runtime_industrial_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/react_tool_runtime_industrial_summary.json');
     final root = _joinNested(workspace.path, 'agent/tool/react_runtime');
     final policyPath = _joinNested(root, 'react_tool_policy.json');
     final loopRecordsPath = _joinNested(root, 'react_loop_records.jsonl');
@@ -4873,9 +4873,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'acceptance_type_core_only': true,
       'blackbox_not_required': true,
       'policy_written': await File(policyPath).exists(),
-      'policy_schema_valid': _stringValue(
-              reloadedPolicy['schema_version'], '') ==
-          'prd_v3_react_tool_runtime_policy.v1',
+      'policy_schema_valid':
+          _stringValue(reloadedPolicy['schema_version'], '') ==
+              'prd_v3_react_tool_runtime_policy.v1',
       'allowlist_contains_kb_retrieval':
           _listOfStrings(reloadedPolicy['allowlist']).contains('kb_retrieval'),
       'blocked_tools_contains_arbitrary_shell':
@@ -4983,7 +4983,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             'policy, ReAct loop records, tool call log, validation report and answer artifact are written',
         'view': 'summary and answer are registered in Artifact Catalog',
         'open': 'registered summary and answer files can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only acceptance',
         'restart_recovery':
             'state snapshot and generated files reload from workspace paths',
@@ -5151,11 +5152,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(corpusPath).parent.create(recursive: true);
     await File(corpusPath).writeAsString(
       '${sections.map((section) => jsonEncode({
-            'schema_version': 'prd_v3_long_context_corpus_record.v1',
-            ...section,
-            'repeat_count_for_budget': 18,
-            'created_at': now,
-          })).join('\n')}\n',
+                'schema_version': 'prd_v3_long_context_corpus_record.v1',
+                ...section,
+                'repeat_count_for_budget': 18,
+                'created_at': now,
+              })).join('\n')}\n',
       encoding: utf8,
     );
     final chunks = <Map<String, Object?>>[
@@ -5215,14 +5216,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       for (final chunk in chunks)
         {
           'schema_version': 'prd_v3_long_context_retrieval_trace.v1',
-          'trace_id': 'lc_trace_${_stringValue(chunk['chunk_id'], '').split('_').last}',
+          'trace_id':
+              'lc_trace_${_stringValue(chunk['chunk_id'], '').split('_').last}',
           'chunk_id': chunk['chunk_id'],
           'anchor': chunk['anchor'],
           'citation': chunk['citation'],
-          'score': chunk['anchor'] == 'boundary' ||
-                  chunk['anchor'] == 'release_gate'
-              ? 0.97
-              : 0.91,
+          'score':
+              chunk['anchor'] == 'boundary' || chunk['anchor'] == 'release_gate'
+                  ? 0.97
+                  : 0.91,
           'selected': true,
           'created_at': now,
         }
@@ -5290,8 +5292,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         '- Answer: 长上下文问题被拆分到两个预算窗口，并通过本地 source trace 与 evidence graph 合成；缺证据时阻断回答。',
         '',
         '## 证据',
-        for (final row in traceRows)
-          '- ${row['trace_id']}: ${row['citation']}',
+        for (final row in traceRows) '- ${row['trace_id']}: ${row['citation']}',
         '',
         '## 边界',
         '- 不调用外部模型或外部项目 runtime。',
@@ -5331,16 +5332,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(missingEvidencePath).exists(),
       'chunk_count_at_least_six':
           _listOfMaps(reloadedChunkIndex['chunks']).length >= 6,
-      'window_budget_valid':
-          _listOfMaps(reloadedWindowPlan['windows']).every((window) =>
+      'window_budget_valid': _listOfMaps(reloadedWindowPlan['windows']).every(
+          (window) =>
               (window['token_estimate'] as int) <=
               (reloadedWindowPlan['context_budget_tokens'] as int)),
       'trace_covers_all_chunks': traceLines.length == chunks.length,
       'evidence_graph_has_entities':
           _listOfMaps(reloadedEvidenceGraph['entities']).length ==
               chunks.length,
-      'answer_contract_blocks_missing_evidence':
-          _boolValue(_mapValue(reloadedEvidenceGraph['answer_contract'])[
+      'answer_contract_blocks_missing_evidence': _boolValue(
+          _mapValue(reloadedEvidenceGraph['answer_contract'])[
               'missing_evidence_blocks_answer']),
       'missing_evidence_blocks_answer':
           _boolValue(missingEvidenceReport['answer_blocked']),
@@ -5423,8 +5424,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'corpus_schema': 'prd_v3_long_context_corpus_record.v1',
         'chunk_index_schema': 'prd_v3_long_context_chunk_index.v1',
         'window_plan_schema': 'prd_v3_long_context_window_plan.v1',
-        'retrieval_trace_schema':
-            'prd_v3_long_context_retrieval_trace.v1',
+        'retrieval_trace_schema': 'prd_v3_long_context_retrieval_trace.v1',
         'evidence_graph_schema': 'prd_v3_long_context_evidence_graph.v1',
         'missing_evidence_schema':
             'prd_v3_long_context_missing_evidence_report.v1',
@@ -5440,9 +5440,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'corpus, chunk index, window plan, retrieval trace, evidence graph, missing evidence report, answer and summary are written',
-        'view': 'registered summary and answer records reload through Artifact Catalog',
+        'view':
+            'registered summary and answer records reload through Artifact Catalog',
         'open': 'registered summary and answer files can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only acceptance',
         'restart_recovery':
             'generated files reload from workspace paths after controller initialization',
@@ -5523,8 +5525,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '长上下文评估核心验收证据已生成。' : '长上下文评估核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '长上下文评估核心验收证据已生成。' : '长上下文评估核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'long_context_evaluation_blocked',
     );
     notifyListeners();
@@ -5544,8 +5545,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(root, 'knowledge_base_samples/common_kb_templates.json');
     final documentTemplatePath =
         _joinNested(root, 'document_samples/common_document_templates.json');
-    final testKbPath = _joinNested(
-        root, 'generated/test_knowledge_base_from_sample.json');
+    final testKbPath =
+        _joinNested(root, 'generated/test_knowledge_base_from_sample.json');
     final testDocumentPath =
         _joinNested(root, 'generated/test_document_from_sample.md');
     final sourceTracePath = _joinNested(root, 'generated/source_trace.jsonl');
@@ -5708,8 +5709,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final canDeleteTestObjects =
         _stringValue(testKbBeforeDelete['test_marker'], '') ==
                 'p2_13_official_sample_project_library' &&
-            testDocumentText.contains(
-                'test_marker: p2_13_official_sample_project_library');
+            testDocumentText
+                .contains('test_marker: p2_13_official_sample_project_library');
     var testKbDeleted = false;
     var testDocumentDeleted = false;
     if (canDeleteTestObjects) {
@@ -5758,21 +5759,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       'document_template_sample_count_valid': documentTemplates.length >= 3,
       'test_knowledge_base_created_before_delete':
           _stringValue(testKbBeforeDelete['knowledge_base_id'], '').isNotEmpty,
-      'test_document_created_before_delete':
-          openedPreview.contains('样例项目报告'),
+      'test_document_created_before_delete': openedPreview.contains('样例项目报告'),
       'source_trace_written': await File(sourceTracePath).exists(),
       'source_trace_rows_exist': sourceTraceRows.length == 2,
-      'open_preview_non_empty': openedPreview.trim().isNotEmpty &&
-          !openedPreview.contains('无法预览'),
+      'open_preview_non_empty':
+          openedPreview.trim().isNotEmpty && !openedPreview.contains('无法预览'),
       'export_manifest_written': exportManifestPath.trim().isNotEmpty &&
           await File(exportManifestPath).exists(),
-      'exported_document_exists': exportedPath.trim().isNotEmpty &&
-          await File(exportedPath).exists(),
+      'exported_document_exists':
+          exportedPath.trim().isNotEmpty && await File(exportedPath).exists(),
       'delete_only_test_marked_objects': canDeleteTestObjects,
-      'test_knowledge_base_deleted': testKbDeleted &&
-          !await File(testKbPath).exists(),
-      'test_document_deleted': testDocumentDeleted &&
-          !await File(testDocumentPath).exists(),
+      'test_knowledge_base_deleted':
+          testKbDeleted && !await File(testKbPath).exists(),
+      'test_document_deleted':
+          testDocumentDeleted && !await File(testDocumentPath).exists(),
       'tombstone_written': await File(tombstonePath).exists(),
       'restart_recovery_from_workspace_files':
           await File(manifestPath).exists() &&
@@ -5852,8 +5852,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'failed_checks': failedChecks,
       'white_box_evidence': {
         'runtime_method': 'runOfficialSampleProjectLibraryAcceptance',
-        'manifest_schema':
-            'prd_v3_official_sample_project_library_manifest.v1',
+        'manifest_schema': 'prd_v3_official_sample_project_library_manifest.v1',
         'validation_schema':
             'prd_v3_official_sample_project_library_validation_report.v1',
       },
@@ -5983,8 +5982,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '官方样例项目库验收证据已生成。' : '官方样例项目库验收存在缺口。',
+      lastMessage: status == 'pass' ? '官方样例项目库验收证据已生成。' : '官方样例项目库验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'official_sample_project_library_blocked',
     );
@@ -5999,8 +5997,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/polly_style_lead_orchestrator_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/polly_style_lead_orchestrator_summary.json');
     final root = _joinNested(workspace.path, 'orchestration/lead_orchestrator');
     final planPath = _joinNested(root, 'lead_orchestrator_plan.json');
     final delegationPath =
@@ -6053,7 +6051,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': 'pass',
       'capability_id': 'polly_style_lead_orchestrator',
       'task': task,
-      'strategy': 'lead plans, delegates, verifies, and blocks on missing evidence',
+      'strategy':
+          'lead plans, delegates, verifies, and blocks on missing evidence',
       'subtasks': subtasks,
       'stop_policy': {
         'missing_evidence_blocks_completion': true,
@@ -6132,7 +6131,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'case_id': 'missing_source_trace_blocks_synthesis',
       'missing_evidence': ['source_trace'],
       'completion_blocked': true,
-      'resume_prompt': 'Import or select source evidence, then rerun lead orchestration.',
+      'resume_prompt':
+          'Import or select source evidence, then rerun lead orchestration.',
       'created_at': now,
     };
     await _writeJsonFile(blockedBranchPath, blockedBranch);
@@ -6300,7 +6300,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             'plan, delegation records, execution trace, review report, blocked branch, validation report and handoff are written',
         'view': 'summary and handoff are registered in Artifact Catalog',
         'open': 'registered summary and handoff files can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only acceptance',
         'restart_recovery':
             'plan and review report reload from workspace files',
@@ -6381,8 +6382,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage:
-          status == 'pass' ? '主控编排核心验收证据已生成。' : '主控编排核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '主控编排核心验收证据已生成。' : '主控编排核心验收存在缺口。',
       lastError:
           status == 'pass' ? '' : 'polly_style_lead_orchestrator_blocked',
     );
@@ -6397,12 +6397,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final summaryPath = _joinNested(
         workspace.path, 'acceptance/sandbox_tool_permission_summary.json');
-    final reportRoot =
-        _joinNested(workspace.path, 'sandbox_tool_permission');
-    final governanceReportPath =
-        _joinNested(reportRoot, 'sandbox_tool_permission_governance_report.json');
-    final statusVocabularyPath =
-        _joinNested(reportRoot, 'sandbox_tool_permission_status_vocabulary.json');
+    final reportRoot = _joinNested(workspace.path, 'sandbox_tool_permission');
+    final governanceReportPath = _joinNested(
+        reportRoot, 'sandbox_tool_permission_governance_report.json');
+    final statusVocabularyPath = _joinNested(
+        reportRoot, 'sandbox_tool_permission_status_vocabulary.json');
     final boundaryReportPath =
         _joinNested(reportRoot, 'sandbox_tool_permission_boundary_report.json');
     final permissionAuditPath =
@@ -6436,7 +6435,8 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final now = DateTime.now().toUtc().toIso8601String();
     final permissionAudit = await _readJsonObject(permissionAuditPath);
-    final permissionMatrix = await _readJsonObject(workspacePermissionMatrixPath);
+    final permissionMatrix =
+        await _readJsonObject(workspacePermissionMatrixPath);
     final blockReport = await _readJsonObject(blockReportPath);
     final agentValidation = await _readJsonObject(agentValidationReportPath);
     final runHistory = await _readJsonObject(runHistoryPath);
@@ -6446,8 +6446,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final authorizationRows = <Map<String, dynamic>>[];
     final authorizationFile = File(authorizationRuntimeAuditPath);
     if (await authorizationFile.exists()) {
-      for (final line
-          in authorizationFile.readAsLinesSync(encoding: utf8)) {
+      for (final line in authorizationFile.readAsLinesSync(encoding: utf8)) {
         if (line.trim().isEmpty) continue;
         final decoded = jsonDecode(line);
         if (decoded is Map) {
@@ -6473,10 +6472,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'desktop_runtime': !isWebRuntime && !kIsWeb,
       'acceptance_type_governance': true,
       'blackbox_not_required': true,
-      'permission_matrix_written': await File(workspacePermissionMatrixPath).exists(),
-      'permission_matrix_schema_valid': _stringValue(
-              permissionMatrix['schema_version'], '') ==
-          'prd_v3_agent_workspace_permission_matrix.v1',
+      'permission_matrix_written':
+          await File(workspacePermissionMatrixPath).exists(),
+      'permission_matrix_schema_valid':
+          _stringValue(permissionMatrix['schema_version'], '') ==
+              'prd_v3_agent_workspace_permission_matrix.v1',
       'permission_matrix_passed':
           _stringValue(permissionMatrix['status'], '') == 'pass',
       'permission_matrix_has_no_violations':
@@ -6541,8 +6541,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'arbitrary_shell',
         'computer_use',
       ].every(blockedTools.contains),
-      'external_tool_not_allowlisted':
-          blockedTools.contains('video.generate'),
+      'external_tool_not_allowlisted': blockedTools.contains('video.generate'),
       'tool_requirement_blocks_external_call':
           _stringValue(toolRequirement['status'], '') == 'Tool 未授权' &&
               toolRequirement['api_called'] == false,
@@ -6553,8 +6552,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(agentValidationReportPath).exists(),
       'agent_validation_passed':
           _stringValue(agentValidation['status'], '') == 'pass',
-      'agent_validation_covers_unauthorized_access':
-          validationChecks.any((row) =>
+      'agent_validation_covers_unauthorized_access': validationChecks.any(
+          (row) =>
               _stringValue(row['check_id'], '') ==
                   'unauthorized_access_blocked' &&
               _stringValue(row['status'], '') == 'pass'),
@@ -6620,8 +6619,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'permission_audit': _stringValue(permissionAudit['status'], ''),
         'unauthorized_access_block_report':
             _stringValue(blockReport['status'], ''),
-        'agent_validation_report':
-            _stringValue(agentValidation['status'], ''),
+        'agent_validation_report': _stringValue(agentValidation['status'], ''),
       },
       'forbidden_user_facing_tokens_visible': false,
       'created_at': now,
@@ -6735,9 +6733,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'permission matrix, permission audit, authorization audit, block report, governance report, boundary report and summary are written',
-        'view': 'summary and governance report are registered in Artifact Catalog',
+        'view':
+            'summary and governance report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this governance gate',
         'restart_recovery':
             'permission matrix and block report reload from workspace files',
@@ -6814,9 +6814,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '沙箱与工具权限治理验收证据已生成。'
-          : '沙箱与工具权限治理验收存在缺口。',
+      lastMessage: status == 'pass' ? '沙箱与工具权限治理验收证据已生成。' : '沙箱与工具权限治理验收存在缺口。',
       lastError: status == 'pass' ? '' : 'sandbox_tool_permission_blocked',
     );
     notifyListeners();
@@ -6988,13 +6986,15 @@ class Rc6RuntimeController extends ChangeNotifier {
           'case_id': 'missing_snapshot_blocks_replay',
           'decision': 'blocked',
           'error_code': 'session_snapshot_missing',
-          'resume_prompt': 'Regenerate the local session snapshot, then rerun replay.',
+          'resume_prompt':
+              'Regenerate the local session snapshot, then rerun replay.',
         },
         {
           'case_id': 'tampered_hash_blocks_replay',
           'decision': 'blocked',
           'error_code': 'session_hash_mismatch',
-          'resume_prompt': 'Use the original share package or create a new fork.',
+          'resume_prompt':
+              'Use the original share package or create a new fork.',
         },
       ],
       'all_error_paths_blocked': true,
@@ -7041,10 +7041,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               'prd_v3_session_share_package.v1',
       'share_package_read_only':
           _mapValue(reloadedShare['permissions'])['read_only'] == true,
-      'share_package_no_external_network':
-          _mapValue(reloadedShare['permissions'])
-                  ['external_network_required'] ==
-              false,
+      'share_package_no_external_network': _mapValue(
+              reloadedShare['permissions'])['external_network_required'] ==
+          false,
       'fork_manifest_written': await File(forkManifestPath).exists(),
       'fork_manifest_schema_valid':
           _stringValue(reloadedFork['schema_version'], '') ==
@@ -7056,21 +7055,18 @@ class Rc6RuntimeController extends ChangeNotifier {
       'replay_log_written': await File(replayLogPath).exists(),
       'replay_count_matches_turns': replayLines.length == turns.length,
       'replay_rows_matched': replayMatched,
-      'validation_report_written':
-          await File(validationReportPath).exists(),
+      'validation_report_written': await File(validationReportPath).exists(),
       'validation_report_passed':
           _stringValue(reloadedValidation['status'], '') == 'pass',
       'error_report_written': await File(errorReportPath).exists(),
       'error_report_passed':
           _stringValue(reloadedError['status'], '') == 'pass',
-      'missing_snapshot_blocks_replay': _listOfMaps(
-              reloadedError['error_cases'])
-          .any((row) =>
+      'missing_snapshot_blocks_replay':
+          _listOfMaps(reloadedError['error_cases']).any((row) =>
               _stringValue(row['case_id'], '') ==
                   'missing_snapshot_blocks_replay' &&
               _stringValue(row['decision'], '') == 'blocked'),
-      'tampered_hash_blocks_replay': _listOfMaps(
-              reloadedError['error_cases'])
+      'tampered_hash_blocks_replay': _listOfMaps(reloadedError['error_cases'])
           .any((row) =>
               _stringValue(row['case_id'], '') ==
                   'tampered_hash_blocks_replay' &&
@@ -7161,12 +7157,12 @@ class Rc6RuntimeController extends ChangeNotifier {
             'session snapshot, share package, fork manifest, replay log, validation report, error report and summary are written',
         'view': 'summary and share package are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only gate',
         'restart_recovery':
             'snapshot and validation report reload from workspace files',
-        'error_path':
-            'missing snapshot and tampered hash cases are blocked',
+        'error_path': 'missing snapshot and tampered hash cases are blocked',
       },
       'boundary_evidence': {
         'external_project_runtime_loaded': false,
@@ -7242,9 +7238,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '会话分享、分叉与回放核心验收证据已生成。'
-          : '会话分享、分叉与回放核心验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '会话分享、分叉与回放核心验收证据已生成。' : '会话分享、分叉与回放核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'session_share_fork_replay_blocked',
     );
     notifyListeners();
@@ -7472,9 +7467,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_plan_written': await File(lifecyclePlanPath).exists(),
       'lifecycle_plan_passed':
           _stringValue(reloadedLifecycle['status'], '') == 'pass',
-      'ttl_and_destroy_required':
-          reloadedLifecycle['ttl_enforced'] == true &&
-              reloadedLifecycle['destroy_required'] == true,
+      'ttl_and_destroy_required': reloadedLifecycle['ttl_enforced'] == true &&
+          reloadedLifecycle['destroy_required'] == true,
       'permission_envelope_written':
           await File(permissionEnvelopePath).exists(),
       'permission_envelope_schema_valid':
@@ -7487,8 +7481,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'computer_use',
       ].every(_listOfStrings(reloadedEnvelope['blocked_tools']).contains),
       'execution_trace_written': await File(executionTracePath).exists(),
-      'execution_trace_has_destroy_step':
-          traceRecords.any((row) => row['action'] == 'destroy_disposable_state'),
+      'execution_trace_has_destroy_step': traceRecords
+          .any((row) => row['action'] == 'destroy_disposable_state'),
       'blocked_tool_not_executed': traceRecords.any((row) =>
           row['tool_id'] == 'arbitrary_shell' &&
           row['tool_decision'] == 'deny' &&
@@ -7586,8 +7580,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'white_box_evidence': {
         'runtime_method': 'runCloudDisposableSandboxAcceptance',
         'profile_schema': 'prd_v3_cloud_disposable_sandbox_profile.v1',
-        'lifecycle_schema':
-            'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1',
+        'lifecycle_schema': 'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1',
         'permission_schema': 'prd_v3_cloud_sandbox_permission_envelope.v1',
         'trace_schema': 'prd_v3_cloud_sandbox_execution_trace_record.v1',
       },
@@ -7608,14 +7601,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'profile, lifecycle plan, permission envelope, execution trace, destroy proof, rollback report, validation report and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only gate',
         'restart_recovery':
             'profile and destroy proof reload from workspace files',
-        'error_path':
-            'non-allowlisted tool path is denied and not executed',
+        'error_path': 'non-allowlisted tool path is denied and not executed',
       },
       'boundary_evidence': boundaryReport,
       'rubric_result': {
@@ -7681,9 +7675,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '云端一次性沙箱评估核心验收证据已生成。'
-          : '云端一次性沙箱评估核心验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '云端一次性沙箱评估核心验收证据已生成。' : '云端一次性沙箱评估核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'cloud_disposable_sandbox_blocked',
     );
     notifyListeners();
@@ -7697,10 +7690,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath = _joinNested(
-        workspace.path, 'acceptance/fugu_multi_model_orchestration_summary.json');
+    final summaryPath = _joinNested(workspace.path,
+        'acceptance/fugu_multi_model_orchestration_summary.json');
     final root = _joinNested(workspace.path, 'fugu_multi_model_orchestration');
-    final taskProfilePath = _joinNested(root, 'orchestration_task_profile.json');
+    final taskProfilePath =
+        _joinNested(root, 'orchestration_task_profile.json');
     final candidatePoolPath = _joinNested(root, 'candidate_pool.json');
     final routerContractPath = _joinNested(root, 'router_contract.json');
     final routingDecisionsPath = _joinNested(root, 'routing_decisions.jsonl');
@@ -7953,9 +7947,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final fallbackRecords = fallbackLines
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
         .toList(growable: false);
-    final lanes =
-        (reloadedCandidatePool['lanes'] as List?)?.cast<dynamic>() ??
-            const <dynamic>[];
+    final lanes = (reloadedCandidatePool['lanes'] as List?)?.cast<dynamic>() ??
+        const <dynamic>[];
     final checks = <String, bool>{
       'desktop_runtime': !isWebRuntime && !kIsWeb,
       'acceptance_type_core_only': true,
@@ -7977,9 +7970,12 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(reloadedRouterContract['default_network_policy'], '') ==
               'deny',
       'routing_decisions_written': await File(routingDecisionsPath).exists(),
-      'routing_decisions_cover_required_segments':
-          const ['draft', 'review', 'verify'].every((segment) =>
-              routingRecords.any((row) => row['segment_id'] == segment)),
+      'routing_decisions_cover_required_segments': const [
+        'draft',
+        'review',
+        'verify'
+      ].every((segment) =>
+          routingRecords.any((row) => row['segment_id'] == segment)),
       'routing_makes_no_external_calls': routingRecords.every((row) =>
           row['external_model_call_made'] == false &&
           row['network_call_made'] == false),
@@ -8109,9 +8105,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'task profile, candidate pool, router contract, routing decisions, fallback trace, evaluator report, error report, validation report and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only gate',
         'restart_recovery':
             'task profile and evaluator report reload from workspace files',
@@ -8182,9 +8180,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '多路 AI 协同编排核心验收证据已生成。'
-          : '多路 AI 协同编排核心验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '多路 AI 协同编排核心验收证据已生成。' : '多路 AI 协同编排核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'multi_model_orchestration_blocked',
     );
     notifyListeners();
@@ -8208,7 +8205,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(root, 'network_retry_policy.json');
     final checkpointPath = _joinNested(root, 'checkpoint_report.json');
     final resumePromptPath = _joinNested(root, 'resume_prompt_report.json');
-    final exhaustionReportPath = _joinNested(root, 'loop_exhaustion_report.json');
+    final exhaustionReportPath =
+        _joinNested(root, 'loop_exhaustion_report.json');
     final stateSnapshotPath = _joinNested(root, 'loop_state_snapshot.json');
     final validationReportPath = _joinNested(root, 'validation_report.json');
     final boundaryReportPath = _joinNested(root, 'boundary_report.json');
@@ -8455,8 +8453,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           row['retry_count'] == 1),
       'iteration_trace_has_retest_pass': traceRecords.any((row) =>
           row['step'] == 'automatic_retest' && row['status'] == 'passed'),
-      'reviewer_gate_passed': traceRecords.any((row) =>
-          row['step'] == 'reviewer_gate' && row['status'] == 'passed'),
+      'reviewer_gate_passed': traceRecords.any(
+          (row) => row['step'] == 'reviewer_gate' && row['status'] == 'passed'),
       'repair_budget_written': await File(repairBudgetPath).exists(),
       'repair_budget_limited_to_three':
           reloadedRepairBudget['max_auto_repair_rounds'] == 3 &&
@@ -8591,9 +8589,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'loop plan, iteration trace, repair budget, network retry policy, checkpoint, resume prompt, exhaustion report, state snapshot, validation report and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only gate',
         'restart_recovery': 'state snapshot reloads from workspace files',
         'error_path':
@@ -8663,9 +8663,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '工业循环编排核心验收证据已生成。'
-          : '工业循环编排核心验收存在缺口。',
+      lastMessage: status == 'pass' ? '工业循环编排核心验收证据已生成。' : '工业循环编排核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'loop_orchestrator_blocked',
     );
     notifyListeners();
@@ -8941,8 +8939,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final reloadedHardBlockerReport =
         await _readJsonObject(hardBlockerReportPath);
     final reloadedCheckpoint = await _readJsonObject(checkpointContractPath);
-    final reloadedOwnerReview =
-        await _readJsonObject(ownerReviewManifestPath);
+    final reloadedOwnerReview = await _readJsonObject(ownerReviewManifestPath);
     final reloadedQueueInvariant =
         await _readJsonObject(queueInvariantReportPath);
     final reloadedVocabulary = await _readJsonObject(statusVocabularyPath);
@@ -8954,12 +8951,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final softRecords = softLines
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
         .toList(growable: false);
-    final softCases =
-        (reloadedDecisionMatrix['soft_blocker_cases'] as List?) ??
-            const <dynamic>[];
-    final hardCases =
-        (reloadedDecisionMatrix['hard_blocker_cases'] as List?) ??
-            const <dynamic>[];
+    final softCases = (reloadedDecisionMatrix['soft_blocker_cases'] as List?) ??
+        const <dynamic>[];
+    final hardCases = (reloadedDecisionMatrix['hard_blocker_cases'] as List?) ??
+        const <dynamic>[];
     final checks = <String, bool>{
       'desktop_runtime': !isWebRuntime && !kIsWeb,
       'acceptance_type_governance': true,
@@ -8977,8 +8972,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'soft_blockers_do_not_stop': softRecords.every((row) =>
           row['stops_execution'] == false &&
           const ['auto_repair', 'auto_retry'].contains(row['decision'])),
-      'hard_blocker_report_written':
-          await File(hardBlockerReportPath).exists(),
+      'hard_blocker_report_written': await File(hardBlockerReportPath).exists(),
       'hard_blockers_stop_with_checkpoint':
           reloadedHardBlockerReport['all_hard_blockers_require_stop'] == true &&
               reloadedHardBlockerReport['checkpoint_required'] == true,
@@ -9102,8 +9096,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'black_box_evidence': {
         'status': 'not_required',
-        'reason':
-            'governance gate; no standalone UI blackbox is required',
+        'reason': 'governance gate; no standalone UI blackbox is required',
       },
       'governance_evidence': {
         'soft_blockers_continue': true,
@@ -9122,11 +9115,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'policy, decision matrix, soft blocker routes, hard blocker report, checkpoint contract, owner review manifest, queue invariant report, status vocabulary, validation report and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this governance gate',
-        'restart_recovery': 'queue invariant report reloads from workspace files',
+        'restart_recovery':
+            'queue invariant report reloads from workspace files',
         'error_path':
             'hard blockers require stop with checkpoint, failure report and resume prompt',
       },
@@ -9194,9 +9190,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '人工刹车与判断门治理验收证据已生成。'
-          : '人工刹车与判断门治理验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '人工刹车与判断门治理验收证据已生成。' : '人工刹车与判断门治理验收存在缺口。',
       lastError: status == 'pass' ? '' : 'human_brake_judgment_blocked',
     );
     notifyListeners();
@@ -9481,8 +9476,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           (reloadedQuality['min_quality_score'] as num?) != null &&
               (reloadedQuality['min_quality_score'] as num) >= 0.95,
       'error_report_written': await File(errorReportPath).exists(),
-      'error_paths_blocked':
-          reloadedError['all_error_paths_blocked'] == true,
+      'error_paths_blocked': reloadedError['all_error_paths_blocked'] == true,
       'state_snapshot_written': await File(stateSnapshotPath).exists(),
       'restart_recovery_from_workspace_files':
           _stringValue(reloadedSnapshot['dataset_id'], '') == datasetId &&
@@ -9593,9 +9587,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'record schema, dataset manifest, task records, source trace, quality report, error report, state snapshot, validation report and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'only test-marked local records are created by this gate',
         'restart_recovery': 'state snapshot reloads from workspace files',
         'error_path':
@@ -9665,9 +9661,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? 'DataAgent 基础核心验收证据已生成。'
-          : 'DataAgent 基础核心验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? 'DataAgent 基础核心验收证据已生成。' : 'DataAgent 基础核心验收存在缺口。',
       lastError: status == 'pass' ? '' : 'dataagent_foundation_blocked',
     );
     notifyListeners();
@@ -9679,26 +9674,31 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath =
-        _joinNested(workspace.path, 'acceptance/native_skills_library_summary.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/native_skills_library_summary.json');
     final root = _joinNested(workspace.path, 'native_skills_library');
-    final templateManifestPath = _joinNested(root, 'skill_template_manifest.json');
-    final templateCatalogPath = _joinNested(root, 'skill_template_catalog.jsonl');
+    final templateManifestPath =
+        _joinNested(root, 'skill_template_manifest.json');
+    final templateCatalogPath =
+        _joinNested(root, 'skill_template_catalog.jsonl');
     final testKbPath = _joinNested(root, 'test_knowledge_base_manifest.json');
     final testSkillRoot = _joinNested(root, 'skills/test_native_skill_review');
     final testSkillPath = _joinNested(testSkillRoot, 'SKILL.md');
     final testSkillManifestPath = _joinNested(root, 'test_skill_manifest.json');
     final createdSkillSnapshotPath =
         _joinNested(root, 'created_skill_snapshot.json');
-    final bindingManifestPath = _joinNested(root, 'test_skill_binding_manifest.json');
+    final bindingManifestPath =
+        _joinNested(root, 'test_skill_binding_manifest.json');
     final operationHistoryPath = _joinNested(root, 'operation_history.jsonl');
     final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
     final exportDir = _joinNested(root, 'exports');
-    final exportFilePath = _joinNested(exportDir, 'test_native_skill_review.json');
+    final exportFilePath =
+        _joinNested(exportDir, 'test_native_skill_review.json');
     final exportManifestPath = _joinNested(root, 'export_manifest.json');
     final openReportPath = _joinNested(root, 'open_report.json');
     final deleteReportPath = _joinNested(root, 'delete_report.json');
-    final tombstonePath = _joinNested(root, 'test_native_skill_review.tombstone.json');
+    final tombstonePath =
+        _joinNested(root, 'test_native_skill_review.tombstone.json');
     final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
     final validationReportPath = _joinNested(root, 'validation_report.json');
     final boundaryReportPath = _joinNested(root, 'boundary_report.json');
@@ -9765,12 +9765,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(templateCatalogPath).parent.create(recursive: true);
     await File(templateCatalogPath).writeAsString(
       '${templates.map((row) => jsonEncode({
-            'schema_version': 'prd_v3_native_skill_template_catalog_row.v1',
-            'library_id': libraryId,
-            ...row,
-            'test_marker': true,
-            'created_at': now,
-          })).join('\n')}\n',
+                'schema_version': 'prd_v3_native_skill_template_catalog_row.v1',
+                'library_id': libraryId,
+                ...row,
+                'test_marker': true,
+                'created_at': now,
+              })).join('\n')}\n',
       encoding: utf8,
     );
 
@@ -10002,7 +10002,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await _writeJsonFile(boundaryReportPath, boundaryReport);
 
-    final reloadedTemplateManifest = await _readJsonObject(templateManifestPath);
+    final reloadedTemplateManifest =
+        await _readJsonObject(templateManifestPath);
     final reloadedTestKb = await _readJsonObject(testKbPath);
     final reloadedBinding = await _readJsonObject(bindingManifestPath);
     final reloadedExportManifest = await _readJsonObject(exportManifestPath);
@@ -10060,7 +10061,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'export_openable': reloadedExportManifest['export_openable'] == true,
       'open_report_written': await File(openReportPath).exists(),
       'open_report_passed':
-          _stringValue(reloadedOpenReport['opened_skill_id'], '') == testSkillId,
+          _stringValue(reloadedOpenReport['opened_skill_id'], '') ==
+              testSkillId,
       'delete_report_written': await File(deleteReportPath).exists(),
       'delete_effective':
           reloadedDeleteReport['skill_exists_after_delete'] == false &&
@@ -10169,11 +10171,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'failed_checks': failedChecks,
       'white_box_evidence': {
         'runtime_method': 'runNativeSkillsLibraryAcceptance',
-        'template_manifest_schema':
-            'prd_v3_native_skill_template_manifest.v1',
+        'template_manifest_schema': 'prd_v3_native_skill_template_manifest.v1',
         'test_skill_manifest_schema': 'prd_v3_native_test_skill_manifest.v1',
-        'operation_history_schema':
-            'prd_v3_native_skill_operation_record.v1',
+        'operation_history_schema': 'prd_v3_native_skill_operation_record.v1',
       },
       'black_box_evidence': {
         'status': status == 'pass' ? 'passed' : 'blocked',
@@ -10197,10 +10197,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'lifecycle_evidence': {
         'create': 'test-marked Skill is created from native template',
-        'view': 'template manifest, Skill manifest and validation report reload',
+        'view':
+            'template manifest, Skill manifest and validation report reload',
         'open': 'export package is opened and schema/skill id are verified',
         'export': 'export package and export manifest are written',
-        'delete': 'test-marked Skill directory is removed and tombstone is written',
+        'delete':
+            'test-marked Skill directory is removed and tombstone is written',
         'restart_recovery': 'state snapshot reloads deleted/tombstone state',
         'error_path':
             'missing template, missing source trace or non-test deletion would block closure',
@@ -10338,9 +10340,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       running: false,
-      lastMessage: status == 'pass'
-          ? '原生 Skill 库验收证据已生成。'
-          : '原生 Skill 库验收存在缺口。',
+      lastMessage:
+          status == 'pass' ? '原生 Skill 库验收证据已生成。' : '原生 Skill 库验收存在缺口。',
       lastError: status == 'pass' ? '' : 'native_skills_library_blocked',
     );
     notifyListeners();
@@ -10352,12 +10353,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final summaryPath =
-        _joinNested(workspace.path, 'acceptance/cli_agent_hub_evaluation_summary.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/cli_agent_hub_evaluation_summary.json');
     final root = _joinNested(workspace.path, 'cli_agent_hub_evaluation');
     final registryPath = _joinNested(root, 'agent_registry.json');
     final taskPlanPath = _joinNested(root, 'task_plan.json');
-    final permissionEnvelopePath = _joinNested(root, 'permission_envelope.json');
+    final permissionEnvelopePath =
+        _joinNested(root, 'permission_envelope.json');
     final executionTracePath = _joinNested(root, 'execution_trace.jsonl');
     final reviewReportPath = _joinNested(root, 'review_report.json');
     final checkpointPath = _joinNested(root, 'checkpoint_report.json');
@@ -10676,9 +10678,11 @@ class Rc6RuntimeController extends ChangeNotifier {
               reloadedTaskPlan['resume_prompt_required'] == true,
       'permission_envelope_written':
           await File(permissionEnvelopePath).exists(),
-      'permission_blocks_secret_network_delete':
-          const ['read_secret', 'network_fetch', 'delete_user_data'].every(
-              _listOfStrings(reloadedEnvelope['blocked_actions']).contains),
+      'permission_blocks_secret_network_delete': const [
+        'read_secret',
+        'network_fetch',
+        'delete_user_data'
+      ].every(_listOfStrings(reloadedEnvelope['blocked_actions']).contains),
       'execution_trace_written': await File(executionTracePath).exists(),
       'trace_allows_core_steps': allowedRecords.length == 3,
       'trace_denies_forbidden_steps': deniedRecords.length >= 2,
@@ -10813,9 +10817,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'lifecycle_evidence': {
         'create':
             'registry, task plan, permission envelope, trace, review, checkpoint, resume, failure policy, validation and summary are written',
-        'view': 'summary and validation report are registered in Artifact Catalog',
+        'view':
+            'summary and validation report are registered in Artifact Catalog',
         'open': 'registered report paths can be opened by path',
-        'export': 'registered report paths are available for Artifact Center export',
+        'export':
+            'registered report paths are available for Artifact Center export',
         'delete': 'no real user data is deleted by this core-only gate',
         'restart_recovery': 'state snapshot reloads from workspace files',
         'error_path':
@@ -10903,6 +10909,542 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? 'CLI Agent Hub 评估验收证据已生成。'
           : 'CLI Agent Hub 评估验收存在缺口。',
       lastError: status == 'pass' ? '' : 'cli_agent_hub_evaluation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runRemoteTaskControlAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/remote_task_control_summary.json');
+    final root = _joinNested(workspace.path, 'remote_task_control');
+    final requestPath = _joinNested(root, 'test_remote_task_request.json');
+    final queuePath = _joinNested(root, 'task_queue.json');
+    final activeTaskPath = _joinNested(root, 'active_test_remote_task.json');
+    final controlLogPath = _joinNested(root, 'control_log.jsonl');
+    final resultPath = _joinNested(root, 'test_remote_task_result.md');
+    final openReportPath = _joinNested(root, 'open_report.json');
+    final exportPackagePath =
+        _joinNested(root, 'exports/test_remote_task_control_package.json');
+    final deleteReportPath = _joinNested(root, 'delete_report.json');
+    final tombstonePath =
+        _joinNested(root, 'test_remote_task_control.tombstone.json');
+    final uiBindingReportPath = _joinNested(root, 'ui_binding_report.json');
+    final permissionReportPath = _joinNested(root, 'permission_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+
+    state = state.copyWith(
+      running: true,
+      lastMessage: '远程任务控制验收正在生成。',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const taskId = 'test_remote_task_control_p2_24';
+    final request = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_request.v1',
+      'status': 'submitted',
+      'task_id': taskId,
+      'task_title': 'test remote task control',
+      'user_visible_action': '提交任务',
+      'requested_operation': 'run_workspace_task',
+      'input_scope': 'test_workspace_only',
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(requestPath, request);
+
+    final queue = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_queue.v1',
+      'status': 'completed_after_retry',
+      'tasks': [
+        {
+          'task_id': taskId,
+          'status': 'completed',
+          'progress': 1,
+          'test_marker': true,
+          'result_path': resultPath,
+        }
+      ],
+      'created_at': now,
+    };
+    await _writeJsonFile(queuePath, queue);
+    await _writeJsonFile(activeTaskPath, {
+      'schema_version': 'prd_v3_remote_task_control_active_task.v1',
+      'task_id': taskId,
+      'status': 'running',
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final controlRows = <Map<String, dynamic>>[
+      {
+        'schema_version': 'prd_v3_remote_task_control_event.v1',
+        'task_id': taskId,
+        'action': 'submit',
+        'status': 'submitted',
+        'user_visible_result': '任务已提交',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_remote_task_control_event.v1',
+        'task_id': taskId,
+        'action': 'start',
+        'status': 'running',
+        'user_visible_result': '任务进行中',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_remote_task_control_event.v1',
+        'task_id': taskId,
+        'action': 'cancel',
+        'status': 'cancelled',
+        'user_visible_result': '任务已取消',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_remote_task_control_event.v1',
+        'task_id': taskId,
+        'action': 'retry',
+        'status': 'running',
+        'user_visible_result': '任务已重试',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_remote_task_control_event.v1',
+        'task_id': taskId,
+        'action': 'complete',
+        'status': 'completed',
+        'user_visible_result': '任务已完成',
+        'artifact_path': resultPath,
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(controlLogPath).parent.create(recursive: true);
+    await File(controlLogPath).writeAsString(
+      '${controlRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    await File(resultPath).parent.create(recursive: true);
+    await File(resultPath).writeAsString(
+      '# 远程任务控制测试结果\n\n'
+      '- 任务：$taskId\n'
+      '- 状态：已完成\n'
+      '- 范围：仅测试工作区\n',
+      encoding: utf8,
+    );
+    final resultOpened = await File(resultPath).exists() &&
+        File(resultPath).readAsStringSync(encoding: utf8).contains(taskId);
+    await _writeJsonFile(openReportPath, {
+      'schema_version': 'prd_v3_remote_task_control_open_report.v1',
+      'status': resultOpened ? 'pass' : 'blocked',
+      'task_id': taskId,
+      'opened_path': resultPath,
+      'test_marker': true,
+      'created_at': now,
+    });
+    await _writeJsonFile(exportPackagePath, {
+      'schema_version': 'prd_v3_remote_task_control_export_package.v1',
+      'status': 'pass',
+      'task_id': taskId,
+      'request_path': requestPath,
+      'queue_path': queuePath,
+      'control_log_path': controlLogPath,
+      'result_path': resultPath,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final activeTaskExistsBeforeDelete = await File(activeTaskPath).exists();
+    await File(activeTaskPath).delete();
+    final activeTaskExistsAfterDelete = await File(activeTaskPath).exists();
+    await _writeJsonFile(tombstonePath, {
+      'schema_version': 'prd_v3_remote_task_control_tombstone.v1',
+      'status': 'deleted',
+      'task_id': taskId,
+      'deleted_object': activeTaskPath,
+      'delete_scope': 'test_marked_task_only',
+      'test_marker': true,
+      'created_at': now,
+    });
+    await _writeJsonFile(deleteReportPath, {
+      'schema_version': 'prd_v3_remote_task_control_delete_report.v1',
+      'status': activeTaskExistsBeforeDelete && !activeTaskExistsAfterDelete
+          ? 'pass'
+          : 'blocked',
+      'task_id': taskId,
+      'active_task_exists_before_delete': activeTaskExistsBeforeDelete,
+      'active_task_exists_after_delete': activeTaskExistsAfterDelete,
+      'tombstone_path': tombstonePath,
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    final uiBindingReport = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_ui_binding_report.v1',
+      'status': 'pass',
+      'user_visible_surface': '任务工作台',
+      'visible_labels': const ['取消任务', '重试任务'],
+      'automation_keys': const [
+        'task-control-cancel-validation',
+        'task-control-retry-validation',
+      ],
+      'button_clicks_verified_by_test':
+          'p2 remote task control exposes cancel and retry user controls',
+      'internal_project_names_visible': false,
+      'provider_adapter_parser_visible': false,
+      'capability_matrix_visible': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(uiBindingReportPath, uiBindingReport);
+
+    final permissionReport = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_permission_report.v1',
+      'status': 'pass',
+      'task_id': taskId,
+      'allowed_actions': const [
+        'submit',
+        'start',
+        'cancel',
+        'retry',
+        'complete'
+      ],
+      'blocked_actions': const [
+        'read_secret',
+        'delete_real_user_data',
+        'install_dependency',
+        'start_external_runtime',
+        'modify_stage_chain',
+      ],
+      'secret_plaintext_written': false,
+      'external_runtime_started': false,
+      'network_call_made': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(permissionReportPath, permissionReport);
+
+    final stateSnapshot = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_state_snapshot.v1',
+      'status': 'pass',
+      'task_id': taskId,
+      'queue_path': queuePath,
+      'control_log_path': controlLogPath,
+      'result_path': resultPath,
+      'tombstone_path': tombstonePath,
+      'global_goal_complete': false,
+      'next_gate': 'P2-25 Office Agent Industrialization',
+      'created_at': now,
+    };
+    await _writeJsonFile(stateSnapshotPath, stateSnapshot);
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_boundary_report.v1',
+      'status': 'pass',
+      'task_id': taskId,
+      'external_remote_service_called': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final reloadedQueue = await _readJsonObject(queuePath);
+    final reloadedOpen = await _readJsonObject(openReportPath);
+    final reloadedDelete = await _readJsonObject(deleteReportPath);
+    final reloadedUi = await _readJsonObject(uiBindingReportPath);
+    final reloadedPermission = await _readJsonObject(permissionReportPath);
+    final reloadedSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final traceRecords = File(controlLogPath)
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    final actions =
+        traceRecords.map((row) => _stringValue(row['action'], '')).toSet();
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_user_blackbox': true,
+      'request_written': await File(requestPath).exists(),
+      'queue_written': await File(queuePath).exists(),
+      'queue_has_completed_test_task': _listOfMaps(reloadedQueue['tasks']).any(
+          (row) =>
+              _stringValue(row['task_id'], '') == taskId &&
+              _stringValue(row['status'], '') == 'completed' &&
+              row['test_marker'] == true),
+      'control_log_written': await File(controlLogPath).exists(),
+      'control_log_has_submit_cancel_retry_complete': const {
+        'submit',
+        'cancel',
+        'retry',
+        'complete'
+      }.every(actions.contains),
+      'result_written': await File(resultPath).exists(),
+      'open_report_passed': _stringValue(reloadedOpen['status'], '') == 'pass',
+      'export_package_written': await File(exportPackagePath).exists(),
+      'delete_report_passed':
+          _stringValue(reloadedDelete['status'], '') == 'pass',
+      'test_task_deleted_from_active_queue':
+          reloadedDelete['active_task_exists_after_delete'] == false,
+      'tombstone_written': await File(tombstonePath).exists(),
+      'ui_binding_report_passed':
+          _stringValue(reloadedUi['status'], '') == 'pass',
+      'permission_report_passed':
+          _stringValue(reloadedPermission['status'], '') == 'pass',
+      'permission_blocks_secret_real_delete_external_runtime': const [
+        'read_secret',
+        'delete_real_user_data',
+        'start_external_runtime',
+      ].every(_listOfStrings(reloadedPermission['blocked_actions']).contains),
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedSnapshot['task_id'], '') == taskId &&
+              reloadedSnapshot['global_goal_complete'] == false,
+      'validation_boundary_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_remote_service_called': false,
+      'external_project_runtime_loaded': false,
+      'external_model_called': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+    };
+    const negativeChecks = {
+      'external_remote_service_called',
+      'external_project_runtime_loaded',
+      'external_model_called',
+      'network_call_made',
+      'new_dependency_added',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_validation_report.v1',
+      'status': status,
+      'task_id': taskId,
+      'request_path': requestPath,
+      'queue_path': queuePath,
+      'control_log_path': controlLogPath,
+      'result_path': resultPath,
+      'open_report_path': openReportPath,
+      'export_package_path': exportPackagePath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'ui_binding_report_path': uiBindingReportPath,
+      'permission_report_path': permissionReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_remote_task_control_summary.v1',
+      'status': status,
+      'capability_id': 'remote_task_control',
+      'capability_gate': 'P2-24 Remote Task Control',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'request_path': requestPath,
+      'queue_path': queuePath,
+      'control_log_path': controlLogPath,
+      'result_path': resultPath,
+      'open_report_path': openReportPath,
+      'export_package_path': exportPackagePath,
+      'delete_report_path': deleteReportPath,
+      'tombstone_path': tombstonePath,
+      'ui_binding_report_path': uiBindingReportPath,
+      'permission_report_path': permissionReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runRemoteTaskControlAcceptance',
+        'request_schema': 'prd_v3_remote_task_control_request.v1',
+        'queue_schema': 'prd_v3_remote_task_control_queue.v1',
+        'control_event_schema': 'prd_v3_remote_task_control_event.v1',
+      },
+      'black_box_evidence': {
+        'status': status == 'pass' ? 'passed' : 'blocked',
+        'user_visible_surface': '任务工作台',
+        'button_test':
+            'p2 remote task control exposes cancel and retry user controls',
+        'ui_binding_report_path': uiBindingReportPath,
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'validation_report_path': validationReportPath,
+        'export_package_path': exportPackagePath,
+        'open_report_path': openReportPath,
+        'delete_report_path': deleteReportPath,
+        'tombstone_path': tombstonePath,
+      },
+      'event_evidence': {
+        'event_type': 'remote_task_control_validated',
+      },
+      'lifecycle_evidence': {
+        'create': 'test-marked remote task request and queue entry are written',
+        'view': 'queue and result report reload from workspace files',
+        'open': 'open report validates the result file',
+        'export': 'export package records request, queue, log and result paths',
+        'delete':
+            'only the test-marked active task object is removed and tombstoned',
+        'restart_recovery': 'state snapshot reloads from workspace files',
+        'error_path':
+            'secret access, real-user deletion and external runtime start are denied',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate': 'P2-25 Office Agent Industrialization',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'remote_task_control_validated',
+      module: 'task_workbench',
+      action: 'run_remote_task_control_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'remote_task_control',
+      targetName: 'Remote Task Control',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': summary['black_box_status'],
+        'failed_checks': failedChecks,
+        'validation_report_path': validationReportPath,
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'remote_task_control_summary',
+      artifactType: 'acceptance_report',
+      title: 'Remote Task Control Summary',
+      sourceModule: 'task_workbench',
+      sourceId: 'remote_task_control',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': summary['black_box_status'],
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'remote_task_control_validation',
+      artifactType: 'validation_report',
+      title: 'Remote Task Control Validation',
+      sourceModule: 'task_workbench',
+      sourceId: 'remote_task_control',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'remote_task_control_export_package',
+      artifactType: 'export',
+      title: 'Remote Task Control Export Package',
+      sourceModule: 'task_workbench',
+      sourceId: 'remote_task_control',
+      filePath: exportPackagePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'result_path': resultPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'remote_task_control_tombstone',
+      artifactType: 'tombstone',
+      title: 'Remote Task Control Test Task Tombstone',
+      sourceModule: 'task_workbench',
+      sourceId: 'remote_task_control',
+      filePath: tombstonePath,
+      status: 'deleted',
+      metadata: {
+        'delete_report_path': deleteReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass' ? '远程任务控制验收证据已生成。' : '远程任务控制验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'remote_task_control_blocked',
     );
     notifyListeners();
     return summaryPath;

@@ -41,6 +41,8 @@ class TaskWorkbenchSurface extends StatelessWidget {
               workspace: workspace,
               tasks: snapshots,
               isWebRuntime: isWebRuntime,
+              onRetry: onRetry,
+              onCancel: onCancel,
             ),
           ],
         );
@@ -75,12 +77,16 @@ class _CurrentTaskPanel extends StatelessWidget {
     required this.workspace,
     required this.tasks,
     required this.isWebRuntime,
+    this.onRetry,
+    this.onCancel,
   });
 
   final String localeCode;
   final String workspace;
   final List<WorkbenchTaskSnapshot> tasks;
   final bool isWebRuntime;
+  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
+  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
 
   bool get _zh => localeCode == 'zh-CN';
 
@@ -213,12 +219,67 @@ class _CurrentTaskPanel extends StatelessWidget {
               Expanded(flex: 4, child: output),
             ]);
           }),
+          _TaskControlActions(
+            localeCode: localeCode,
+            task: current,
+            onRetry: onRetry,
+            onCancel: onCancel,
+          ),
           const SizedBox(height: 12),
           _DashboardChainSummary(localeCode: localeCode),
           const SizedBox(height: 12),
           _DashboardCompactActivity(
               localeCode: localeCode, workspace: workspace),
         ],
+      ),
+    );
+  }
+}
+
+class _TaskControlActions extends StatelessWidget {
+  const _TaskControlActions({
+    required this.localeCode,
+    required this.task,
+    this.onRetry,
+    this.onCancel,
+  });
+
+  final String localeCode;
+  final WorkbenchTaskSnapshot task;
+  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
+  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = <Widget>[];
+    if (task.status.canCancel && onCancel != null) {
+      actions.add(OutlinedButton.icon(
+        key: Key('task-control-cancel-${task.stage.id}'),
+        onPressed: () => onCancel?.call(task),
+        icon: const Icon(Icons.pause_circle_outline),
+        label: Text(_zh ? '取消任务' : 'Cancel task'),
+      ));
+    }
+    if (task.status.canRetry && onRetry != null) {
+      actions.add(FilledButton.icon(
+        key: Key('task-control-retry-${task.stage.id}'),
+        onPressed: () => onRetry?.call(task),
+        icon: const Icon(Icons.refresh_outlined),
+        label: Text(_zh ? '重试任务' : 'Retry task'),
+      ));
+    }
+    if (actions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Wrap(
+        key: const Key('task-control-actions'),
+        spacing: 8,
+        runSpacing: 8,
+        children: actions,
       ),
     );
   }
@@ -620,7 +681,9 @@ class _WorkbenchSidePanel extends StatelessWidget {
             const SizedBox(height: 12),
             _SidePanelLine(
                 label: _zh ? '已完成阶段' : 'Completed stages',
-                value: '$completedCount/${tasks.length}'),
+                value: _zh
+                    ? '$completedCount 个，共 ${tasks.length} 个'
+                    : '$completedCount of ${tasks.length}'),
           ],
         ),
         const SizedBox(height: 14),

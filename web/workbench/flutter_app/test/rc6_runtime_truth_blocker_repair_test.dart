@@ -8,6 +8,8 @@ import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
 import 'package:heitang_workbench/main.dart';
 import 'package:heitang_workbench/rc6_runtime/rc6_runtime_controller_io.dart';
+import 'package:heitang_workbench/workbench/task_model.dart';
+import 'package:heitang_workbench/workbench/task_workbench.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -10263,13 +10265,13 @@ void main() {
       }
     }
 
-    final policy = jsonDecode(
-        File(summary['policy_path'] as String).readAsStringSync()) as Map;
+    final policy =
+        jsonDecode(File(summary['policy_path'] as String).readAsStringSync())
+            as Map;
     expect(policy['schema_version'], 'prd_v3_react_tool_runtime_policy.v1');
     expect(policy['allowlist'], contains('kb_retrieval'));
     expect(policy['blocked_tools'], contains('arbitrary_shell'));
-    final loopRecords =
-        readJsonlFile(summary['loop_records_path'] as String);
+    final loopRecords = readJsonlFile(summary['loop_records_path'] as String);
     expect(loopRecords, hasLength(5));
     expect(loopRecords.any((row) => row['phase'] == 'thought'), isTrue);
     expect(loopRecords.any((row) => row['phase'] == 'observation'), isTrue);
@@ -10279,8 +10281,7 @@ void main() {
             row['decision'] == 'deny' &&
             row['executed'] == false),
         isTrue);
-    final toolCalls =
-        readJsonlFile(summary['tool_call_log_path'] as String);
+    final toolCalls = readJsonlFile(summary['tool_call_log_path'] as String);
     expect(
         toolCalls.any((row) =>
             row['tool_id'] == 'kb_retrieval' &&
@@ -10356,8 +10357,8 @@ void main() {
     final summaryPath = await controller.runLongContextEvaluationAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
-    expect(summary['schema_version'],
-        'prd_v3_long_context_evaluation_summary.v1');
+    expect(
+        summary['schema_version'], 'prd_v3_long_context_evaluation_summary.v1');
     expect(summary['status'], 'pass');
     expect(summary['capability_id'], 'long_context_evaluation');
     expect(summary['capability_gate'], 'P2-12 Long Context Evaluation');
@@ -10389,17 +10390,14 @@ void main() {
 
     final chunkIndex = jsonDecode(
         File(summary['chunk_index_path'] as String).readAsStringSync()) as Map;
-    expect(chunkIndex['schema_version'],
-        'prd_v3_long_context_chunk_index.v1');
+    expect(chunkIndex['schema_version'], 'prd_v3_long_context_chunk_index.v1');
     expect((chunkIndex['chunks'] as List), hasLength(6));
     final windowPlan = jsonDecode(
         File(summary['window_plan_path'] as String).readAsStringSync()) as Map;
-    expect(windowPlan['schema_version'],
-        'prd_v3_long_context_window_plan.v1');
+    expect(windowPlan['schema_version'], 'prd_v3_long_context_window_plan.v1');
     expect(windowPlan['window_count'], 2);
     expect(windowPlan['missing_evidence_blocks_answer'], isTrue);
-    final traceRows =
-        readJsonlFile(summary['retrieval_trace_path'] as String);
+    final traceRows = readJsonlFile(summary['retrieval_trace_path'] as String);
     expect(traceRows, hasLength(6));
     expect(
         traceRows.every((row) =>
@@ -10418,9 +10416,8 @@ void main() {
             as Map)['missing_evidence_blocks_answer'],
         isTrue);
     final missingEvidence = jsonDecode(
-            File(summary['missing_evidence_report_path'] as String)
-                .readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['missing_evidence_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(missingEvidence['schema_version'],
         'prd_v3_long_context_missing_evidence_report.v1');
     expect(missingEvidence['answer_blocked'], isTrue);
@@ -10491,8 +10488,7 @@ void main() {
         'prd_v3_official_sample_project_library_summary.v1');
     expect(summary['status'], 'pass');
     expect(summary['capability_id'], 'official_sample_project_library');
-    expect(
-        summary['capability_gate'], 'P2-13 Official Sample Project Library');
+    expect(summary['capability_gate'], 'P2-13 Official Sample Project Library');
     expect(summary['acceptance_type'], 'artifact');
     expect(summary['white_box_status'], 'passed');
     expect(summary['black_box_status'], 'passed');
@@ -10519,8 +10515,9 @@ void main() {
       }
     }
 
-    final manifest = jsonDecode(
-        File(summary['manifest_path'] as String).readAsStringSync()) as Map;
+    final manifest =
+        jsonDecode(File(summary['manifest_path'] as String).readAsStringSync())
+            as Map;
     expect(manifest['schema_version'],
         'prd_v3_official_sample_project_library_manifest.v1');
     expect(manifest['knowledge_base_sample_count'], 3);
@@ -10528,14 +10525,12 @@ void main() {
     expect(manifest['implementation_names_user_visible'], isFalse);
     expect(manifest['provider_adapter_parser_user_visible'], isFalse);
     final kbSamples = jsonDecode(
-            File(summary['knowledge_base_samples_path'] as String)
-                .readAsStringSync())
-        as Map;
+        File(summary['knowledge_base_samples_path'] as String)
+            .readAsStringSync()) as Map;
     expect((kbSamples['samples'] as List), hasLength(3));
     final documentSamples = jsonDecode(
-            File(summary['document_template_samples_path'] as String)
-                .readAsStringSync())
-        as Map;
+        File(summary['document_template_samples_path'] as String)
+            .readAsStringSync()) as Map;
     expect((documentSamples['samples'] as List), hasLength(3));
     final sourceTraceRows =
         readJsonlFile(summary['source_trace_path'] as String);
@@ -10552,16 +10547,15 @@ void main() {
     expect(validation['schema_version'],
         'prd_v3_official_sample_project_library_validation_report.v1');
     expect(validation['status'], 'pass');
-    expect(File(summary['export_manifest_path'] as String).existsSync(),
-        isTrue);
-    expect(File(summary['exported_document_path'] as String).existsSync(),
-        isTrue);
+    expect(
+        File(summary['export_manifest_path'] as String).existsSync(), isTrue);
+    expect(
+        File(summary['exported_document_path'] as String).existsSync(), isTrue);
     expect(
         File(summary['deleted_test_knowledge_base_path'] as String)
             .existsSync(),
         isFalse);
-    expect(
-        File(summary['deleted_test_document_path'] as String).existsSync(),
+    expect(File(summary['deleted_test_document_path'] as String).existsSync(),
         isFalse);
     final tombstone =
         jsonDecode(File(summary['tombstone_path'] as String).readAsStringSync())
@@ -10587,8 +10581,7 @@ void main() {
         '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
-            row['event_type'] ==
-                'official_sample_project_library_validated' &&
+            row['event_type'] == 'official_sample_project_library_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     expect(
@@ -10614,7 +10607,8 @@ void main() {
         isTrue);
     expect(
         artifacts.any((row) =>
-            row['artifact_id'] == 'official_sample_project_library_tombstones' &&
+            row['artifact_id'] ==
+                'official_sample_project_library_tombstones' &&
             row['status'] == 'completed'),
         isTrue);
   });
@@ -10670,13 +10664,13 @@ void main() {
       }
     }
 
-    final plan = jsonDecode(
-        File(summary['plan_path'] as String).readAsStringSync()) as Map;
-    expect(plan['schema_version'],
-        'prd_v3_polly_style_lead_orchestrator_plan.v1');
+    final plan =
+        jsonDecode(File(summary['plan_path'] as String).readAsStringSync())
+            as Map;
+    expect(
+        plan['schema_version'], 'prd_v3_polly_style_lead_orchestrator_plan.v1');
     expect((plan['subtasks'] as List), hasLength(4));
-    final delegations =
-        readJsonlFile(summary['delegation_path'] as String);
+    final delegations = readJsonlFile(summary['delegation_path'] as String);
     expect(delegations, hasLength(4));
     expect(
         delegations.every((row) =>
@@ -10684,8 +10678,7 @@ void main() {
             row['required_evidence'] is List &&
             (row['required_evidence'] as List).isNotEmpty),
         isTrue);
-    final traceRows =
-        readJsonlFile(summary['execution_trace_path'] as String);
+    final traceRows = readJsonlFile(summary['execution_trace_path'] as String);
     expect(traceRows, hasLength(4));
     expect(traceRows.first['owner_role'], 'lead_orchestrator');
     expect(traceRows.last['owner_role'], 'verifier');
@@ -10762,12 +10755,11 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runSandboxToolPermissionAcceptance();
+    final summaryPath = await controller.runSandboxToolPermissionAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
-    expect(summary['schema_version'],
-        'prd_v3_sandbox_tool_permission_summary.v1');
+    expect(
+        summary['schema_version'], 'prd_v3_sandbox_tool_permission_summary.v1');
     expect(summary['status'], 'pass');
     expect(summary['capability_id'], 'sandbox_tool_permission');
     expect(summary['capability_gate'],
@@ -10809,14 +10801,16 @@ void main() {
     expect(permissionMatrix['blocked_capabilities'],
         containsAll(['arbitrary_shell', 'computer_use']));
     final permissionAudit = jsonDecode(
-        File(summary['permission_audit_path'] as String).readAsStringSync())
+            File(summary['permission_audit_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(permissionAudit['schema_version'],
-        'prd_v2_agent_permission_audit.v1');
+    expect(
+        permissionAudit['schema_version'], 'prd_v2_agent_permission_audit.v1');
     expect(permissionAudit['status'], 'pass');
     expect(permissionAudit['secret_display'], 'masked');
-    expect(permissionAudit['checks'],
-        containsAll(['tool_allowlist_enforced', 'no_cross_agent_secret_access']));
+    expect(
+        permissionAudit['checks'],
+        containsAll(
+            ['tool_allowlist_enforced', 'no_cross_agent_secret_access']));
     final authRows =
         readJsonlFile(summary['authorization_runtime_audit_path'] as String);
     expect(authRows, hasLength(greaterThanOrEqualTo(5)));
@@ -10845,7 +10839,7 @@ void main() {
     expect(blockReport['blocked_resource_types'],
         containsAll(['unauthorized_kb', 'non_allowlisted_tool']));
     final toolRegistry = jsonDecode(
-        File(summary['tool_registry_path'] as String).readAsStringSync())
+            File(summary['tool_registry_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(toolRegistry['schema_version'], 'prd_v3_tool_registry.v1');
     expect(toolRegistry['allowlist'],
@@ -10853,14 +10847,14 @@ void main() {
     expect(toolRegistry['blocked_tools'],
         containsAll(['video.generate', 'arbitrary_shell', 'computer_use']));
     final governanceReport = jsonDecode(
-        File(summary['governance_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['governance_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(governanceReport['schema_version'],
         'prd_v3_sandbox_tool_permission_governance_report.v1');
     expect(governanceReport['status'], 'pass');
     expect(governanceReport['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_sandbox_tool_permission_boundary_report.v1');
@@ -10900,14 +10894,12 @@ void main() {
         isTrue);
     expect(
         artifacts.any((row) =>
-            row['artifact_id'] ==
-                'sandbox_tool_permission_governance_report' &&
+            row['artifact_id'] == 'sandbox_tool_permission_governance_report' &&
             row['status'] == 'completed'),
         isTrue);
   });
 
-  test('p2 session share fork replay creates core evidence package',
-      () async {
+  test('p2 session share fork replay creates core evidence package', () async {
     final workspace = await createWorkspace();
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -10921,8 +10913,7 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runSessionShareForkReplayAcceptance();
+    final summaryPath = await controller.runSessionShareForkReplayAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(summary['schema_version'],
@@ -10957,7 +10948,7 @@ void main() {
     }
 
     final snapshot = jsonDecode(
-        File(summary['session_snapshot_path'] as String).readAsStringSync())
+            File(summary['session_snapshot_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(snapshot['schema_version'], 'prd_v3_session_share_snapshot.v1');
     expect(snapshot['status'], 'pass');
@@ -10965,25 +10956,21 @@ void main() {
     expect(snapshot['contains_secret_plaintext'], isFalse);
     expect(snapshot['external_network_required'], isFalse);
     final sharePackage = jsonDecode(
-        File(summary['share_package_path'] as String).readAsStringSync())
+            File(summary['share_package_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(sharePackage['schema_version'],
-        'prd_v3_session_share_package.v1');
+    expect(sharePackage['schema_version'], 'prd_v3_session_share_package.v1');
     expect((sharePackage['permissions'] as Map)['read_only'], isTrue);
     expect((sharePackage['permissions'] as Map)['fork_allowed'], isTrue);
-    expect(
-        (sharePackage['permissions'] as Map)['external_network_required'],
+    expect((sharePackage['permissions'] as Map)['external_network_required'],
         isFalse);
     final forkManifest = jsonDecode(
-        File(summary['fork_manifest_path'] as String).readAsStringSync())
+            File(summary['fork_manifest_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(forkManifest['schema_version'],
-        'prd_v3_session_fork_manifest.v1');
+    expect(forkManifest['schema_version'], 'prd_v3_session_fork_manifest.v1');
     expect(forkManifest['parent_session_modified'], isFalse);
     expect(forkManifest['parent_source_hash'], summary['source_hash']);
     expect(forkManifest['secret_plaintext_written'], isFalse);
-    final replayRows =
-        readJsonlFile(summary['replay_log_path'] as String);
+    final replayRows = readJsonlFile(summary['replay_log_path'] as String);
     expect(replayRows, hasLength(2));
     expect(
         replayRows.every((row) =>
@@ -10994,18 +10981,18 @@ void main() {
             row['tool_call_made'] == false),
         isTrue);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_session_replay_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['parent_hash_preserved'], isTrue);
     expect(validation['replay_matched'], isTrue);
     final errorReport = jsonDecode(
-        File(summary['error_report_path'] as String).readAsStringSync())
+            File(summary['error_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(errorReport['schema_version'],
-        'prd_v3_session_replay_error_report.v1');
+    expect(
+        errorReport['schema_version'], 'prd_v3_session_replay_error_report.v1');
     expect(errorReport['status'], 'pass');
     expect(errorReport['all_error_paths_blocked'], isTrue);
     expect(
@@ -11055,8 +11042,7 @@ void main() {
         isTrue);
   });
 
-  test('p2 cloud disposable sandbox creates core evidence package',
-      () async {
+  test('p2 cloud disposable sandbox creates core evidence package', () async {
     final workspace = await createWorkspace();
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -11070,8 +11056,7 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runCloudDisposableSandboxAcceptance();
+    final summaryPath = await controller.runCloudDisposableSandboxAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(summary['schema_version'],
@@ -11110,9 +11095,9 @@ void main() {
       }
     }
 
-    final profile = jsonDecode(
-        File(summary['profile_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final profile =
+        jsonDecode(File(summary['profile_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(profile['schema_version'],
         'prd_v3_cloud_disposable_sandbox_profile.v1');
     expect(profile['status'], 'evaluation_contract_only');
@@ -11122,7 +11107,7 @@ void main() {
     expect(profile['blocked_mounts'],
         containsAll(['user_home', 'system_paths', 'credential_store']));
     final lifecyclePlan = jsonDecode(
-        File(summary['lifecycle_plan_path'] as String).readAsStringSync())
+            File(summary['lifecycle_plan_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(lifecyclePlan['schema_version'],
         'prd_v3_cloud_disposable_sandbox_lifecycle_plan.v1');
@@ -11131,8 +11116,8 @@ void main() {
     expect(lifecyclePlan['destroy_required'], isTrue);
     expect(lifecyclePlan['rollback_required'], isTrue);
     final permissionEnvelope = jsonDecode(
-        File(summary['permission_envelope_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['permission_envelope_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(permissionEnvelope['schema_version'],
         'prd_v3_cloud_sandbox_permission_envelope.v1');
     expect(permissionEnvelope['status'], 'pass');
@@ -11140,8 +11125,7 @@ void main() {
     expect(permissionEnvelope['secret_plaintext_access'], isFalse);
     expect(permissionEnvelope['blocked_tools'],
         containsAll(['arbitrary_shell', 'computer_use']));
-    final traceRows =
-        readJsonlFile(summary['execution_trace_path'] as String);
+    final traceRows = readJsonlFile(summary['execution_trace_path'] as String);
     expect(traceRows, hasLength(4));
     expect(
         traceRows.any((row) =>
@@ -11154,11 +11138,9 @@ void main() {
             row['action'] == 'destroy_disposable_state' &&
             row['status'] == 'completed'),
         isTrue);
-    expect(
-        traceRows.every((row) => row['network_call_made'] != true),
-        isTrue);
+    expect(traceRows.every((row) => row['network_call_made'] != true), isTrue);
     final destroyProof = jsonDecode(
-        File(summary['destroy_proof_path'] as String).readAsStringSync())
+            File(summary['destroy_proof_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(destroyProof['schema_version'],
         'prd_v3_cloud_sandbox_destroy_proof.v1');
@@ -11167,21 +11149,21 @@ void main() {
     expect(destroyProof['real_user_data_deleted'], isFalse);
     expect(destroyProof['secret_plaintext_written'], isFalse);
     final rollbackReport = jsonDecode(
-        File(summary['rollback_report_path'] as String).readAsStringSync())
+            File(summary['rollback_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(rollbackReport['schema_version'],
         'prd_v3_cloud_sandbox_rollback_report.v1');
     expect(rollbackReport['status'], 'pass');
     expect(rollbackReport['service_binary_packaged_into_exe'], isFalse);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_cloud_disposable_sandbox_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_cloud_sandbox_boundary_report.v1');
@@ -11288,7 +11270,7 @@ void main() {
     }
 
     final taskProfile = jsonDecode(
-        File(summary['task_profile_path'] as String).readAsStringSync())
+            File(summary['task_profile_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(taskProfile['schema_version'],
         'prd_v3_multi_model_orchestration_task_profile.v1');
@@ -11298,7 +11280,7 @@ void main() {
     expect(taskProfile['network_call_made'], isFalse);
     expect(taskProfile['contains_secret_plaintext'], isFalse);
     final candidatePool = jsonDecode(
-        File(summary['candidate_pool_path'] as String).readAsStringSync())
+            File(summary['candidate_pool_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(candidatePool['schema_version'],
         'prd_v3_multi_model_candidate_pool.v1');
@@ -11306,14 +11288,13 @@ void main() {
     expect(candidatePool['user_visible_project_or_provider_names'], isFalse);
     expect(candidatePool['lanes'], hasLength(3));
     final routerContract = jsonDecode(
-        File(summary['router_contract_path'] as String).readAsStringSync())
+            File(summary['router_contract_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(routerContract['schema_version'],
         'prd_v3_multi_model_router_contract.v1');
     expect(routerContract['status'], 'pass');
     expect(routerContract['default_network_policy'], 'deny');
-    expect(routerContract['fallback_policy'],
-        'same_process_local_contract');
+    expect(routerContract['fallback_policy'], 'same_process_local_contract');
     expect(routerContract['user_visible_label_policy'],
         'show_capability_result_not_implementation');
     final routingRows =
@@ -11325,8 +11306,7 @@ void main() {
         isTrue);
     expect(
         routingRows.every((row) =>
-            row['schema_version'] ==
-                'prd_v3_multi_model_routing_decision.v1' &&
+            row['schema_version'] == 'prd_v3_multi_model_routing_decision.v1' &&
             row['decision'] == 'selected' &&
             row['external_model_call_made'] == false &&
             row['network_call_made'] == false),
@@ -11347,7 +11327,7 @@ void main() {
             row['secret_plaintext_written'] == false),
         isTrue);
     final evaluatorReport = jsonDecode(
-        File(summary['evaluator_report_path'] as String).readAsStringSync())
+            File(summary['evaluator_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(evaluatorReport['schema_version'],
         'prd_v3_multi_model_evaluator_report.v1');
@@ -11356,10 +11336,9 @@ void main() {
     expect(evaluatorReport['conflict_count'], 0);
     expect(evaluatorReport['external_model_call_made'], isFalse);
     final errorReport = jsonDecode(
-        File(summary['error_report_path'] as String).readAsStringSync())
+            File(summary['error_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(errorReport['schema_version'],
-        'prd_v3_multi_model_error_report.v1');
+    expect(errorReport['schema_version'], 'prd_v3_multi_model_error_report.v1');
     expect(errorReport['status'], 'pass');
     expect(errorReport['all_error_paths_blocked'], isTrue);
     expect(errorReport['secret_plaintext_written'], isFalse);
@@ -11369,14 +11348,14 @@ void main() {
             row['decision'] == 'blocked'),
         isTrue);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_multi_model_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_multi_model_boundary_report.v1');
@@ -11408,8 +11387,7 @@ void main() {
         '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
-            row['event_type'] ==
-                'fugu_multi_model_orchestration_validated' &&
+            row['event_type'] == 'fugu_multi_model_orchestration_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
@@ -11425,8 +11403,7 @@ void main() {
         isTrue);
     expect(
         artifacts.any((row) =>
-            row['artifact_id'] ==
-                'fugu_multi_model_orchestration_validation' &&
+            row['artifact_id'] == 'fugu_multi_model_orchestration_validation' &&
             row['status'] == 'completed'),
         isTrue);
   });
@@ -11487,16 +11464,15 @@ void main() {
       }
     }
 
-    final loopPlan = jsonDecode(
-        File(summary['loop_plan_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final loopPlan =
+        jsonDecode(File(summary['loop_plan_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(loopPlan['schema_version'], 'prd_v3_loop_orchestrator_plan.v1');
     expect(loopPlan['status'], 'pass');
     expect(loopPlan['max_auto_repair_rounds'], 3);
     expect(loopPlan['max_network_retry_rounds'], 5);
     expect(loopPlan['stage_chain_locked'], isTrue);
-    final traceRows =
-        readJsonlFile(summary['iteration_trace_path'] as String);
+    final traceRows = readJsonlFile(summary['iteration_trace_path'] as String);
     expect(traceRows, hasLength(6));
     expect(
         traceRows.any((row) =>
@@ -11512,15 +11488,14 @@ void main() {
         isTrue);
     expect(
         traceRows.any((row) =>
-            row['step'] == 'automatic_retest' &&
-            row['status'] == 'passed'),
+            row['step'] == 'automatic_retest' && row['status'] == 'passed'),
         isTrue);
     expect(
         traceRows.any((row) =>
             row['step'] == 'reviewer_gate' && row['status'] == 'passed'),
         isTrue);
     final repairBudget = jsonDecode(
-        File(summary['repair_budget_path'] as String).readAsStringSync())
+            File(summary['repair_budget_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(repairBudget['schema_version'],
         'prd_v3_loop_orchestrator_repair_budget.v1');
@@ -11530,8 +11505,8 @@ void main() {
     expect(repairBudget['repair_budget_exhausted'], isFalse);
     expect(repairBudget['hard_blocker_triggered'], isFalse);
     final networkPolicy = jsonDecode(
-        File(summary['network_retry_policy_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['network_retry_policy_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(networkPolicy['schema_version'],
         'prd_v3_loop_orchestrator_network_retry_policy.v1');
     expect(networkPolicy['status'], 'pass');
@@ -11539,7 +11514,7 @@ void main() {
     expect(networkPolicy['retry_wait_seconds'], [10, 30, 60, 120, 300]);
     expect(networkPolicy['network_call_made'], isFalse);
     final checkpoint = jsonDecode(
-        File(summary['checkpoint_path'] as String).readAsStringSync())
+            File(summary['checkpoint_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(checkpoint['schema_version'],
         'prd_v3_loop_orchestrator_checkpoint_report.v1');
@@ -11547,7 +11522,7 @@ void main() {
     expect(checkpoint['checkpoint_required_for_hard_blocker'], isTrue);
     expect(checkpoint['checkpoint_fields'], contains('resume_prompt'));
     final resumePrompt = jsonDecode(
-        File(summary['resume_prompt_path'] as String).readAsStringSync())
+            File(summary['resume_prompt_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(resumePrompt['schema_version'],
         'prd_v3_loop_orchestrator_resume_prompt_report.v1');
@@ -11555,8 +11530,8 @@ void main() {
     expect(resumePrompt['resume_prompt_required'], isTrue);
     expect(resumePrompt['global_goal_complete_must_remain_false'], isTrue);
     final exhaustionReport = jsonDecode(
-        File(summary['exhaustion_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['exhaustion_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(exhaustionReport['schema_version'],
         'prd_v3_loop_orchestrator_exhaustion_report.v1');
     expect(exhaustionReport['status'], 'pass');
@@ -11564,7 +11539,7 @@ void main() {
     expect(exhaustionReport['network_retry_exhaustion_turns'], 5);
     expect(exhaustionReport['hard_blocker_after_exhaustion_only'], isTrue);
     final stateSnapshot = jsonDecode(
-        File(summary['state_snapshot_path'] as String).readAsStringSync())
+            File(summary['state_snapshot_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(stateSnapshot['schema_version'],
         'prd_v3_loop_orchestrator_state_snapshot.v1');
@@ -11574,14 +11549,14 @@ void main() {
     expect(stateSnapshot['global_goal_complete'], isFalse);
     expect(stateSnapshot['remaining_gates_non_empty'], isTrue);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_loop_orchestrator_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_loop_orchestrator_boundary_report.v1');
@@ -11647,8 +11622,7 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runHumanBrakeJudgmentGateAcceptance();
+    final summaryPath = await controller.runHumanBrakeJudgmentGateAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(summary['schema_version'],
@@ -11690,16 +11664,16 @@ void main() {
       }
     }
 
-    final policy = jsonDecode(
-        File(summary['policy_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final policy =
+        jsonDecode(File(summary['policy_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(policy['schema_version'], 'prd_v3_human_brake_policy.v1');
     expect(policy['status'], 'pass');
     expect(policy['soft_blockers_continue_automatically'], isTrue);
     expect(policy['hard_blockers_stop_execution'], isTrue);
     expect(policy['final_owner_review_remains_queued'], isTrue);
     final decisionMatrix = jsonDecode(
-        File(summary['decision_matrix_path'] as String).readAsStringSync())
+            File(summary['decision_matrix_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(decisionMatrix['schema_version'],
         'prd_v3_human_brake_judgment_matrix.v1');
@@ -11716,8 +11690,8 @@ void main() {
                 row['decision'] == 'auto_retry')),
         isTrue);
     final hardBlockerReport = jsonDecode(
-        File(summary['hard_blocker_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['hard_blocker_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(hardBlockerReport['schema_version'],
         'prd_v3_human_brake_hard_blocker_report.v1');
     expect(hardBlockerReport['status'], 'pass');
@@ -11728,8 +11702,8 @@ void main() {
     expect(hardBlockerReport['hard_blocker_cases'],
         contains('secret_exposure_required'));
     final checkpoint = jsonDecode(
-        File(summary['checkpoint_contract_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['checkpoint_contract_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(checkpoint['schema_version'],
         'prd_v3_human_brake_checkpoint_contract.v1');
     expect(checkpoint['status'], 'pass');
@@ -11737,8 +11711,8 @@ void main() {
     expect(checkpoint['required_fields'], contains('failure_report'));
     expect(checkpoint['required_fields'], contains('resume_prompt'));
     final ownerReview = jsonDecode(
-        File(summary['owner_review_manifest_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['owner_review_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(ownerReview['schema_version'],
         'prd_v3_human_brake_owner_review_manifest.v1');
     expect(ownerReview['status'], 'pass');
@@ -11747,8 +11721,8 @@ void main() {
     expect(ownerReview['final_owner_review_gate_remains_queued'], isTrue);
     expect(ownerReview['owner_review_claim_written'], isFalse);
     final queueInvariant = jsonDecode(
-        File(summary['queue_invariant_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['queue_invariant_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(queueInvariant['schema_version'],
         'prd_v3_human_brake_queue_invariant_report.v1');
     expect(queueInvariant['status'], 'pass');
@@ -11756,23 +11730,23 @@ void main() {
     expect(queueInvariant['remaining_gates_non_empty'], isTrue);
     expect(queueInvariant['stage_chain_preserved'], isTrue);
     final statusVocabulary = jsonDecode(
-        File(summary['status_vocabulary_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['status_vocabulary_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(statusVocabulary['schema_version'],
         'prd_v3_human_brake_status_vocabulary_report.v1');
     expect(statusVocabulary['status'], 'pass');
     expect(statusVocabulary['forbidden_positive_claims_present'], isFalse);
-    expect(statusVocabulary['forbidden_decisions'],
-        contains('skip_release_gate'));
+    expect(
+        statusVocabulary['forbidden_decisions'], contains('skip_release_gate'));
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_human_brake_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_human_brake_boundary_report.v1');
@@ -11877,19 +11851,18 @@ void main() {
       }
     }
 
-    final schema = jsonDecode(
-        File(summary['schema_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final schema =
+        jsonDecode(File(summary['schema_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(schema['schema_version'], 'prd_v3_dataagent_record_schema.v1');
     expect(schema['status'], 'pass');
     expect(schema['required_fields'], contains('source_trace_id'));
     expect(schema['required_fields'], contains('quality_score'));
     expect(schema['external_database_required'], isFalse);
     final manifest = jsonDecode(
-        File(summary['dataset_manifest_path'] as String).readAsStringSync())
+            File(summary['dataset_manifest_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(manifest['schema_version'],
-        'prd_v3_dataagent_dataset_manifest.v1');
+    expect(manifest['schema_version'], 'prd_v3_dataagent_dataset_manifest.v1');
     expect(manifest['status'], 'pass');
     expect(manifest['record_count'], 3);
     expect(manifest['test_marker'], isTrue);
@@ -11906,10 +11879,8 @@ void main() {
         isTrue);
     final traceRows = readJsonlFile(summary['source_trace_path'] as String);
     expect(traceRows, hasLength(3));
-    final traceIds =
-        traceRows.map((row) => row['source_trace_id']).toSet();
-    expect(
-        records.every((row) => traceIds.contains(row['source_trace_id'])),
+    final traceIds = traceRows.map((row) => row['source_trace_id']).toSet();
+    expect(records.every((row) => traceIds.contains(row['source_trace_id'])),
         isTrue);
     expect(
         traceRows.every((row) =>
@@ -11918,7 +11889,7 @@ void main() {
             row['validation_status'] == 'linked'),
         isTrue);
     final quality = jsonDecode(
-        File(summary['quality_report_path'] as String).readAsStringSync())
+            File(summary['quality_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(quality['schema_version'], 'prd_v3_dataagent_quality_report.v1');
     expect(quality['status'], 'pass');
@@ -11927,7 +11898,7 @@ void main() {
     expect(quality['duplicate_record_count'], 0);
     expect(quality['missing_required_field_count'], 0);
     final errorReport = jsonDecode(
-        File(summary['error_report_path'] as String).readAsStringSync())
+            File(summary['error_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(errorReport['schema_version'], 'prd_v3_dataagent_error_report.v1');
     expect(errorReport['status'], 'pass');
@@ -11936,29 +11907,30 @@ void main() {
     expect(errorReport['external_model_called'], isFalse);
     expect(
         (errorReport['error_cases'] as List).any((row) =>
-            (row as Map)['case_id'] ==
-                'missing_source_trace_blocks_close' &&
+            (row as Map)['case_id'] == 'missing_source_trace_blocks_close' &&
             row['decision'] == 'blocked'),
         isTrue);
     final stateSnapshot = jsonDecode(
-        File(summary['state_snapshot_path'] as String).readAsStringSync())
+            File(summary['state_snapshot_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(stateSnapshot['schema_version'],
-        'prd_v3_dataagent_state_snapshot.v1');
+    expect(
+        stateSnapshot['schema_version'], 'prd_v3_dataagent_state_snapshot.v1');
     expect(stateSnapshot['status'], 'pass');
     expect(stateSnapshot['record_count'], 3);
     expect(stateSnapshot['source_trace_count'], 3);
     expect(stateSnapshot['global_goal_complete'], isFalse);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
-    expect(validation['schema_version'], 'prd_v3_dataagent_validation_report.v1');
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        validation['schema_version'], 'prd_v3_dataagent_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(boundaryReport['schema_version'], 'prd_v3_dataagent_boundary_report.v1');
+    expect(boundaryReport['schema_version'],
+        'prd_v3_dataagent_boundary_report.v1');
     expect(boundaryReport['status'], 'pass');
     expect(boundaryReport['external_database_connected'], isFalse);
     expect(boundaryReport['external_runtime_executed'], isFalse);
@@ -11984,8 +11956,7 @@ void main() {
         '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
-            row['event_type'] ==
-                'dataagent_foundation_industrial_validated' &&
+            row['event_type'] == 'dataagent_foundation_industrial_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
@@ -12061,8 +12032,8 @@ void main() {
     }
 
     final templateManifest = jsonDecode(
-        File(summary['template_manifest_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['template_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(templateManifest['schema_version'],
         'prd_v3_native_skill_template_manifest.v1');
     expect(templateManifest['status'], 'pass');
@@ -12080,23 +12051,24 @@ void main() {
             (row['user_capability'] as String).isNotEmpty),
         isTrue);
     final createdSnapshot = jsonDecode(
-        File(summary['created_skill_snapshot_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['created_skill_snapshot_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(createdSnapshot['schema_version'],
         'prd_v3_native_skill_created_snapshot.v1');
     expect(createdSnapshot['status'], 'pass');
     expect(createdSnapshot['skill_id'], 'test_native_skill_review');
     expect(createdSnapshot['test_marker'], isTrue);
-    final testKb = jsonDecode(
-        File(summary['test_kb_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final testKb =
+        jsonDecode(File(summary['test_kb_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(testKb['schema_version'], 'prd_v3_native_skill_test_kb_manifest.v1');
     expect(testKb['knowledge_base_id'], 'test_kb_native_skill_library');
     expect(testKb['test_marker'], isTrue);
     final binding = jsonDecode(
-        File(summary['binding_manifest_path'] as String).readAsStringSync())
+            File(summary['binding_manifest_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(binding['schema_version'], 'prd_v3_native_skill_binding_manifest.v1');
+    expect(
+        binding['schema_version'], 'prd_v3_native_skill_binding_manifest.v1');
     expect(binding['skill_id'], 'test_native_skill_review');
     expect(binding['knowledge_base_id'], 'test_kb_native_skill_library');
     expect(binding['external_runtime_required'], isFalse);
@@ -12119,57 +12091,57 @@ void main() {
     expect(traceRows.single['validation_status'], 'linked');
     expect(traceRows.single['test_marker'], isTrue);
     final exportManifest = jsonDecode(
-        File(summary['export_manifest_path'] as String).readAsStringSync())
+            File(summary['export_manifest_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(exportManifest['schema_version'],
         'prd_v3_native_skill_export_manifest.v1');
     expect(exportManifest['export_openable'], isTrue);
     final exportPackage = jsonDecode(
-        File(summary['export_file_path'] as String).readAsStringSync())
+            File(summary['export_file_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(exportPackage['schema_version'],
         'prd_v3_native_skill_export_package.v1');
     expect(exportPackage['skill_id'], 'test_native_skill_review');
     expect(exportPackage['test_marker'], isTrue);
     final openReport = jsonDecode(
-        File(summary['open_report_path'] as String).readAsStringSync())
+            File(summary['open_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(openReport['schema_version'], 'prd_v3_native_skill_open_report.v1');
     expect(openReport['status'], 'pass');
     expect(openReport['opened_skill_id'], 'test_native_skill_review');
     final deleteReport = jsonDecode(
-        File(summary['delete_report_path'] as String).readAsStringSync())
+            File(summary['delete_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
-    expect(deleteReport['schema_version'],
-        'prd_v3_native_skill_delete_report.v1');
+    expect(
+        deleteReport['schema_version'], 'prd_v3_native_skill_delete_report.v1');
     expect(deleteReport['status'], 'pass');
     expect(deleteReport['skill_existed_before_delete'], isTrue);
     expect(deleteReport['skill_exists_after_delete'], isFalse);
     expect(deleteReport['only_test_marked_object_deleted'], isTrue);
     expect(deleteReport['real_user_data_deleted'], isFalse);
-    final tombstone = jsonDecode(
-        File(summary['tombstone_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final tombstone =
+        jsonDecode(File(summary['tombstone_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(tombstone['schema_version'], 'prd_v3_native_skill_tombstone.v1');
     expect(tombstone['status'], 'deleted');
     expect(tombstone['test_marker'], isTrue);
     expect(tombstone['real_user_data_deleted'], isFalse);
     final stateSnapshot = jsonDecode(
-        File(summary['state_snapshot_path'] as String).readAsStringSync())
+            File(summary['state_snapshot_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(stateSnapshot['schema_version'],
         'prd_v3_native_skill_library_state_snapshot.v1');
     expect(stateSnapshot['test_skill_deleted'], isTrue);
     expect(stateSnapshot['global_goal_complete'], isFalse);
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_native_skill_library_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_native_skill_library_boundary_report.v1');
@@ -12247,8 +12219,7 @@ void main() {
         isTrue);
   });
 
-  test('p2 cli agent hub evaluation creates core evidence package',
-      () async {
+  test('p2 cli agent hub evaluation creates core evidence package', () async {
     final workspace = await createWorkspace();
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -12262,8 +12233,7 @@ void main() {
     );
 
     await controller.initialize();
-    final summaryPath =
-        await controller.runCliAgentHubEvaluationAcceptance();
+    final summaryPath = await controller.runCliAgentHubEvaluationAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(summary['schema_version'],
@@ -12303,23 +12273,23 @@ void main() {
       }
     }
 
-    final registry = jsonDecode(
-        File(summary['registry_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final registry =
+        jsonDecode(File(summary['registry_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(registry['schema_version'], 'prd_v3_cli_agent_hub_registry.v1');
     expect(registry['status'], 'pass');
     expect(registry['agents'], hasLength(3));
     expect(registry['external_project_runtime_loaded'], isFalse);
-    final taskPlan = jsonDecode(
-        File(summary['task_plan_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+    final taskPlan =
+        jsonDecode(File(summary['task_plan_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
     expect(taskPlan['schema_version'], 'prd_v3_cli_agent_hub_task_plan.v1');
     expect(taskPlan['checkpoint_required'], isTrue);
     expect(taskPlan['resume_prompt_required'], isTrue);
     expect(taskPlan['steps'], hasLength(3));
     final envelope = jsonDecode(
-        File(summary['permission_envelope_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['permission_envelope_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(envelope['schema_version'],
         'prd_v3_cli_agent_hub_permission_envelope.v1');
     expect(envelope['status'], 'pass');
@@ -12327,14 +12297,10 @@ void main() {
         containsAll(['read_secret', 'network_fetch', 'delete_user_data']));
     expect(envelope['secret_plaintext_access'], isFalse);
     expect(envelope['network_default'], 'deny');
-    final traceRows =
-        readJsonlFile(summary['execution_trace_path'] as String);
+    final traceRows = readJsonlFile(summary['execution_trace_path'] as String);
     expect(traceRows, hasLength(5));
-    expect(
-        traceRows.where((row) => row['decision'] == 'allow'),
-        hasLength(3));
-    expect(
-        traceRows.where((row) => row['decision'] == 'deny'),
+    expect(traceRows.where((row) => row['decision'] == 'allow'), hasLength(3));
+    expect(traceRows.where((row) => row['decision'] == 'deny'),
         hasLength(greaterThanOrEqualTo(2)));
     expect(
         traceRows.every((row) =>
@@ -12355,14 +12321,14 @@ void main() {
             row['executed'] == false),
         isTrue);
     final reviewReport = jsonDecode(
-        File(summary['review_report_path'] as String).readAsStringSync())
+            File(summary['review_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(reviewReport['schema_version'],
         'prd_v3_cli_agent_hub_review_report.v1');
     expect(reviewReport['status'], 'pass');
     expect(reviewReport['requires_external_agent_runtime'], isFalse);
     final checkpoint = jsonDecode(
-        File(summary['checkpoint_path'] as String).readAsStringSync())
+            File(summary['checkpoint_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(checkpoint['schema_version'],
         'prd_v3_cli_agent_hub_checkpoint_report.v1');
@@ -12370,14 +12336,14 @@ void main() {
     expect(checkpoint['blocked_reason'], 'secret_access_denied');
     expect(checkpoint['resume_allowed_after_boundary_fix'], isTrue);
     final resume = jsonDecode(
-        File(summary['resume_prompt_path'] as String).readAsStringSync())
+            File(summary['resume_prompt_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(resume['schema_version'],
         'prd_v3_cli_agent_hub_resume_prompt_report.v1');
     expect(resume['status'], 'pass');
     expect(resume['contains_secret_plaintext'], isFalse);
     final failurePolicy = jsonDecode(
-        File(summary['failure_policy_path'] as String).readAsStringSync())
+            File(summary['failure_policy_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(failurePolicy['schema_version'],
         'prd_v3_cli_agent_hub_failure_policy.v1');
@@ -12385,7 +12351,7 @@ void main() {
     expect(failurePolicy['max_network_retry_rounds'], 5);
     expect(failurePolicy['hard_failures'], hasLength(3));
     final stateSnapshot = jsonDecode(
-        File(summary['state_snapshot_path'] as String).readAsStringSync())
+            File(summary['state_snapshot_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(stateSnapshot['schema_version'],
         'prd_v3_cli_agent_hub_state_snapshot.v1');
@@ -12393,14 +12359,14 @@ void main() {
     expect(stateSnapshot['global_goal_complete'], isFalse);
     expect(stateSnapshot['next_gate'], 'P2-24 Remote Task Control');
     final validation = jsonDecode(
-        File(summary['validation_report_path'] as String).readAsStringSync())
-        as Map<String, dynamic>;
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(validation['schema_version'],
         'prd_v3_cli_agent_hub_validation_report.v1');
     expect(validation['status'], 'pass');
     expect(validation['failed_checks'], isEmpty);
     final boundaryReport = jsonDecode(
-        File(summary['boundary_report_path'] as String).readAsStringSync())
+            File(summary['boundary_report_path'] as String).readAsStringSync())
         as Map<String, dynamic>;
     expect(boundaryReport['schema_version'],
         'prd_v3_cli_agent_hub_boundary_report.v1');
@@ -12452,6 +12418,254 @@ void main() {
             row['artifact_id'] == 'cli_agent_hub_checkpoint' &&
             row['file_path'] == summary['checkpoint_path'] &&
             row['status'] == 'completed'),
+        isTrue);
+  });
+
+  testWidgets('p2 remote task control exposes cancel and retry user controls',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    final events = <String>[];
+    final tasks = [
+      WorkbenchTaskSnapshot(
+        stage: WorkbenchTaskStage.validation,
+        status: WorkbenchTaskStatus.running,
+        progress: 0.4,
+        currentStep: 'remote_task_running',
+        inputRequired: 'test_remote_task_request',
+        outputTarget: r'C:\workspace\remote_task_control\result.md',
+        nextSafeAction: 'Cancel if the remote task is no longer needed.',
+      ),
+    ];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: TaskWorkbenchSurface(
+            localeCode: 'zh-CN',
+            workspace: r'C:\workspace',
+            tasks: tasks,
+            onCancel: (task) => events.add('cancel:${task.stage.id}'),
+            onRetry: (task) => events.add('retry:${task.stage.id}'),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('task-control-actions')), findsOneWidget);
+    expect(find.byKey(const Key('task-control-cancel-validation')),
+        findsOneWidget);
+    expect(find.text('取消任务'), findsOneWidget);
+    expect(find.textContaining('Provider'), findsNothing);
+    expect(find.textContaining('Adapter'), findsNothing);
+    expect(find.textContaining('Parser'), findsNothing);
+    expect(find.textContaining('0/'), findsNothing);
+    await tester.tap(find.byKey(const Key('task-control-cancel-validation')));
+    await tester.pumpAndSettle();
+    expect(events, ['cancel:validation']);
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: TaskWorkbenchSurface(
+            localeCode: 'zh-CN',
+            workspace: r'C:\workspace',
+            tasks: [
+              WorkbenchTaskSnapshot(
+                stage: WorkbenchTaskStage.validation,
+                status: WorkbenchTaskStatus.retryable,
+                progress: 0.6,
+                currentStep: 'remote_task_retryable',
+                inputRequired: 'test_remote_task_request',
+                outputTarget: r'C:\workspace\remote_task_control\result.md',
+                nextSafeAction: 'Retry the controlled test task.',
+              ),
+            ],
+            onCancel: (task) => events.add('cancel:${task.stage.id}'),
+            onRetry: (task) => events.add('retry:${task.stage.id}'),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('task-control-actions')), findsOneWidget);
+    expect(
+        find.byKey(const Key('task-control-retry-validation')), findsOneWidget);
+    expect(find.text('重试任务'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('task-control-retry-validation')));
+    await tester.pumpAndSettle();
+    expect(events, ['cancel:validation', 'retry:validation']);
+  });
+
+  test('p2 remote task control creates user blackbox evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runRemoteTaskControlAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'], 'prd_v3_remote_task_control_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'remote_task_control');
+    expect(summary['capability_gate'], 'P2-24 Remote Task Control');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'passed');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-25 Office Agent Industrialization');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_remote_service_called' ||
+          entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'network_call_made' ||
+          entry.key == 'new_dependency_added' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final queue =
+        jsonDecode(File(summary['queue_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(queue['schema_version'], 'prd_v3_remote_task_control_queue.v1');
+    expect(queue['status'], 'completed_after_retry');
+    expect(queue['tasks'], hasLength(1));
+    final controlRows = readJsonlFile(summary['control_log_path'] as String);
+    expect(controlRows, hasLength(5));
+    expect(controlRows.map((row) => row['action']),
+        containsAll(['submit', 'start', 'cancel', 'retry', 'complete']));
+    expect(
+        controlRows.every((row) =>
+            row['schema_version'] == 'prd_v3_remote_task_control_event.v1' &&
+            row['test_marker'] == true),
+        isTrue);
+    final uiBinding = jsonDecode(
+        File(summary['ui_binding_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(uiBinding['schema_version'],
+        'prd_v3_remote_task_control_ui_binding_report.v1');
+    expect(uiBinding['status'], 'pass');
+    expect(uiBinding['visible_labels'], containsAll(['取消任务', '重试任务']));
+    expect(uiBinding['provider_adapter_parser_visible'], isFalse);
+    expect(uiBinding['capability_matrix_visible'], isFalse);
+    final permission = jsonDecode(
+        File(summary['permission_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(permission['schema_version'],
+        'prd_v3_remote_task_control_permission_report.v1');
+    expect(permission['status'], 'pass');
+    expect(permission['blocked_actions'],
+        containsAll(['read_secret', 'delete_real_user_data']));
+    expect(permission['secret_plaintext_written'], isFalse);
+    expect(permission['external_runtime_started'], isFalse);
+    final openReport = jsonDecode(
+            File(summary['open_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(openReport['status'], 'pass');
+    final exportPackage = jsonDecode(
+            File(summary['export_package_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(exportPackage['schema_version'],
+        'prd_v3_remote_task_control_export_package.v1');
+    expect(exportPackage['test_marker'], isTrue);
+    final deleteReport = jsonDecode(
+            File(summary['delete_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deleteReport['status'], 'pass');
+    expect(deleteReport['active_task_exists_before_delete'], isTrue);
+    expect(deleteReport['active_task_exists_after_delete'], isFalse);
+    expect(deleteReport['real_user_data_deleted'], isFalse);
+    expect(File(summary['tombstone_path'] as String).existsSync(), isTrue);
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_remote_task_control_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+            File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_remote_task_control_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['external_remote_service_called'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+    expect(boundaryReport['stage_chain_mutated'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'remote_task_control_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'remote_task_control_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'remote_task_control_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'remote_task_control_export_package' &&
+            row['file_path'] == summary['export_package_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'remote_task_control_tombstone' &&
+            row['file_path'] == summary['tombstone_path'] &&
+            row['status'] == 'deleted'),
         isTrue);
   });
 
