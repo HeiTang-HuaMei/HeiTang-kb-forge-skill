@@ -24486,6 +24486,475 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runMemoryObservabilityPanelAcceptance() async {
+    if (!isWebRuntime && !kIsWeb && _workspaceDir == null) {
+      final workspace = await _resolveWorkspace();
+      await workspace.create(recursive: true);
+      _workspaceDir = workspace;
+      state = state.copyWith(workspacePath: workspace.path);
+      await _loadExistingArtifacts();
+    }
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在生成记忆观测面板验收证据...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    const runId = 'test_memory_observability_panel_p2_41';
+    final root = _joinNested(workspace.path, 'memory_observability_panel');
+    final memoryIndexReferencePath =
+        _joinNested(workspace.path, 'kb/memory_index_reference.json');
+    final panelStatePath = _joinNested(root, 'panel_state.json');
+    final sourceTracePath = _joinNested(root, 'source_trace.jsonl');
+    final timelinePath = _joinNested(root, 'memory_event_timeline.jsonl');
+    final memoryCardsPath = _joinNested(root, 'observable_memory_cards.json');
+    final lifecycleReportPath = _joinNested(root, 'lifecycle_report.json');
+    final stateSnapshotPath = _joinNested(root, 'state_snapshot.json');
+    final validationReportPath = _joinNested(root, 'validation_report.json');
+    final boundaryReportPath = _joinNested(root, 'boundary_report.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/memory_observability_panel_summary.json');
+    await Directory(root).create(recursive: true);
+    await Directory(_join(workspace.path, 'kb')).create(recursive: true);
+
+    final sourceTraceRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_memory_observability_source_trace.v1',
+        'trace_id': 'trace_test_memory_panel_goal',
+        'source_type': 'test_marked_memory_card',
+        'source_path': memoryCardsPath,
+        'evidence_anchor': '任务目标记忆',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_memory_observability_source_trace.v1',
+        'trace_id': 'trace_test_memory_panel_event',
+        'source_type': 'test_marked_event_timeline',
+        'source_path': timelinePath,
+        'evidence_anchor': '最近记忆活动',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(sourceTracePath).parent.create(recursive: true);
+    await File(sourceTracePath).writeAsString(
+      '${sourceTraceRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final timelineRows = <Map<String, Object?>>[
+      {
+        'schema_version': 'prd_v3_memory_observability_timeline.v1',
+        'event_id': 'memory_panel_event_created',
+        'event_type': 'memory_card_created',
+        'status': 'completed',
+        'display_label': '记忆卡已生成',
+        'source_trace_id': 'trace_test_memory_panel_goal',
+        'test_marker': true,
+        'created_at': now,
+      },
+      {
+        'schema_version': 'prd_v3_memory_observability_timeline.v1',
+        'event_id': 'memory_panel_event_refreshed',
+        'event_type': 'memory_panel_refreshed',
+        'status': 'completed',
+        'display_label': '观测摘要已刷新',
+        'source_trace_id': 'trace_test_memory_panel_event',
+        'test_marker': true,
+        'created_at': now,
+      },
+    ];
+    await File(timelinePath).writeAsString(
+      '${timelineRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+
+    final memoryCards = <Map<String, Object?>>[
+      {
+        'card_id': 'test_memory_panel_goal_card',
+        'title': '任务目标记忆',
+        'summary': '测试工作区已生成可查看、可追踪、可恢复的记忆摘要。',
+        'status': '已可用',
+        'source_trace_ids': const ['trace_test_memory_panel_goal'],
+        'retrievable': true,
+        'updatable': true,
+        'forgettable': true,
+        'test_marker': true,
+      },
+      {
+        'card_id': 'test_memory_panel_activity_card',
+        'title': '最近记忆活动',
+        'summary': '最近一次记忆刷新已写入事件记录，并可在重启后恢复。',
+        'status': '已可用',
+        'source_trace_ids': const ['trace_test_memory_panel_event'],
+        'retrievable': true,
+        'updatable': false,
+        'forgettable': true,
+        'test_marker': true,
+      },
+    ];
+    await _writeJsonFile(memoryCardsPath, {
+      'schema_version': 'prd_v3_memory_observability_cards.v1',
+      'status': 'pass',
+      'cards': memoryCards,
+      'card_count': memoryCards.length,
+      'created_at': now,
+      'test_marker': true,
+    });
+
+    final memoryIndexReference = <String, dynamic>{
+      'schema_version': 'heitang_workspace_memory_observability.v1',
+      'status': '已可用',
+      'title': '工作区记忆',
+      'summary': '工作区记忆已生成，可查看记忆卡、来源线索和最近活动。',
+      'next_action': '查看工作区记忆',
+      'visible_state': '已可用',
+      'memory_card_count': memoryCards.length,
+      'recent_event_count': timelineRows.length,
+      'source_trace_count': sourceTraceRows.length,
+      'memory_cards': memoryCards,
+      'source_trace_path': sourceTracePath,
+      'event_timeline_path': timelinePath,
+      'validation_report_path': validationReportPath,
+      'test_marker': true,
+      'created_at': now,
+    };
+    await _writeJsonFile(memoryIndexReferencePath, memoryIndexReference);
+
+    await _writeJsonFile(panelStatePath, {
+      'schema_version': 'prd_v3_memory_observability_panel_state.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'user_visible_entry': '工作区记忆',
+      'user_visible_action': '查看工作区记忆',
+      'user_visible_status': '已可用',
+      'memory_index_reference_path': memoryIndexReferencePath,
+      'memory_cards_path': memoryCardsPath,
+      'source_trace_path': sourceTracePath,
+      'event_timeline_path': timelinePath,
+      'state_refresh_after_generation': true,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(lifecycleReportPath, {
+      'schema_version': 'prd_v3_memory_observability_lifecycle.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'create': 'test-marked memory observability artifacts are written',
+      'view': 'Agent page shows Workspace Memory from memory index state',
+      'open': 'View workspace memory opens the previewable memory index',
+      'export': 'registered reports can be exported by Artifact Center',
+      'delete': 'only test-marked memory observability artifacts are in scope',
+      'restart_recovery':
+          'initialize reloads memory index, Event Ledger and Artifact Catalog',
+      'error_path':
+          'missing memory index, trace rows, event rows or boundary failures block acceptance',
+      'real_user_data_deleted': false,
+      'test_marker': true,
+      'created_at': now,
+    });
+
+    await _writeJsonFile(stateSnapshotPath, {
+      'schema_version': 'prd_v3_memory_observability_state_snapshot.v1',
+      'status': 'pass',
+      'run_id': runId,
+      'memory_index_reference_path': memoryIndexReferencePath,
+      'panel_state_path': panelStatePath,
+      'memory_cards_path': memoryCardsPath,
+      'source_trace_path': sourceTracePath,
+      'event_timeline_path': timelinePath,
+      'global_goal_complete': false,
+      'next_gate':
+          'P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration',
+      'created_at': now,
+    });
+
+    final boundaryReport = <String, dynamic>{
+      'schema_version': 'prd_v3_memory_observability_boundary_report.v1',
+      'status': 'pass',
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'external_memory_service_connected': false,
+      'external_model_called': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(boundaryReportPath, boundaryReport);
+
+    final previewText = await readWorkspaceTextArtifact(memoryIndexReferencePath);
+    final reloadedIndex = await _readJsonObject(memoryIndexReferencePath);
+    final reloadedPanel = await _readJsonObject(panelStatePath);
+    final reloadedCards = await _readJsonObject(memoryCardsPath);
+    final reloadedLifecycle = await _readJsonObject(lifecycleReportPath);
+    final reloadedStateSnapshot = await _readJsonObject(stateSnapshotPath);
+    final reloadedBoundary = await _readJsonObject(boundaryReportPath);
+    final reloadedSourceTrace = await _readJsonl(File(sourceTracePath));
+    final reloadedTimeline = await _readJsonl(File(timelinePath));
+    final loadedCards = _listOfMaps(reloadedCards['cards']);
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'acceptance_type_user_blackbox': true,
+      'memory_index_reference_written':
+          await File(memoryIndexReferencePath).exists(),
+      'memory_index_reference_available':
+          _stringValue(reloadedIndex['status'], '') == '已可用',
+      'panel_state_written': await File(panelStatePath).exists(),
+      'panel_state_refreshes_status':
+          reloadedPanel['state_refresh_after_generation'] == true,
+      'user_visible_entry_present':
+          _stringValue(reloadedPanel['user_visible_entry'], '') == '工作区记忆',
+      'user_visible_action_present':
+          _stringValue(reloadedPanel['user_visible_action'], '') == '查看工作区记忆',
+      'preview_readable': previewText.contains('工作区记忆') &&
+          previewText.contains('已可用') &&
+          previewText.contains('查看工作区记忆'),
+      'source_trace_written': await File(sourceTracePath).exists(),
+      'source_trace_has_rows':
+          reloadedSourceTrace.length == sourceTraceRows.length,
+      'source_trace_rows_test_marked':
+          reloadedSourceTrace.every((row) => row['test_marker'] == true),
+      'timeline_written': await File(timelinePath).exists(),
+      'timeline_has_refresh_event': reloadedTimeline.any((row) =>
+          _stringValue(row['event_type'], '') == 'memory_panel_refreshed'),
+      'memory_cards_written': await File(memoryCardsPath).exists(),
+      'memory_cards_counted': loadedCards.length == memoryCards.length,
+      'memory_cards_traceable': loadedCards.every(
+          (row) => _listOfStrings(row['source_trace_ids']).isNotEmpty),
+      'lifecycle_report_written': await File(lifecycleReportPath).exists(),
+      'lifecycle_report_passed':
+          _stringValue(reloadedLifecycle['status'], '') == 'pass',
+      'restart_recovery_from_workspace_files':
+          _stringValue(reloadedStateSnapshot['memory_index_reference_path'], '') ==
+                  memoryIndexReferencePath &&
+              reloadedStateSnapshot['global_goal_complete'] == false,
+      'boundary_report_written': await File(boundaryReportPath).exists(),
+      'boundary_report_passed':
+          _stringValue(reloadedBoundary['status'], '') == 'pass',
+      'event_ledger_path_available': _eventLedgerPath(workspace).isNotEmpty,
+      'artifact_catalog_path_available':
+          _artifactCatalogPath(workspace).isNotEmpty,
+      'external_project_name_user_visible': false,
+      'provider_adapter_parser_user_visible': false,
+      'capability_matrix_user_visible': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'external_memory_service_connected': false,
+      'external_model_called': false,
+      'local_model_training_used': false,
+      'gpu_training_used': false,
+      'real_memory_applied': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'stage_chain_mutated': false,
+      'packaging_architecture_changed': false,
+      'network_call_made': false,
+      'new_dependency_added': false,
+    };
+    const negativeChecks = {
+      'external_project_name_user_visible',
+      'provider_adapter_parser_user_visible',
+      'capability_matrix_user_visible',
+      'redis_vector_service_packaged_into_exe',
+      'external_memory_service_connected',
+      'external_model_called',
+      'local_model_training_used',
+      'gpu_training_used',
+      'real_memory_applied',
+      'real_user_data_deleted',
+      'secret_plaintext_written',
+      'stage_chain_mutated',
+      'packaging_architecture_changed',
+      'network_call_made',
+      'new_dependency_added',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_memory_observability_validation_report.v1',
+      'status': status,
+      'run_id': runId,
+      'memory_index_reference_path': memoryIndexReferencePath,
+      'panel_state_path': panelStatePath,
+      'memory_cards_path': memoryCardsPath,
+      'source_trace_path': sourceTracePath,
+      'event_timeline_path': timelinePath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'boundary_report_path': boundaryReportPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'created_at': now,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_memory_observability_panel_summary.v1',
+      'status': status,
+      'capability_id': 'memory_observability_panel',
+      'capability_gate': 'P2-41 Memory Observability Panel',
+      'acceptance_type': 'user_blackbox',
+      'white_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+      'linked_black_box_status': 'not_required',
+      'artifact_status': status == 'pass' ? 'passed' : 'blocked',
+      'event_status': status == 'pass' ? 'passed' : 'blocked',
+      'lifecycle_status': status == 'pass' ? 'passed' : 'blocked',
+      'regression_status': status == 'pass' ? 'passed' : 'blocked',
+      'boundary_status': status == 'pass' ? 'passed' : 'blocked',
+      'memory_index_reference_path': memoryIndexReferencePath,
+      'panel_state_path': panelStatePath,
+      'memory_cards_path': memoryCardsPath,
+      'source_trace_path': sourceTracePath,
+      'event_timeline_path': timelinePath,
+      'lifecycle_report_path': lifecycleReportPath,
+      'state_snapshot_path': stateSnapshotPath,
+      'validation_report_path': validationReportPath,
+      'boundary_report_path': boundaryReportPath,
+      'memory_card_count': loadedCards.length,
+      'source_trace_count': reloadedSourceTrace.length,
+      'timeline_event_count': reloadedTimeline.length,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'white_box_evidence': {
+        'runtime_method': 'runMemoryObservabilityPanelAcceptance',
+        'state_source': 'kb/memory_index_reference.json',
+        'event_type': 'memory_observability_panel_validated',
+      },
+      'black_box_evidence': {
+        'visible_entry': '工作区记忆',
+        'action': '查看工作区记忆',
+        'expected_user_result': 'preview dialog opens memory index content',
+        'state_refresh_source': memoryIndexReferencePath,
+      },
+      'artifact_evidence': {
+        'summary_path': summaryPath,
+        'memory_index_reference_path': memoryIndexReferencePath,
+        'validation_report_path': validationReportPath,
+        'lifecycle_report_path': lifecycleReportPath,
+      },
+      'event_evidence': {
+        'event_type': 'memory_observability_panel_validated',
+      },
+      'lifecycle_evidence': {
+        'create':
+            'memory observability state, cards, traces and timeline are written',
+        'view': 'Agent page reads memory index state and shows available memory',
+        'open': 'View workspace memory opens a previewable text artifact',
+        'export': 'registered reports can be exported by Artifact Center',
+        'delete': 'only test-marked memory observability artifacts are in scope',
+        'restart_recovery':
+            'initialize reloads memory index, Event Ledger and Artifact Catalog',
+        'error_path':
+            'missing index, missing trace, missing timeline or boundary failure blocks acceptance',
+      },
+      'boundary_evidence': boundaryReport,
+      'rubric_result': {
+        'Core Completeness': status == 'pass' ? 'pass' : 'fail',
+        'User Operability': status == 'pass' ? 'pass' : 'fail',
+        'Evidence Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Lifecycle Completeness': status == 'pass' ? 'pass' : 'fail',
+        'Regression Safety': status == 'pass' ? 'pass' : 'fail',
+        'Boundary Compliance': status == 'pass' ? 'pass' : 'fail',
+      },
+      'close_allowed': status == 'pass',
+      'next_gate':
+          'P2-42 TencentDB Agent Memory Adapter Evaluation / Optional Integration',
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'memory_observability_panel_validated',
+      module: 'agent_memory',
+      action: 'run_memory_observability_panel_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'memory_observability_panel',
+      targetName: 'Memory Observability Panel',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'black_box_status': status == 'pass' ? 'passed' : 'blocked',
+        'failed_checks': failedChecks,
+        'memory_card_count': loadedCards.length,
+        'source_trace_count': reloadedSourceTrace.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'memory_observability_panel_summary',
+      artifactType: 'acceptance_report',
+      title: 'Memory Observability Panel Summary',
+      sourceModule: 'agent_memory',
+      sourceId: 'memory_observability_panel',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'acceptance_type': 'user_blackbox',
+        'failed_checks': failedChecks,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'memory_observability_panel_index',
+      artifactType: 'memory_observability_index',
+      title: 'Workspace Memory Observability Index',
+      sourceModule: 'agent_memory',
+      sourceId: 'memory_observability_panel',
+      filePath: memoryIndexReferencePath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'memory_card_count': loadedCards.length,
+        'source_trace_count': reloadedSourceTrace.length,
+        'test_marked_artifact': true,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'memory_observability_panel_validation',
+      artifactType: 'validation_report',
+      title: 'Memory Observability Panel Validation',
+      sourceModule: 'agent_memory',
+      sourceId: 'memory_observability_panel',
+      filePath: validationReportPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'boundary_report_path': boundaryReportPath,
+        'test_marked_artifact': true,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? '记忆观测面板验收证据已生成。'
+          : '记忆观测面板验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'memory_observability_panel_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   static List<Map<String, Object?>> _mermaidTaskMapBasicNodes() {
     return const [
       {

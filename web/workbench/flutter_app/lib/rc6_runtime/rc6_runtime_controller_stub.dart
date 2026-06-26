@@ -256,6 +256,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runMemoryObservabilityPanelAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runTaskExperienceReuseBasicAcceptance() async {
     await initialize();
     return '';
