@@ -12247,6 +12247,214 @@ void main() {
         isTrue);
   });
 
+  test('p2 cli agent hub evaluation creates core evidence package',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath =
+        await controller.runCliAgentHubEvaluationAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_cli_agent_hub_evaluation_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'cli_agent_hub_evaluation');
+    expect(summary['capability_gate'], 'P2-23 CLI Agent Hub Evaluation');
+    expect(summary['acceptance_type'], 'core_only');
+    expect(summary['white_box_status'], 'passed');
+    expect(summary['black_box_status'], 'not_required');
+    expect(summary['linked_black_box_status'], 'not_required');
+    expect(summary['artifact_status'], 'passed');
+    expect(summary['event_status'], 'passed');
+    expect(summary['lifecycle_status'], 'passed');
+    expect(summary['regression_status'], 'passed');
+    expect(summary['boundary_status'], 'passed');
+    expect(summary['close_allowed'], isTrue);
+    expect(summary['next_gate'], 'P2-24 Remote Task Control');
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'external_project_runtime_loaded' ||
+          entry.key == 'external_cli_agent_executed' ||
+          entry.key == 'external_model_called' ||
+          entry.key == 'provider_adapter_parser_user_visible' ||
+          entry.key == 'capability_matrix_user_visible' ||
+          entry.key == 'redis_vector_service_packaged_into_exe' ||
+          entry.key == 'local_model_training_used' ||
+          entry.key == 'gpu_training_used' ||
+          entry.key == 'real_user_data_deleted' ||
+          entry.key == 'secret_plaintext_written' ||
+          entry.key == 'stage_chain_mutated' ||
+          entry.key == 'packaging_architecture_changed' ||
+          entry.key == 'network_call_made') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final registry = jsonDecode(
+        File(summary['registry_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(registry['schema_version'], 'prd_v3_cli_agent_hub_registry.v1');
+    expect(registry['status'], 'pass');
+    expect(registry['agents'], hasLength(3));
+    expect(registry['external_project_runtime_loaded'], isFalse);
+    final taskPlan = jsonDecode(
+        File(summary['task_plan_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(taskPlan['schema_version'], 'prd_v3_cli_agent_hub_task_plan.v1');
+    expect(taskPlan['checkpoint_required'], isTrue);
+    expect(taskPlan['resume_prompt_required'], isTrue);
+    expect(taskPlan['steps'], hasLength(3));
+    final envelope = jsonDecode(
+        File(summary['permission_envelope_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(envelope['schema_version'],
+        'prd_v3_cli_agent_hub_permission_envelope.v1');
+    expect(envelope['status'], 'pass');
+    expect(envelope['blocked_actions'],
+        containsAll(['read_secret', 'network_fetch', 'delete_user_data']));
+    expect(envelope['secret_plaintext_access'], isFalse);
+    expect(envelope['network_default'], 'deny');
+    final traceRows =
+        readJsonlFile(summary['execution_trace_path'] as String);
+    expect(traceRows, hasLength(5));
+    expect(
+        traceRows.where((row) => row['decision'] == 'allow'),
+        hasLength(3));
+    expect(
+        traceRows.where((row) => row['decision'] == 'deny'),
+        hasLength(greaterThanOrEqualTo(2)));
+    expect(
+        traceRows.every((row) =>
+            row['schema_version'] == 'prd_v3_cli_agent_hub_trace_record.v1' &&
+            row['external_runtime_executed'] == false &&
+            row['test_marker'] == true),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['action'] == 'read_secret' &&
+            row['decision'] == 'deny' &&
+            row['executed'] == false),
+        isTrue);
+    expect(
+        traceRows.any((row) =>
+            row['action'] == 'network_fetch' &&
+            row['decision'] == 'deny' &&
+            row['executed'] == false),
+        isTrue);
+    final reviewReport = jsonDecode(
+        File(summary['review_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(reviewReport['schema_version'],
+        'prd_v3_cli_agent_hub_review_report.v1');
+    expect(reviewReport['status'], 'pass');
+    expect(reviewReport['requires_external_agent_runtime'], isFalse);
+    final checkpoint = jsonDecode(
+        File(summary['checkpoint_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(checkpoint['schema_version'],
+        'prd_v3_cli_agent_hub_checkpoint_report.v1');
+    expect(checkpoint['status'], 'pass');
+    expect(checkpoint['blocked_reason'], 'secret_access_denied');
+    expect(checkpoint['resume_allowed_after_boundary_fix'], isTrue);
+    final resume = jsonDecode(
+        File(summary['resume_prompt_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(resume['schema_version'],
+        'prd_v3_cli_agent_hub_resume_prompt_report.v1');
+    expect(resume['status'], 'pass');
+    expect(resume['contains_secret_plaintext'], isFalse);
+    final failurePolicy = jsonDecode(
+        File(summary['failure_policy_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(failurePolicy['schema_version'],
+        'prd_v3_cli_agent_hub_failure_policy.v1');
+    expect(failurePolicy['max_repair_rounds'], 3);
+    expect(failurePolicy['max_network_retry_rounds'], 5);
+    expect(failurePolicy['hard_failures'], hasLength(3));
+    final stateSnapshot = jsonDecode(
+        File(summary['state_snapshot_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(stateSnapshot['schema_version'],
+        'prd_v3_cli_agent_hub_state_snapshot.v1');
+    expect(stateSnapshot['agent_count'], 3);
+    expect(stateSnapshot['global_goal_complete'], isFalse);
+    expect(stateSnapshot['next_gate'], 'P2-24 Remote Task Control');
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_cli_agent_hub_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['failed_checks'], isEmpty);
+    final boundaryReport = jsonDecode(
+        File(summary['boundary_report_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(boundaryReport['schema_version'],
+        'prd_v3_cli_agent_hub_boundary_report.v1');
+    expect(boundaryReport['status'], 'pass');
+    expect(boundaryReport['external_project_runtime_loaded'], isFalse);
+    expect(boundaryReport['external_cli_agent_executed'], isFalse);
+    expect(boundaryReport['external_model_called'], isFalse);
+    expect(boundaryReport['network_call_made'], isFalse);
+    expect(boundaryReport['real_user_data_deleted'], isFalse);
+    expect(boundaryReport['secret_plaintext_written'], isFalse);
+    expect(boundaryReport['stage_chain_mutated'], isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final eventRows = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'cli_agent_hub_evaluation_validated' &&
+            row['artifact_path'] == summaryPath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cli_agent_hub_evaluation_summary' &&
+            row['file_path'] == summaryPath &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cli_agent_hub_evaluation_validation' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'cli_agent_hub_checkpoint' &&
+            row['file_path'] == summary['checkpoint_path'] &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('assistant backend separation persists profile and provider refs',
       () async {
     final workspace = await createWorkspace();
