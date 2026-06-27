@@ -43,6 +43,35 @@ backend_manifest_current_workbook = UI008_DeleteTmp
 capability_chain_status_json_unchanged = true
 ```
 
+## Module Status
+
+```text
+module_status = module_3_workspace_s0_s1_closed
+defect_count = 2
+S0_count = 0
+S1_count = 2
+S2_count = not_reviewed_in_first_round
+S3_count = not_reviewed_in_first_round
+fixed_defects = WORKSPACE-S1-001, WORKSPACE-S1-002
+remaining_defects = none_for_S0_S1_current_scope
+white_box_result = pass
+black_box_result = pass, existing running UI workspace-chain evidence retained
+regression_result = pass
+commit_id = 3054dbf, 04dc1ec
+next_module = Module 4 Document Library / Import Module
+```
+
+Module 3 HEAD regression:
+
+```text
+workbook_creation_switching = output/module_repair/module3_workspace/module3_head_workbook_creation_switching.log -> All tests passed
+workbook_deletion_restart = output/module_repair/module3_workspace/module3_head_workbook_deletion_restart.log -> All tests passed
+workbook_event_ledger = output/module_repair/module3_workspace/module3_head_workbook_event_ledger.log -> All tests passed
+phase1b_workspace_import_kb_lifecycle = output/module_repair/module3_workspace/module3_head_phase1b_workspace_import_kb_lifecycle.log -> All tests passed
+code_quality_gate = output/module_repair/module3_workspace/module3_head_flutter_analyze.log -> No issues found
+capability_chain_status_json_unchanged = true
+```
+
 ### WORKSPACE-S1-002
 
 ```text
