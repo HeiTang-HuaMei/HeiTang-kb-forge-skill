@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
+import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
 import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
@@ -523,7 +524,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final passed = await _runKnowledgeBaseCoreBuild(successMessage: '知识库构建完成。');
     if (passed) {
-      await _writeDerivedKnowledgeArtifacts();
+      await _writeDerivedKnowledgeArtifacts(documentIds: documentIds);
       await _writeKnowledgeBaseCatalog(documentIds: documentIds);
     }
     await _loadExistingArtifacts();
@@ -36213,41 +36214,90 @@ class Rc6RuntimeController extends ChangeNotifier {
     return const [];
   }
 
-  Future<void> _writeDerivedKnowledgeArtifacts() async {
+  Future<void> _writeDerivedKnowledgeArtifacts({
+    List<String> documentIds = const [],
+  }) async {
     final workspace = _requireWorkspace();
     final kbDir = _join(workspace.path, 'kb');
     await Directory(kbDir).create(recursive: true);
     final cards = await _readJsonl(File(_join(kbDir, 'cards.jsonl')));
     final qaPairs = await _readJsonl(File(_join(kbDir, 'qa_pairs.jsonl')));
-    final chunks = await _readJsonl(File(_join(kbDir, 'chunks.jsonl')));
+    final rawChunks = await _readJsonl(File(_join(kbDir, 'chunks.jsonl')));
     final sourceManifest =
         await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
     final normalizedSourcesByRelativePath =
         await _normalizedSourcesByRelativePath(workspace);
+    final selectedDocumentIds =
+        documentIds.map((id) => id.trim()).where((id) => id.isNotEmpty).toSet();
+    final sources = (sourceManifest['sources'] as List?)
+            ?.whereType<Map>()
+            .map((source) => Map<String, dynamic>.from(source))
+            .where((source) {
+          if (selectedDocumentIds.isEmpty) return true;
+          final documentId =
+              (source['document_id'] ?? _documentId(source)).toString();
+          return selectedDocumentIds.contains(documentId);
+        }).toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+    final semanticResult = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: Directory(kbDir),
+      kbId: 'current_kb',
+      sourceDocs: sources
+          .map((source) => {
+                'document_id':
+                    (source['document_id'] ?? _documentId(source)).toString(),
+                'source_name':
+                    (source['source_name'] ?? source['relative_path'] ?? '')
+                        .toString(),
+                'relative_path': (source['relative_path'] ?? '').toString(),
+                'size_bytes': _asInt(source['size_bytes']) ?? 0,
+              })
+          .toList(growable: false),
+      inputChunks: rawChunks,
+    );
+    final chunks = semanticResult.chunks;
     final chunkCountsBySource = <String, int>{};
     for (final chunk in chunks) {
       final sourcePath =
           _normalizePathKey(chunk['source_path'] ?? chunk['source']);
-      if (sourcePath.isEmpty) continue;
-      chunkCountsBySource[sourcePath] =
-          (chunkCountsBySource[sourcePath] ?? 0) + 1;
+      final relativePath =
+          _normalizePathKey(chunk['source_document'] ?? chunk['relative_path']);
+      final documentId =
+          _normalizePathKey(chunk['source_doc_id'] ?? chunk['document_id']);
+      if (sourcePath.isNotEmpty) {
+        chunkCountsBySource[sourcePath] =
+            (chunkCountsBySource[sourcePath] ?? 0) + 1;
+      }
+      if (relativePath.isNotEmpty) {
+        chunkCountsBySource[relativePath] =
+            (chunkCountsBySource[relativePath] ?? 0) + 1;
+      }
+      if (documentId.isNotEmpty) {
+        chunkCountsBySource[documentId] =
+            (chunkCountsBySource[documentId] ?? 0) + 1;
+      }
     }
-    final sources = (sourceManifest['sources'] as List?)
-            ?.whereType<Map>()
-            .map((source) => Map<String, dynamic>.from(source))
-            .toList(growable: false) ??
-        const <Map<String, dynamic>>[];
     final sourceDocs = sources.map((source) {
       final relativePath = (source['relative_path'] ?? '').toString();
       final normalizedPath =
           normalizedSourcesByRelativePath[_normalizePathKey(relativePath)];
+      final buildReadyNormalizedPath = normalizedPath == null
+          ? null
+          : _normalizePathKey(normalizedPath.replaceAll(
+              '/du/normalized_sources/',
+              '/du_build_ready/normalized_sources/'));
       final sourcePath = _normalizePathKey(source['source_path']);
       final sourceName = _normalizePathKey(source['source_name']);
+      final documentId =
+          _normalizePathKey(source['document_id'] ?? _documentId(source));
       final chunkCount = {
         normalizedPath,
+        buildReadyNormalizedPath,
         sourcePath,
         sourceName,
         _normalizePathKey(relativePath),
+        documentId,
       }
           .where((key) => key != null && key.isNotEmpty)
           .map((key) => chunkCountsBySource[key] ?? 0)
@@ -36261,6 +36311,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'size_bytes': _asInt(source['size_bytes']) ?? 0,
         'chunk_count': chunkCount,
       };
+    }).where((source) {
+      return (_asInt(source['chunk_count']) ?? 0) > 0;
     }).toList(growable: false);
     final summary = {
       'schema_version': 'rc10_real_input_derived_knowledge.v1',
@@ -36274,7 +36326,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'cards_path': _join(kbDir, 'cards.jsonl'),
       'qa_pairs_path': _join(kbDir, 'qa_pairs.jsonl'),
       'source_map_path': _join(kbDir, 'source_map.json'),
-      'source_trace_path': _join(kbDir, 'source_trace.json'),
+      'source_trace_path': _join(kbDir, 'source_trace.jsonl'),
       'index_metadata_path': _join(kbDir, 'index_metadata.json'),
       'index_profile_path': _join(kbDir, 'index_profile.json'),
       'keyword_index_path': _join(kbDir, 'keyword_index.json'),
@@ -36298,6 +36350,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           'source_manifest': _join(workspace.path, 'source_manifest.json'),
           'documents': sourceDocs,
           'chunk_count': chunks.length,
+          'source_trace_path': _join(kbDir, 'source_trace.jsonl'),
+          'okf_semantic_chunking': true,
         }),
         encoding: utf8);
     await _writeSourceTraceArtifact(
@@ -36321,7 +36375,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       [
         'schema_version=prd_v2_kb_build_log.v1',
         'operation=build',
-        'source_count=${sources.length}',
+        'source_count=${sourceDocs.length}',
         'chunk_count=${chunks.length}',
         'card_count=${cards.length}',
         'qa_pair_count=${qaPairs.length}',
@@ -36681,6 +36735,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final docs = sourceDocuments.isEmpty
         ? await _sourceDocumentsFromManifest(workspace)
         : _dedupeSourceDocuments(sourceDocuments);
+    final semanticResult = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbRoot,
+      kbId: kbId,
+      sourceDocs: docs,
+      inputChunks: await _readJsonl(File(_join(kbRoot.path, 'chunks.jsonl'))),
+    );
     final now = DateTime.now().toUtc().toIso8601String();
     final chunkPath = _join(kbRoot.path, 'chunks.jsonl');
     final previousVersions = versionsOverride ??
@@ -36720,7 +36781,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'manifest_path': _join(kbRoot.path, 'manifest.json'),
       'chunks_path': chunkPath,
       'source_map_path': _join(kbRoot.path, 'source_map.json'),
-      'source_trace_path': _join(kbRoot.path, 'source_trace.json'),
+      'source_trace_path': _join(kbRoot.path, 'source_trace.jsonl'),
       'index_metadata_path': _join(kbRoot.path, 'index_metadata.json'),
       'index_profile_path': _join(kbRoot.path, 'index_profile.json'),
       'keyword_index_path': _join(kbRoot.path, 'keyword_index.json'),
@@ -36765,13 +36826,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbId: kbId,
       operation: operation,
       sourceDocs: docs,
-      chunks: await _readJsonl(File(chunkPath)),
+      chunks: semanticResult.chunks,
     );
     await _writeIndustrialIndexArtifacts(
       kbDir: kbRoot,
       kbId: kbId,
       operation: operation,
-      chunks: await _readJsonl(File(chunkPath)),
+      chunks: semanticResult.chunks,
       sourceDocs: docs,
       cards: await _readJsonl(File(_join(kbRoot.path, 'cards.jsonl'))),
       qaPairs: await _readJsonl(File(_join(kbRoot.path, 'qa_pairs.jsonl'))),

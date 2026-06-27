@@ -20271,7 +20271,8 @@ void main() {
                       .writeAsStringSync(
                           '{"status":"completed","imported_count":2}');
                 case 'document_understanding':
-                  writeDuRecords(workspace, ['alpha.md', 'beta.txt']);
+                  writeDuRecords(
+                      Directory(output.parent.path), ['alpha.md', 'beta.txt']);
                   File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                       .writeAsStringSync(
                           '{"status":"completed","success_count":2,"failed_count":0}');
@@ -20356,6 +20357,32 @@ void main() {
     expect(
         File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2${Platform.pathSeparator}chunks.jsonl')
             .existsSync(),
+        isTrue);
+    final k1Chunks = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}chunks.jsonl');
+    expect(k1Chunks, isNotEmpty);
+    expect(k1Chunks.every((row) => row['source_doc_id'] == alphaId), isTrue);
+    expect(
+        k1Chunks.every((row) => (row['block_ids'] as List).isNotEmpty), isTrue);
+    expect(k1Chunks.every((row) => row['heading_path'] is List), isTrue);
+    expect(
+        k1Chunks
+            .every((row) => row['semantic_unit_type'] == 'okf_semantic_chunk'),
+        isTrue);
+    expect(
+        k1Chunks.every((row) => (row['source_trace_id'] as String).isNotEmpty),
+        isTrue);
+    expect(k1Chunks.every((row) => row['lineage'] is Map), isTrue);
+    expect(
+        k1Chunks.every((row) =>
+            ((row['lineage'] as Map)['chunking_strategy'] as String) ==
+            'okf_semantic_from_parsed_document'),
+        isTrue);
+    final k1TraceRows = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}source_trace.jsonl');
+    expect(k1TraceRows.map((row) => row['source_trace_id']).toSet(),
+        containsAll(k1Chunks.map((row) => row['source_trace_id'])));
+    expect(k1TraceRows.every((row) => (row['block_ids'] as List).isNotEmpty),
         isTrue);
 
     final packagePath = await controller.exportStandardKnowledgePackage();
