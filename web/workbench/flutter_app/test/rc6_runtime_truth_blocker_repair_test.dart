@@ -20003,6 +20003,169 @@ void main() {
     expect(reloaded.state.workbookNames, isNot(contains('运营复盘工作本')));
   });
 
+  test('phase 1b workspace import kb lifecycle e2e persists and deletes safely',
+      () async {
+    final workspace = await createWorkspace();
+    final sourceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}phase1b_sources')
+          ..createSync(recursive: true);
+    File('${sourceDir.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha phase1b source 赚钱 小生意');
+    File('${sourceDir.path}${Platform.pathSeparator}beta.txt')
+        .writeAsStringSync('beta phase1b source operations');
+
+    final requests = <CoreBridgeRequest>[];
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (request) async {
+              requests.add(request);
+              final output = Directory(request.outputPath!)
+                ..createSync(recursive: true);
+              switch (request.actionId) {
+                case 'batch_import_documents':
+                  File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                      .writeAsStringSync(
+                          '{"status":"completed","imported_count":2}');
+                case 'document_understanding':
+                  writeDuRecords(workspace, ['alpha.md', 'beta.txt']);
+                  File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                      .writeAsStringSync(
+                          '{"status":"completed","success_count":2,"failed_count":0}');
+                case 'knowledge_base_build':
+                  File('${output.path}${Platform.pathSeparator}manifest.json')
+                      .writeAsStringSync(
+                          '{"schema_version":"kb.v1","status":"pass"}');
+                  File('${output.path}${Platform.pathSeparator}quality_report.json')
+                      .writeAsStringSync('{"status":"pass"}');
+                  File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
+                      .writeAsStringSync('{"source_count":2}');
+                  final normalizedRoot =
+                      '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
+                  File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                      .writeAsStringSync(jsonl([
+                    {
+                      'text': 'alpha phase1b chunk',
+                      'source_path':
+                          '$normalizedRoot${Platform.pathSeparator}1.md',
+                      'citation': 'alpha.md#chunk=1',
+                    },
+                    {
+                      'text': 'beta phase1b chunk',
+                      'source_path':
+                          '$normalizedRoot${Platform.pathSeparator}2.md',
+                      'citation': 'beta.txt#chunk=1',
+                    },
+                  ]));
+                  File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                      .writeAsStringSync(
+                          '{"title":"phase1b","summary":"real"}\n');
+                  File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                      .writeAsStringSync('{"question":"q","answer":"a"}\n');
+              }
+              return const CoreBridgeProcessResult(
+                  exitCode: 0, stdout: 'ok', stderr: '');
+            },
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('Phase 1B 临时工作区');
+    await controller.deleteWorkbook('Phase 1B 临时工作区');
+    await controller.createOrSwitchWorkbook('Phase 1B 恢复工作区');
+    final activeWorkspace = Directory(controller.state.workspacePath);
+
+    await controller.importFolderPath(sourceDir.path);
+    await controller.importFolderPath(sourceDir.path);
+    final inputFiles =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}input')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((file) =>
+                file.path.endsWith('.md') || file.path.endsWith('.txt'))
+            .toList(growable: false);
+    expect(inputFiles.map((file) => file.uri.pathSegments.last),
+        unorderedEquals(['alpha.md', 'beta.txt']));
+    expect(controller.state.sourceRecords, hasLength(2));
+    final alphaId = controller.state.sourceRecords
+        .firstWhere((source) => source.sourceName == 'alpha.md')
+        .documentId;
+    final betaId = controller.state.sourceRecords
+        .firstWhere((source) => source.sourceName == 'beta.txt')
+        .documentId;
+
+    await controller.parseAndChunkSources();
+    expect(controller.state.parseReportPath, isNotEmpty);
+
+    await controller.buildKnowledgeBase(documentIds: [alphaId]);
+    await controller.buildKnowledgeBase(documentIds: [betaId]);
+    expect(controller.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
+    expect(
+        File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}source_map.json')
+            .existsSync(),
+        isTrue);
+    expect(
+        File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2${Platform.pathSeparator}chunks.jsonl')
+            .existsSync(),
+        isTrue);
+
+    final packagePath = await controller.exportStandardKnowledgePackage();
+    expect(
+        File('$packagePath${Platform.pathSeparator}standard_package_manifest.json')
+            .existsSync(),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.currentWorkbookName, 'Phase 1B 恢复工作区');
+    expect(reloaded.state.sourceRecords, hasLength(2));
+    expect(reloaded.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
+    expect(reloaded.state.standardKnowledgePackageManifestPath, isNotEmpty);
+
+    await reloaded.mergeKnowledgeBases(['K1', 'K2']);
+    final mergedId = reloaded.state.knowledgeBases
+        .map((kb) => kb.id)
+        .firstWhere((id) => id.startsWith('K_MERGED'));
+    expect(reloaded.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2', mergedId]));
+
+    await reloaded.deleteKnowledgeBaseRecord(mergedId);
+    expect(reloaded.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
+    expect(reloaded.state.knowledgeBases.map((kb) => kb.id),
+        isNot(contains(mergedId)));
+    expect(
+        Directory(
+                '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1')
+            .existsSync(),
+        isTrue);
+    expect(
+        Directory(
+                '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2')
+            .existsSync(),
+        isTrue);
+
+    final finalReload = buildController();
+    await finalReload.initialize();
+    expect(finalReload.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
+    expect(finalReload.state.knowledgeBases.map((kb) => kb.id),
+        isNot(contains(mergedId)));
+    expect(
+        requests.map((request) => request.actionId),
+        containsAll([
+          'batch_import_documents',
+          'document_understanding',
+          'knowledge_base_build'
+        ]));
+  });
+
   test('prd workbook asset index refreshes after product artifacts are added',
       () async {
     final workspace = await createWorkspace();

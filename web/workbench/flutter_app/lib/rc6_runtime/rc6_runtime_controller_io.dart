@@ -36313,11 +36313,20 @@ class Rc6RuntimeController extends ChangeNotifier {
           }).toList(growable: false);
     final catalog = await _loadKnowledgeCatalog(workspace);
     final existing = _catalogRecords(catalog);
-    final currentId =
-        existing.isEmpty ? 'K1' : _stringValue(existing.first['kb_id'], 'K1');
-    final currentName = existing.isEmpty
-        ? '真实输入知识库'
-        : _stringValue(existing.first['kb_name'], '真实输入知识库');
+    final selectedSignature = _sourceDocumentSignature(selectedSources);
+    final matchingIndex = existing.indexWhere((record) =>
+        _sourceDocumentSignature(_listOfMaps(record['source_documents'])) ==
+        selectedSignature);
+    final currentId = matchingIndex >= 0
+        ? _stringValue(existing[matchingIndex]['kb_id'], 'K1')
+        : existing.isEmpty
+            ? 'K1'
+            : _nextKnowledgeBaseId(existing, prefix: 'K');
+    final currentName = matchingIndex >= 0
+        ? _stringValue(existing[matchingIndex]['kb_name'], '真实输入知识库')
+        : existing.isEmpty
+            ? '真实输入知识库'
+            : '真实输入知识库 $currentId';
     final record = await _materializeKnowledgeBaseRecord(
       workspace: workspace,
       kbId: currentId,
@@ -37264,6 +37273,18 @@ class Rc6RuntimeController extends ChangeNotifier {
             .map((item) => Map<String, dynamic>.from(item))
             .toList(growable: true) ??
         <Map<String, dynamic>>[];
+  }
+
+  String _sourceDocumentSignature(List<Map<String, dynamic>> sources) {
+    final keys = sources
+        .map((source) =>
+            (source['document_id'] ?? source['relative_path'] ?? source['source_name'] ?? '')
+                .toString()
+                .trim())
+        .where((key) => key.isNotEmpty)
+        .toList(growable: false)
+      ..sort();
+    return keys.join('|');
   }
 
   static List<Rc6KnowledgeBaseRecord> _recordsFromKnowledgeCatalog(
@@ -42974,6 +42995,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         target.absolute.path.toLowerCase()) {
       return target;
     }
+    if (await target.exists()) {
+      try {
+        if (await _filesHaveSameBytes(source, target)) {
+          return target;
+        }
+      } on FileSystemException {
+        return target;
+      }
+    }
     var suffix = 1;
     final extension = _extension(target.path);
     final stem = extension.isEmpty
@@ -42986,6 +43016,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     await target.parent.create(recursive: true);
     await source.copy(target.path);
     return target;
+  }
+
+  static Future<bool> _filesHaveSameBytes(File left, File right) async {
+    if (await left.length() != await right.length()) {
+      return false;
+    }
+    final leftBytes = await left.readAsBytes();
+    final rightBytes = await right.readAsBytes();
+    for (var i = 0; i < leftBytes.length; i += 1) {
+      if (leftBytes[i] != rightBytes[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<String> _writeSourceManifestFromInput(Directory inputDir,
