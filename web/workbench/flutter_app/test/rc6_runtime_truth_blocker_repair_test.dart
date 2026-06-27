@@ -7639,6 +7639,103 @@ void main() {
     expect(controller.state.hasKnowledgeBase, isFalse);
   });
 
+  test('agent dialogue preserves empty binding truth without fallback ids',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'package_to_skill':
+              File('${output.path}${Platform.pathSeparator}SKILL.md')
+                  .writeAsStringSync('# Skill');
+            case 'kb_bound_agent_generation':
+              File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+                  .writeAsStringSync('{"name":"agent"}');
+              File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+                  .writeAsStringSync('name: agent');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kb = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"kb.v1"}');
+    File('${kb.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"text":"local evidence","source_path":"a.md"}\n');
+    File('${kb.path}${Platform.pathSeparator}cards.jsonl')
+        .writeAsStringSync('{"title":"card"}\n');
+    File('${kb.path}${Platform.pathSeparator}qa_pairs.jsonl')
+        .writeAsStringSync('{"question":"q","answer":"a"}\n');
+
+    await controller.generateSkill();
+    await controller.generateAgent();
+
+    final manifestFile = File(
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent${Platform.pathSeparator}agent_manifest.json');
+    final manifest = jsonDecode(manifestFile.readAsStringSync())
+        as Map<String, dynamic>;
+    manifest
+      ..remove('kb_ids')
+      ..remove('skill_ids')
+      ..remove('bound_knowledge_base_ids')
+      ..remove('bound_skill_ids');
+    manifestFile.writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(manifest));
+
+    await controller.runAgentDialogue(prompt: '无绑定时不要伪造绑定');
+    expect(controller.state.agentDialogueUsedKbIds, isEmpty);
+    expect(controller.state.agentDialogueUsedSkillIds, isEmpty);
+    final dialogueManifestPath =
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json';
+    final dialogueManifest = jsonDecode(
+        File(dialogueManifestPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(dialogueManifest['used_kb_ids'], isEmpty);
+    expect(dialogueManifest['used_skill_ids'], isEmpty);
+    expect(dialogueManifest['binding_truth_status'], 'unbound');
+    expect(dialogueManifest['missing_binding_reasons'],
+        containsAll(['missing_kb_binding', 'missing_skill_binding']));
+
+    final chatHistory = File(
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl')
+        .readAsStringSync();
+    expect(chatHistory, isNot(contains('"K1"')));
+    expect(chatHistory, isNot(contains('"S1"')));
+    expect(chatHistory, isNot(contains('reading_summary_skill')));
+    expect(chatHistory, isNot(contains('local evidence')));
+    expect(chatHistory, contains('未绑定知识库'));
+
+    final exportPath = await controller.exportAgentDialogue();
+    expect(File(exportPath).existsSync(), isTrue);
+    final exportManifest = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(exportManifest['used_kb_ids'], isEmpty);
+    expect(exportManifest['used_skill_ids'], isEmpty);
+    expect(exportManifest['binding_truth_status'], 'unbound');
+    expect(exportManifest['missing_binding_reasons'],
+        containsAll(['missing_kb_binding', 'missing_skill_binding']));
+
+    final runHistory = File(
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
+        .readAsStringSync();
+    expect(runHistory, isNot(contains('"K1"')));
+    expect(runHistory, isNot(contains('"S1"')));
+    expect(runHistory, isNot(contains('reading_summary_skill')));
+    expect(runHistory, contains('"binding_truth_status": "unbound"'));
+  });
   test('prd external Skill import localizes real file content into workspace',
       () async {
     final workspace = await createWorkspace();

@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
 import '../features/document_generation/services/document_generation_binding_service.dart';
+import '../features/agent/services/agent_binding_truth_service.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
 import 'project_config_profile.dart';
 
@@ -33825,12 +33826,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     final selected = queryRows is List
         ? queryRows.whereType<Map>().take(4).toList()
         : const <Map>[];
-    final chunks = selected.isNotEmpty
-        ? const <Map<String, dynamic>>[]
-        : (await _readJsonl(File(_join(workspace.path, 'kb', 'chunks.jsonl'))))
-            .take(4)
-            .toList(growable: false);
-    final evidence = selected.isNotEmpty ? selected : chunks;
     final dialoguePath = _join(outDir.path, 'agent_dialogue.md');
     final historyPath = _join(outDir.path, 'chat_history.jsonl');
     final previousTurns = await _readJsonl(File(historyPath));
@@ -33851,12 +33846,23 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentModelRouteBinding,
       ['agent_chat', 'agent_reasoning', 'agent_summarization'],
     );
-    final configuredKbIds = _listOfStrings(agentConfig['kb_ids']);
-    final kbIds = configuredKbIds.isEmpty ? const ['K1'] : configuredKbIds;
-    final configuredSkillIds = _listOfStrings(agentConfig['skill_ids']);
-    final skillIds = configuredSkillIds.isEmpty
-        ? const ['S1', 'reading_summary_skill']
-        : configuredSkillIds;
+    final bindingTruth =
+        const AgentBindingTruthService().resolveLegacyManifest(agentConfig);
+    final kbIds = bindingTruth.kbIds;
+    final skillIds = bindingTruth.skillIds;
+    final chunks = selected.isNotEmpty || kbIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : (await _readJsonl(File(_join(workspace.path, 'kb', 'chunks.jsonl'))))
+            .take(4)
+            .toList(growable: false);
+    final evidence = kbIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : selected.isNotEmpty
+            ? selected
+            : chunks;
+    final answer = kbIds.isEmpty
+        ? '当前 Agent 未绑定知识库，无法基于工作区资料回答。请先绑定知识库后重试。'
+        : '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。';
     final outputFormat = _stringValue(agentConfig['output_format'], 'markdown');
     final roleGoal =
         _stringValue(agentConfig['role_goal'], '只基于绑定知识库和 Skill 回答，输出必须带引用。');
@@ -33868,7 +33874,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'turn_id':
           'turn_${(previousTurns.length + 1).toString().padLeft(3, '0')}',
       'prompt': prompt,
-      'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
+      'answer': answer,
       'role_goal': roleGoal,
       'model_config_id': modelConfigId,
       'model_gateway_config_id': activeModelGatewayId,
@@ -33878,6 +33884,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'model_route_evidence': agentChatRoute,
       'kb_ids': kbIds,
       'skill_ids': skillIds,
+      'binding_truth_status': bindingTruth.status,
+      'missing_binding_reasons': bindingTruth.missingBindingReasons,
       'output_format': outputFormat,
       'evidence_count': evidence.length,
       'evidence': evidence
@@ -33963,6 +33971,8 @@ class Rc6RuntimeController extends ChangeNotifier {
               'turn_id': turn['turn_id'],
               'kb_ids': kbIds,
               'skill_ids': skillIds,
+              'binding_truth_status': bindingTruth.status,
+              'missing_binding_reasons': bindingTruth.missingBindingReasons,
               'citation': _stringValue(
                   item['citation'] ?? item['source_path'] ?? item['chunk_id'],
                   ''),
@@ -33985,6 +33995,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             'schema_version': 'prd_v3_agent_skill_rule_trace_record.v1',
             'turn_id': turn['turn_id'],
             'skill_ids': skillIds,
+            'binding_truth_status': bindingTruth.status,
+            'missing_binding_reasons': bindingTruth.missingBindingReasons,
             'rules_applied': [
               'local_kb_only',
               'citation_required',
@@ -34018,6 +34030,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'role_goal': roleGoal,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
+        'binding_truth_status': bindingTruth.status,
+        'missing_binding_reasons': bindingTruth.missingBindingReasons,
         'output_format': outputFormat,
         'redis_config_id': redisConfigId,
         'vector_config_id': vectorConfigId,
@@ -34042,6 +34056,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_route_evidence': agentChatRoute,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
+        'binding_truth_status': bindingTruth.status,
+        'missing_binding_reasons': bindingTruth.missingBindingReasons,
       },
     );
     await _appendOrchestrationPlanRecord(
@@ -34057,6 +34073,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_route_evidence': agentChatRoute,
         'kb_ids': kbIds,
         'skill_ids': skillIds,
+        'binding_truth_status': bindingTruth.status,
+        'missing_binding_reasons': bindingTruth.missingBindingReasons,
         'output_format': outputFormat,
         'evidence_count': evidence.length,
       },
@@ -34501,6 +34519,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'agent/dialogue/agent_dialogue_manifest.json'));
     final usedKbIds = _listOfStrings(dialogueManifest['used_kb_ids']);
     final usedSkillIds = _listOfStrings(dialogueManifest['used_skill_ids']);
+    final bindingTruthStatus =
+        _stringValue(dialogueManifest['binding_truth_status'], 'unbound');
+    final missingBindingReasons =
+        _listOfStrings(dialogueManifest['missing_binding_reasons']);
     final modelConfigId = _stringValue(dialogueManifest['model_config_id'],
         'local-default-or-configured-provider');
     final modelRouteEvidence =
@@ -34513,8 +34535,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         '- 来源对话：${dialogue.path}',
         '- 会话历史：${history.path}',
         '- 导出轮数：${historyLines.length}',
-        '- 绑定知识库：${usedKbIds.isEmpty ? 'K1' : usedKbIds.join(' / ')}',
-        '- 绑定 Skill：${usedSkillIds.isEmpty ? 'S1 / reading_summary_skill' : usedSkillIds.join(' / ')}',
+        '- 绑定知识库：${usedKbIds.isEmpty ? '未绑定' : '已绑定 ${usedKbIds.length} 个知识库'}',
+        '- 绑定 Skill：${usedSkillIds.isEmpty ? '未绑定' : '已绑定 ${usedSkillIds.length} 个 Skill'}',
         '- 模型配置：$modelConfigId',
         '- 高风险能力：未开放 Computer Use / arbitrary shell',
         '',
@@ -34531,10 +34553,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source_history': history.path,
         'output': outputPath,
         'turn_count': historyLines.length,
-        'used_kb_ids': usedKbIds.isEmpty ? ['K1'] : usedKbIds,
-        'used_skill_ids': usedSkillIds.isEmpty
-            ? ['S1', 'reading_summary_skill']
-            : usedSkillIds,
+        'used_kb_ids': usedKbIds,
+        'used_skill_ids': usedSkillIds,
+        'binding_truth_status': bindingTruthStatus,
+        'missing_binding_reasons': missingBindingReasons,
         'model_config_id': modelConfigId,
         'model_route_evidence': modelRouteEvidence,
         'audit_included': true,
@@ -34550,10 +34572,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'manifest_path': manifestPath,
         'source_history': history.path,
         'turn_count': historyLines.length,
-        'used_kb_ids': usedKbIds.isEmpty ? ['K1'] : usedKbIds,
-        'used_skill_ids': usedSkillIds.isEmpty
-            ? ['S1', 'reading_summary_skill']
-            : usedSkillIds,
+        'used_kb_ids': usedKbIds,
+        'used_skill_ids': usedSkillIds,
+        'binding_truth_status': bindingTruthStatus,
+        'missing_binding_reasons': missingBindingReasons,
         'model_route_evidence': modelRouteEvidence,
       },
     );
