@@ -33914,6 +33914,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final previousTurns = await _readJsonl(File(historyPath));
     final agentConfig = await _readJsonObject(_joinNested(
         workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'));
+    final skillBindingManifest = await _readJsonObject(
+        _joinNested(workspace.path, 'skill/operations/agent_binding_manifest.json'));
     final modelConfigId = _stringValue(
         agentConfig['model_config_id'], 'local-default-or-configured-provider');
     final providerSettings = await loadProviderRuntimeSettings();
@@ -33929,8 +33931,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentModelRouteBinding,
       ['agent_chat', 'agent_reasoning', 'agent_summarization'],
     );
-    final bindingTruth =
-        const AgentBindingTruthService().resolveLegacyManifest(agentConfig);
+    final bindingTruth = const AgentBindingTruthService().resolveManifests(
+      agentManifest: agentConfig,
+      skillBindingManifest: skillBindingManifest,
+    );
     final kbIds = bindingTruth.kbIds;
     final skillIds = bindingTruth.skillIds;
     final chunks = selected.isNotEmpty || kbIds.isEmpty

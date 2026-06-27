@@ -7737,6 +7737,75 @@ void main() {
     expect(runHistory, isNot(contains('reading_summary_skill')));
     expect(runHistory, contains('"binding_truth_status": "unbound"'));
   });
+
+  test('agent dialogue uses real skill ids from binding manifest', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'package_to_skill':
+              File('${output.path}${Platform.pathSeparator}SKILL.md')
+                  .writeAsStringSync('# Skill');
+            case 'kb_bound_agent_generation':
+              File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+                  .writeAsStringSync('{"name":"agent"}');
+              File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+                  .writeAsStringSync('name: agent');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kb = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"kb.v1"}');
+    File('${kb.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"text":"local evidence","source_path":"a.md"}\n');
+    File('${kb.path}${Platform.pathSeparator}cards.jsonl')
+        .writeAsStringSync('{"title":"card"}\n');
+    File('${kb.path}${Platform.pathSeparator}qa_pairs.jsonl')
+        .writeAsStringSync('{"question":"q","answer":"a"}\n');
+
+    await controller.generateSkill();
+    await controller.generateAgent();
+    await controller.runAgentDialogue(prompt: '绑定 Skill 必须使用真实 id');
+
+    expect(controller.state.agentDialogueUsedSkillIds,
+        contains('knowledge_qa_skill'));
+    expect(controller.state.agentDialogueUsedSkillIds, isNot(contains('S1')));
+    final dialogueManifestPath =
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json';
+    final dialogueManifest = jsonDecode(
+        File(dialogueManifestPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(dialogueManifest['used_skill_ids'], contains('knowledge_qa_skill'));
+    expect(dialogueManifest['used_skill_ids'], isNot(contains('S1')));
+    expect(dialogueManifest['binding_truth_status'], 'bound');
+
+    final citationTrace =
+        readJsonlFile(dialogueManifest['citation_trace_path'].toString());
+    expect(citationTrace, isNotEmpty);
+    expect(citationTrace.first['skill_ids'], contains('knowledge_qa_skill'));
+    expect(citationTrace.first['skill_ids'], isNot(contains('S1')));
+
+    final chatHistory = File(
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl')
+        .readAsStringSync();
+    expect(chatHistory, contains('"knowledge_qa_skill"'));
+    expect(chatHistory, isNot(contains('"S1"')));
+  });
+
   test('okf semantic chunking prefers ParsedDocument canonical blocks',
       () async {
     final workspace = await createWorkspace();

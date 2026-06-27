@@ -16,12 +16,33 @@ class AgentBindingTruthService {
   const AgentBindingTruthService();
 
   AgentBindingTruth resolveLegacyManifest(Map<String, dynamic> manifest) {
+    return resolveManifests(agentManifest: manifest);
+  }
+
+  AgentBindingTruth resolveManifests({
+    required Map<String, dynamic> agentManifest,
+    Map<String, dynamic> skillBindingManifest = const <String, dynamic>{},
+  }) {
     final kbIds = _stringList(
-      manifest['kb_ids'] ?? manifest['bound_knowledge_base_ids'],
+      agentManifest['kb_ids'] ?? agentManifest['bound_knowledge_base_ids'],
     );
-    final skillIds = _stringList(
-      manifest['skill_ids'] ?? manifest['bound_skill_ids'],
+    final aliases = _stringMap(
+      skillBindingManifest['legacy_skill_aliases'] ??
+          agentManifest['legacy_skill_aliases'],
     );
+    final bindingSkillIds = _stringList(
+      skillBindingManifest['skill_ids'] ??
+          skillBindingManifest['bound_skill_ids'],
+    );
+    final agentSkillIds = _stringList(
+      agentManifest['skill_ids'] ?? agentManifest['bound_skill_ids'],
+    );
+    final skillIds = kbIds.isEmpty
+        ? const <String>[]
+        : _resolveAliases(
+            bindingSkillIds.isNotEmpty ? bindingSkillIds : agentSkillIds,
+            aliases,
+          );
     final missing = <String>[
       if (kbIds.isEmpty) 'missing_kb_binding',
       if (skillIds.isEmpty) 'missing_skill_binding',
@@ -39,6 +60,19 @@ class AgentBindingTruthService {
     );
   }
 
+  static Map<String, String> _stringMap(Object? value) {
+    if (value is! Map) return const <String, String>{};
+    final result = <String, String>{};
+    for (final entry in value.entries) {
+      final key = entry.key.toString().trim();
+      final mapped = entry.value.toString().trim();
+      if (key.isNotEmpty && mapped.isNotEmpty) {
+        result[key] = mapped;
+      }
+    }
+    return result;
+  }
+
   static List<String> _stringList(Object? value) {
     if (value is! List) return const <String>[];
     final seen = <String>{};
@@ -47,6 +81,23 @@ class AgentBindingTruthService {
       final text = item.toString().trim();
       if (text.isNotEmpty && seen.add(text)) {
         result.add(text);
+      }
+    }
+    return result;
+  }
+
+  static List<String> _resolveAliases(
+    Iterable<String> ids,
+    Map<String, String> aliases,
+  ) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final id in ids) {
+      final resolved = aliases[id]?.trim().isNotEmpty == true
+          ? aliases[id]!.trim()
+          : id.trim();
+      if (resolved.isNotEmpty && seen.add(resolved)) {
+        result.add(resolved);
       }
     }
     return result;
