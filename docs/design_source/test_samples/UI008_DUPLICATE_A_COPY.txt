@@ -1,0 +1,5 @@
+UI008 sample A.
+
+Unique fact A: The project handbook says the approval keyword for sample A is ALPHA-LOCAL-008.
+
+This file is used to build UI008_KB_A. It intentionally does not contain the unique fact from sample B.

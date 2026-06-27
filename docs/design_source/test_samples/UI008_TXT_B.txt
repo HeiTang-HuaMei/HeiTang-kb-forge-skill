@@ -1,0 +1,5 @@
+UI008 sample B.
+
+Unique fact B: The project handbook says the approval keyword for sample B is BETA-REMOTE-008.
+
+This file is used to build UI008_KB_B. It intentionally does not contain the unique fact from sample A.

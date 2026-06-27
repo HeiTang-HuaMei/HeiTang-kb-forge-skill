@@ -1,0 +1,5 @@
+UI008 conflict sample B.
+
+Conflict topic: The renewal window for the sample policy is 45 days.
+
+This file is paired with UI008_CONFLICT_A to verify that merge marks conflicting content for review.

@@ -1,0 +1,52 @@
+{
+  "schema_version": "ui008_test_samples_manifest.v1",
+  "marker": "UI008_",
+  "purpose": "Fixed lightweight samples for UI closure, repair validation, and from-zero development smoke tests.",
+  "samples": [
+    {
+      "id": "UI008_TXT_A",
+      "path": "UI008_TXT_A.txt",
+      "type": "text",
+      "unique_fact": "A",
+      "expected_use": "Build KB_A and answer A-only questions."
+    },
+    {
+      "id": "UI008_TXT_B",
+      "path": "UI008_TXT_B.txt",
+      "type": "text",
+      "unique_fact": "B",
+      "expected_use": "Build KB_B and answer B-only questions."
+    },
+    {
+      "id": "UI008_DUPLICATE_A_COPY",
+      "path": "UI008_DUPLICATE_A_COPY.txt",
+      "type": "text",
+      "duplicate_of": "UI008_TXT_A",
+      "expected_use": "Verify duplicate detection."
+    },
+    {
+      "id": "UI008_CONFLICT_A",
+      "path": "UI008_CONFLICT_A.txt",
+      "type": "text",
+      "expected_use": "Verify merge conflict detection."
+    },
+    {
+      "id": "UI008_CONFLICT_B",
+      "path": "UI008_CONFLICT_B.txt",
+      "type": "text",
+      "expected_use": "Verify merge conflict detection."
+    },
+    {
+      "id": "UI008_BAD_EMPTY",
+      "path": "UI008_BAD_EMPTY.txt",
+      "type": "empty",
+      "expected_use": "Verify explainable parse failure."
+    }
+  ],
+  "backend_truth_expectations": {
+    "source_docs_are_test_marked": true,
+    "duplicate_samples_do_not_create_unexplained_artifacts": true,
+    "merged_kb_preserves_parent_kbs": true,
+    "out_of_scope_query_refuses": true
+  }
+}
