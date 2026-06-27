@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
+import 'package:heitang_workbench/features/knowledge_base/services/okf_semantic_chunk_service.dart';
 import 'package:heitang_workbench/main.dart';
 import 'package:heitang_workbench/rc6_runtime/rc6_runtime_controller_io.dart';
 import 'package:heitang_workbench/workbench/task_model.dart';
@@ -7735,6 +7736,64 @@ void main() {
     expect(runHistory, isNot(contains('"S1"')));
     expect(runHistory, isNot(contains('reading_summary_skill')));
     expect(runHistory, contains('"binding_truth_status": "unbound"'));
+  });
+  test('okf semantic chunking prefers ParsedDocument canonical blocks',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalizedPath = '${duDir.path}${Platform.pathSeparator}alpha.md';
+    File(normalizedPath)
+        .writeAsStringSync('# Wrong fallback\nfallback-only text');
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync('${jsonEncode({
+              'relative_path': 'alpha.md',
+              'normalized_path': normalizedPath,
+              'parsed_document': {
+                'schema_version': 'parsed_document.v1',
+                'blocks': [
+                  {
+                    'block_id': 'doc_alpha_intro',
+                    'block_type': 'paragraph',
+                    'heading_path': ['Canonical'],
+                    'text': 'canonical parsed document evidence',
+                  },
+                ],
+              },
+            })}\n');
+
+    final result = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbDir,
+      kbId: 'K_OKF_CANONICAL',
+      sourceDocs: [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+      ],
+      inputChunks: const [],
+    );
+
+    expect(result.chunks, hasLength(1));
+    expect(result.chunks.single['text'], 'canonical parsed document evidence');
+    expect(result.chunks.single['block_ids'], ['doc_alpha_intro']);
+    expect(result.chunks.single['heading_path'], ['Canonical']);
+    expect((result.chunks.single['lineage'] as Map)['parsed_document_source'],
+        'canonical_blocks');
+    expect(result.chunks.single['text'], isNot(contains('fallback-only')));
+
+    final writtenChunks = readJsonlFile(
+        '${kbDir.path}${Platform.pathSeparator}chunks.jsonl');
+    final writtenTrace = readJsonlFile(
+        '${kbDir.path}${Platform.pathSeparator}source_trace.jsonl');
+    expect(writtenChunks.single['source_trace_id'],
+        writtenTrace.single['source_trace_id']);
+    expect((writtenTrace.single['lineage'] as Map)['parsed_document_source'],
+        'canonical_blocks');
   });
   test('prd external Skill import localizes real file content into workspace',
       () async {

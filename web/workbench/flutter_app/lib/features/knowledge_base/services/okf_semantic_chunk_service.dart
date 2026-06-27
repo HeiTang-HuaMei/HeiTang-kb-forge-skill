@@ -230,13 +230,16 @@ class OkfSemanticChunkService {
       );
       final record = normalizedByRelativePath[_normalize(relativePath)];
       final normalizedPath = _stringValue(record?['normalized_path']);
-      if (normalizedPath.isEmpty || !await File(normalizedPath).exists()) {
-        continue;
+      final blocks = _parsedDocumentBlocks(record, sourceDocId, relativePath);
+      if (blocks.isEmpty) {
+        if (normalizedPath.isEmpty || !await File(normalizedPath).exists()) {
+          continue;
+        }
+        final parsedText = await File(
+          normalizedPath,
+        ).readAsString(encoding: utf8);
+        blocks.addAll(_semanticBlocks(parsedText, sourceDocId, relativePath));
       }
-      final parsedText = await File(
-        normalizedPath,
-      ).readAsString(encoding: utf8);
-      final blocks = _semanticBlocks(parsedText, sourceDocId, relativePath);
       for (final block in blocks) {
         final blockIds = [_stringValue(block['block_id'])];
         final sourceTraceId = 'trace_${kbId}_${blockIds.first}';
@@ -254,6 +257,8 @@ class OkfSemanticChunkService {
           'source_trace_id': sourceTraceId,
           'parsed_block_type': block['block_type'],
           'chunking_strategy': 'okf_semantic_from_parsed_document',
+          'parsed_document_source':
+              block['parsed_document_source'] ?? 'normalized_text',
         };
         final chunk = {
           'chunk_id': chunkId,
@@ -295,6 +300,41 @@ class OkfSemanticChunkService {
     return OkfSemanticChunkResult(chunks: chunks, sourceTraceRows: traceRows);
   }
 
+  List<Map<String, Object?>> _parsedDocumentBlocks(
+    Map<String, dynamic>? record,
+    String sourceDocId,
+    String relativePath,
+  ) {
+    if (record == null) return <Map<String, Object?>>[];
+    final parsedDocument = _mapValue(record['parsed_document']);
+    final rawBlocks = parsedDocument['blocks'] is List
+        ? parsedDocument['blocks']
+        : record['blocks'];
+    if (rawBlocks is! List) return <Map<String, Object?>>[];
+    final blocks = <Map<String, Object?>>[];
+    for (final item in rawBlocks.whereType<Map>()) {
+      final text = _stringValue(
+        item['text'],
+        _stringValue(item['content'], _stringValue(item['summary'])),
+      );
+      if (text.isEmpty) continue;
+      final blockId = _stringValue(
+        item['block_id'],
+        '${sourceDocId}_block_${(blocks.length + 1).toString().padLeft(3, '0')}',
+      );
+      final headingPath = _stringList(item['heading_path']);
+      blocks.add({
+        'block_id': blockId,
+        'block_type': _stringValue(item['block_type'], 'paragraph'),
+        'heading_path': headingPath.isEmpty
+            ? <String>[relativePath]
+            : headingPath,
+        'text': text,
+        'parsed_document_source': 'canonical_blocks',
+      });
+    }
+    return blocks;
+  }
   List<Map<String, Object?>> _semanticBlocks(
     String text,
     String sourceDocId,
@@ -369,6 +409,13 @@ class OkfSemanticChunkService {
     return blocks;
   }
 
+  List<String> _stringList(Object? value) {
+    if (value is! List) return const <String>[];
+    return value
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
   Future<List<Map<String, dynamic>>> _readDocumentUnderstandingRecords(
     Directory workspace,
   ) async {
