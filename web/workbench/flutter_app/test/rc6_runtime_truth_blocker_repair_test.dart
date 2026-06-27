@@ -9518,6 +9518,14 @@ void main() {
     final firstGenerationManifest =
         File('$docRoot${Platform.pathSeparator}generation_manifest.json')
             .readAsStringSync();
+    final firstOutline =
+        File('$docRoot${Platform.pathSeparator}outline.json').readAsStringSync();
+    final firstReadingNotes =
+        File('$docRoot${Platform.pathSeparator}reading_notes.md')
+            .readAsStringSync();
+    final firstValidation =
+        File('$docRoot${Platform.pathSeparator}document_validation_report.json')
+            .readAsStringSync();
     expect(
         firstGenerationManifest,
         allOf(
@@ -9526,6 +9534,36 @@ void main() {
           contains('"output_format": "docx"'),
           contains('"citation_strategy": "filename_and_chunk"'),
           contains('"template_mode": "agent"'),
+          ));
+    expect(
+        firstGenerationManifest,
+        allOf(
+          contains('"product_problem"'),
+          contains('"agent_use_scaffold"'),
+          contains('"agent_use_boundary"'),
+        ));
+    expect(
+        firstOutline,
+        allOf(
+          contains('"type_structure_status": "type_specific_sections_applied"'),
+          contains('"template_effect_status": "template_mode_applied"'),
+          contains('"title": "产品问题"'),
+          contains('"title": "用户 / 场景证据"'),
+        ));
+    expect(
+        firstReadingNotes,
+        allOf(
+          contains('## 产品问题'),
+          contains('## 用户 / 场景证据'),
+          contains('agent_use_scaffold'),
+          contains('agent_use_boundary'),
+        ));
+    expect(
+        firstValidation,
+        allOf(
+          contains('"outline_status": "generated_from_type_specific_template"'),
+          contains('"has_required_variables": true'),
+          contains('"template_effect_status": "template_mode_applied"'),
         ));
     await controller.generateMarkdown(
       config: const Rc6DocumentGenerationConfig(
@@ -9556,9 +9594,16 @@ void main() {
         allOf(
           contains('"citations_path":'),
           contains('"document_validation_report_path":'),
-          contains('"generation_history":'),
-          contains('"citation_count": 1'),
-          contains('"generation_type": "summary"'),
+            contains('"generation_history":'),
+            contains('"citation_count": 1'),
+            contains('"generation_type": "summary"'),
+          ));
+    expect(
+        generationManifest,
+        allOf(
+          contains('"summary_points"'),
+          contains('"built_in_document_scaffold"'),
+          contains('"source_summary"'),
         ));
     expect(controller.state.documentOutlinePath,
         '$docRoot${Platform.pathSeparator}outline.json');
@@ -9568,10 +9613,13 @@ void main() {
         '$docRoot${Platform.pathSeparator}document_validation_report.json');
     expect(
         File(controller.state.documentOutlinePath).readAsStringSync(),
-        allOf(
-          contains('prd_v3_document_outline.v1'),
-          contains('真实输入资料摘要'),
-        ));
+          allOf(
+            contains('prd_v3_document_outline.v1'),
+            contains('真实输入资料摘要'),
+            contains('"title": "摘要重点"'),
+            contains('"title": "来源覆盖"'),
+            contains('"type_structure_status": "type_specific_sections_applied"'),
+          ));
     expect(
         File(controller.state.documentCitationsPath).readAsStringSync(),
         allOf(
@@ -9596,11 +9644,13 @@ void main() {
     expect(citation['trace_complete'], isTrue);
     expect(
         File(controller.state.documentValidationReportPath).readAsStringSync(),
-        allOf(
-          contains('prd_v3_document_validation_report.v1'),
-          contains('"history_snapshot_status": "written"'),
-          contains('"secret_plaintext_written": false'),
-        ));
+          allOf(
+            contains('prd_v3_document_validation_report.v1'),
+            contains('"outline_status": "generated_from_type_specific_template"'),
+            contains('"has_required_variables": true'),
+            contains('"history_snapshot_status": "written"'),
+            contains('"secret_plaintext_written": false'),
+          ));
     final generationManifestJson =
         jsonDecode(generationManifest) as Map<String, dynamic>;
     expect(generationManifestJson['selected_kb_id'], 'K2');
@@ -9657,11 +9707,15 @@ void main() {
     expect(
         File('$docRoot${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
-        allOf(
-          contains('文档类型：摘要'),
-          contains('文件名 + Chunk'),
-          contains('通用内置模板'),
-        ));
+          allOf(
+            contains('文档类型：摘要'),
+            contains('## 摘要重点'),
+            contains('## 来源覆盖'),
+            contains('built_in_document_scaffold'),
+            contains('source_summary'),
+            contains('文件名 + Chunk'),
+            contains('通用内置模板'),
+          ));
 
     final editedPath = await controller.saveEditedDocument(
       '# Owner edited product analysis\n\nfinal edited body from real KB',

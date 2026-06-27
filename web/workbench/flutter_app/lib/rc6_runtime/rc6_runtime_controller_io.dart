@@ -37788,55 +37788,28 @@ class Rc6RuntimeController extends ChangeNotifier {
     final topChunks = chunks.take(8).toList(growable: false);
     final topCards = cards.take(8).toList(growable: false);
     final topQa = qaPairs.take(6).toList(growable: false);
-    final buffer = StringBuffer()
-      ..writeln('# ${config.title}')
-      ..writeln()
-      ..writeln('## 生成配置')
-      ..writeln('- 文档类型：${config.generationTypeLabel}')
-      ..writeln('- 模板模式：${config.templateModeLabel}')
-      ..writeln('- 输出格式：${config.outputFormat.toUpperCase()}')
-      ..writeln('- 引用策略：${config.citationStrategyLabel}')
-      ..writeln()
-      ..writeln('## 核心摘要')
-      ..writeln()
-      ..writeln(
-          '- 本笔记由 rc10 真实 EXE 链路基于 `D:\\HeiTang-Codex-WorkSpace\\input` 的 ${sources.length} 个真实文件生成。')
-      ..writeln(
-          '- 知识库包含 ${chunks.length} 个 chunks、${cards.length} 张 cards、${qaPairs.length} 个 QA pairs。')
-      ..writeln('- 内容来自真实解析产物和知识库索引，不是固定演示文本。')
-      ..writeln()
-      ..writeln('## 章节 / 主题结构');
-    for (final source in sources) {
-      buffer.writeln('- $source');
-    }
-    buffer
-      ..writeln()
-      ..writeln('## 关键概念');
-    for (final card in topCards) {
-      buffer.writeln('- ${_compact(card['title'] ?? card['summary'] ?? card)}');
-    }
-    buffer
-      ..writeln()
-      ..writeln('## 可执行行动项')
-      ..writeln('- 把每个主题拆成可检索问题，优先使用带 citation 的 chunk。')
-      ..writeln('- 对 OCR/Parser 噪声较高的段落标记 review_required。')
-      ..writeln('- 将 Skill 用于本地 KB-grounded 回答，不默认联网或调用外部 provider。')
-      ..writeln('- 将 Agent 的输出限制为引用知识库证据的摘要、问答、质检和运营分析。')
-      ..writeln()
-      ..writeln('## 适合后续 Agent 使用的要点');
-    for (final qa in topQa) {
-      buffer.writeln(
-          '- Q: ${_compact(qa['question'] ?? qa['prompt'] ?? qa)} / A: ${_compact(qa['answer'] ?? qa['response'] ?? '')}');
-    }
-    buffer
-      ..writeln()
-      ..writeln('## 引用来源或文件名');
-    for (final chunk in topChunks) {
-      buffer.writeln(
-          '- ${_compact(chunk['source_path'] ?? chunk['citation'] ?? '')}');
-    }
+    final structure = const DocumentGenerationStructureService().resolve(
+      title: config.title,
+      generationType: config.generationType,
+      templateMode: config.templateMode,
+    );
+    final markdown = const DocumentGenerationMarkdownService().render(
+      structure: structure,
+      generationTypeLabel: config.generationTypeLabel,
+      templateModeLabel: config.templateModeLabel,
+      outputFormatLabel: config.outputFormat.toUpperCase(),
+      citationStrategyLabel: config.citationStrategyLabel,
+      sourceCount: sources.length,
+      chunkCount: chunks.length,
+      cardCount: cards.length,
+      qaPairCount: qaPairs.length,
+      sources: sources,
+      topCards: topCards,
+      topQa: topQa,
+      topChunks: topChunks,
+    );
     await File(_join(docDir.path, 'reading_notes.md'))
-        .writeAsString(buffer.toString(), encoding: utf8);
+        .writeAsString(markdown, encoding: utf8);
   }
 
   Future<void> _writeDocumentGenerationManifest({
@@ -37857,6 +37830,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         : generatedPath;
     final sources = await _sourceNames();
     final citations = _citationsFromQueryReport(queryReport);
+    final structure = const DocumentGenerationStructureService().resolve(
+      title: config.title,
+      generationType: config.generationType,
+      templateMode: config.templateMode,
+    );
     final history = existingHistory.toList(growable: true);
     final createdAt = DateTime.now().toUtc().toIso8601String();
     final outlinePath = _join(docDir.path, 'outline.json');
@@ -37885,6 +37863,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'selected_kb_ids': binding.selectedKbIds,
       'source_kb_ids': binding.sourceKbIds,
       'source_kb_names': binding.sourceKbNames,
+      'section_titles': structure.sectionTitles,
+      'required_variables': structure.requiredVariables,
+      'template_effects': structure.templateEffects,
       'citation_count': citations.length,
       'created_at': createdAt,
     });
@@ -37895,15 +37876,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         'generation_type': config.generationType,
         'template_mode': config.templateMode,
         ...binding.toJson(),
-        'sections': [
-          '生成配置',
-          '核心摘要',
-          '章节 / 主题结构',
-          '关键概念',
-          '可执行行动项',
-          '适合后续 Agent 使用的要点',
-          '引用来源或文件名',
-        ],
+        'document_structure': structure.toJson(),
+        'sections': structure.sections
+            .map((section) => section.toJson())
+            .toList(growable: false),
+        'section_titles': structure.sectionTitles,
+        'required_variables': structure.requiredVariables,
+        'template_effects': structure.templateEffects,
+        'type_structure_status': 'type_specific_sections_applied',
+        'template_effect_status': 'template_mode_applied',
         'confirmed_by_owner': false,
         'generated_at': createdAt,
       }),
@@ -37929,7 +37910,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         ...binding.toJson(),
         'body_status':
             await File(outputPath).exists() ? 'generated' : 'missing_output',
-        'outline_status': 'generated_from_template',
+        'outline_status': 'generated_from_type_specific_template',
+        'type_structure_status': 'type_specific_sections_applied',
+        'template_effect_status': 'template_mode_applied',
+        'has_required_variables': structure.requiredVariables.isNotEmpty,
+        'required_variables': structure.requiredVariables,
+        'template_effects': structure.templateEffects,
         'citation_list_status': 'written',
         'citation_count': citations.length,
         'history_snapshot_status': await File(historyMarkdownPath).exists()
@@ -37954,10 +37940,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_count': sources.length,
       'sources': sources,
       'citations': citations,
+      'document_structure': structure.toJson(),
+      'section_titles': structure.sectionTitles,
+      'required_variables': structure.requiredVariables,
+      'template_effects': structure.templateEffects,
       'outline_path': outlinePath,
       'citations_path': citationsPath,
       'document_validation_report_path': validationPath,
-      'outline_status': 'generated_from_template',
+      'outline_status': 'generated_from_type_specific_template',
+      'type_structure_status': 'type_specific_sections_applied',
+      'template_effect_status': 'template_mode_applied',
       'body_status': 'generated',
       'citation_list_status': 'written',
       'output_markdown': outputPath,
