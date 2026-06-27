@@ -10,6 +10,7 @@ import '../core_bridge/local_core_bridge.dart';
 import '../features/document_generation/services/document_generation_binding_service.dart';
 import '../features/agent/services/agent_binding_truth_service.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
+import '../features/skill/services/skill_binding_truth_service.dart';
 import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
@@ -37169,6 +37170,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'));
   }
 
+  Future<SkillBindingTruth> _skillBindingTruth(Directory workspace) async {
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    return const SkillBindingTruthService().resolve(
+      catalogRecords: _catalogRecords(catalog),
+      stateKnowledgeBaseIds: state.knowledgeBases.map((kb) => kb.id),
+    );
+  }
+
   Future<Directory> _writeStandardKnowledgePackage({
     required Directory workspace,
     required String operation,
@@ -38486,6 +38495,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await skillRoot.create(recursive: true);
     final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
     final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final bindingTruth = await _skillBindingTruth(workspace);
     final skillModelRouteBinding =
         await _currentModelRouteModuleBinding('skill_factory');
     final skillGenerationRoute = _modelRouteEvidenceForScopes(
@@ -38530,14 +38540,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     final primaryConfig = {
-      'skill_config_id': 'S1',
+      'skill_config_id': bindingTruth.primarySkillId,
+      'legacy_skill_alias': 'S1',
+      'legacy_compatibility_only': true,
       'skill_name': config.skillName,
       'target_platform': config.targetPlatform,
       'target_platform_label': config.targetPlatformLabel,
       'skill_type': config.skillType,
       'skill_type_label': config.skillTypeLabel,
       'source_mode': 'from_kb',
-      'source_kb_ids': ['K1'],
+      'source_kb_ids': bindingTruth.sourceKbIds,
       'source_kb_manifest': kbManifestPath,
       'external_skill_path': '',
       'localization_goal': config.personalizationGoal,
@@ -38693,7 +38705,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           .writeAsString(externalSkillText, encoding: utf8);
     }
     final externalManifest = {
-      'skill_config_id': 'S0',
+      'skill_config_id': bindingTruth.externalSkillId,
+      'legacy_skill_alias': 'S0',
+      'legacy_compatibility_only': true,
       'skill_name': '外部写作 Skill',
       'source_mode': 'external_import',
       'target_platform': 'markdown',
@@ -38720,12 +38734,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final localizedSkill = File(_join(localizedRoot.path, 'SKILL.md'));
     await localizedSkill.writeAsString(
       [
-        '# 本地化写作 Skill S2',
+        '# 本地化写作 Skill',
         '',
         '## 来源',
-        '- 外部 Skill: S0',
+        '- 外部 Skill: ${bindingTruth.externalSkillId}',
         '- 外部 Skill 文件: ${_safeFileName(originalExternalPath.split(RegExp(r'[\\/]+')).last)}',
-        '- 本地知识库: K2 / 当前真实输入知识库',
+        '- 本地知识库: ${bindingTruth.sourceKbIds.join(', ')}',
         '',
         '## 能力说明',
         '融合外部写作方法论和当前工作区真实知识库，生成适合本地资料的写作、分析和运营建议。',
@@ -38745,17 +38759,19 @@ class Rc6RuntimeController extends ChangeNotifier {
         'Cited Markdown guidance.',
         '',
         '## 示例',
-        '`使用 S2 基于当前知识库生成带引用的内容方案`',
+        '`使用本地化写作 Skill 基于当前知识库生成带引用的内容方案`',
       ].join('\n'),
       encoding: utf8,
     );
     final localizedManifest = {
-      'skill_config_id': 'S2',
+      'skill_config_id': bindingTruth.localizedSkillId,
+      'legacy_skill_alias': 'S2',
+      'legacy_compatibility_only': true,
       'skill_name': '本地化写作 Skill',
       'target_platform': 'codex',
       'skill_type': 'writing',
       'source_mode': 'external_skill_fusion',
-      'source_kb_ids': ['K2'],
+      'source_kb_ids': bindingTruth.sourceKbIds,
       'source_kb_manifest': kbManifestPath,
       'external_skill_path': externalRoot.path,
       'original_external_path': originalExternalPath,
@@ -38777,7 +38793,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         '# 外部 Skill 本地化差异',
         '',
         '- S0 提供通用写作方法论。',
-        '- S2 增加本地知识库引用、来源约束和 Agent 绑定规则。',
+        '- 本地化写作 Skill 增加本地知识库引用、来源约束和 Agent 绑定规则。',
         '- 外部 Skill 原始文件已复制到当前工作区，运行时不会执行外部代码或系统命令。',
       ].join('\n'),
       encoding: utf8,
@@ -38833,6 +38849,8 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'skill_generation': skillGenerationRoute,
                 'external_skill_localization': externalSkillRoute,
               },
+              'source_kb_ids': bindingTruth.sourceKbIds,
+              'legacy_skill_aliases': bindingTruth.legacyAliases,
               'skills': manifest,
               'external_skills': [externalManifest],
               'localized_skills': [localizedManifest],
@@ -38858,6 +38876,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await skillRoot.create(recursive: true);
     final operationsRoot = Directory(_join(skillRoot.path, 'operations'));
     await operationsRoot.create(recursive: true);
+    final bindingTruth = await _skillBindingTruth(workspace);
     final primary = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
     final copied = Directory(_join(skillRoot.path, 'knowledge_qa_skill_copy'));
     await _clearWorkspacePath(copied.path);
@@ -38924,15 +38943,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               'product_analysis_agent',
             ]
           : const <String>[],
-      'skill_ids': [
-        'S1',
-        'S2',
-        'reading_summary_skill',
-        'quality_check_skill',
-        'operation_conversion_skill',
-        'product_analysis_skill',
-        'fused_product_ops_skill',
-      ],
+      'skill_ids': bindingTruth.generatedSkillIds,
+      'legacy_skill_aliases': bindingTruth.legacyAliases,
+      'legacy_compatibility_only': true,
       'binding_policy': {
         'simple_agent_optional': true,
         'advanced_agent_required_for_tool_memory_audit': true,
@@ -38949,12 +38962,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           'skill_id': 'fused_product_ops_skill',
           'skill_name': '融合产品运营 Skill',
           'source_mode': 'skill_plus_kb_fusion',
-          'source_skill_ids': [
-            'S1',
-            'operation_conversion_skill',
-            'product_analysis_skill',
-          ],
-          'source_kb_ids': ['K1', 'K2', 'K3'],
+          'source_skill_ids': bindingTruth.fusedSourceSkillIds,
+          'source_kb_ids': bindingTruth.sourceKbIds,
+          'legacy_skill_aliases': bindingTruth.legacyAliases,
           'instruction_path': fusedSkill.path,
           'status': 'validated',
         }),
@@ -39058,13 +39068,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exportRoot = Directory(_join(skillRoot.path, 'exports'));
     await skillRoot.create(recursive: true);
     await operationsRoot.create(recursive: true);
-    final catalog = await _loadKnowledgeCatalog(workspace);
-    final catalogKbIds = _catalogRecords(catalog)
-        .map((record) => _stringValue(record['kb_id'], ''))
-        .where((id) => id.isNotEmpty)
-        .toList(growable: false);
-    final sourceKbIds =
-        catalogKbIds.isEmpty ? const ['current_kb'] : catalogKbIds;
+    final bindingTruth = await _skillBindingTruth(workspace);
+    final sourceKbIds = bindingTruth.sourceKbIds;
     final skillModelRouteBinding =
         await _currentModelRouteModuleBinding('skill_factory');
     final skillGenerationRoute = _modelRouteEvidenceForScopes(
@@ -39190,9 +39195,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': missingRequired.isEmpty ? 'ready' : 'needs_repair',
       'requested_operation': requestedOperation,
       'source_kb_ids': sourceKbIds,
+      'legacy_skill_aliases': bindingTruth.legacyAliases,
       'skill_packages': [
         {
-          'skill_id': 'S1',
+          'skill_id': bindingTruth.primarySkillId,
+          'legacy_skill_alias': 'S1',
+          'legacy_compatibility_only': true,
           'name': 'knowledge_qa_skill',
           'source_mode': 'from_kb',
           'instruction_path':
@@ -39204,7 +39212,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           'source_kb_ids': sourceKbIds,
         },
         {
-          'skill_id': 'S2',
+          'skill_id': bindingTruth.localizedSkillId,
+          'legacy_skill_alias': 'S2',
+          'legacy_compatibility_only': true,
           'name': 'localized_writing_skill',
           'source_mode': 'external_skill_fusion',
           'instruction_path': _joinNested(
@@ -39214,7 +39224,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'source_kb_ids': sourceKbIds,
         },
         {
-          'skill_id': 'fused_product_ops_skill',
+          'skill_id': bindingTruth.fusedSkillId,
           'name': 'fused_product_ops_skill',
           'source_mode': 'skill_plus_kb_fusion',
           'instruction_path':
@@ -39447,7 +39457,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(operationsRoot.path, 'skill_operation_manifest.json');
     final operationHistoryPath =
         _join(operationsRoot.path, 'skill_operation_history.json');
+    final bindingTruth = await _skillBindingTruth(workspace);
     final sourceKbIds = _listOfStrings(validationReport['source_kb_ids']);
+    final resolvedSourceKbIds =
+        sourceKbIds.isEmpty ? bindingTruth.sourceKbIds : sourceKbIds;
     final skillModelRouteBinding =
         await _currentModelRouteModuleBinding('skill_factory');
     final skillRuntimeRoute = _modelRouteEvidenceForScopes(
@@ -39517,13 +39530,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(previousSnapshot).exists(),
       'version_count': versions.length,
       'versions': versions,
-      'source_kb_ids': sourceKbIds.isEmpty ? const ['current_kb'] : sourceKbIds,
-      'source_skill_ids': [
-        'S1',
-        'S2',
-        'operation_conversion_skill',
-        'product_analysis_skill',
-      ],
+      'source_kb_ids': resolvedSourceKbIds,
+      'source_skill_ids': bindingTruth.fusedSourceSkillIds,
+      'legacy_skill_aliases': bindingTruth.legacyAliases,
       'model_route_binding': skillModelRouteBinding,
       'model_route_evidence': skillRuntimeRoute,
       'fused_skill_path': fusedSkillPath,
@@ -39593,6 +39602,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final operationsRoot =
         Directory(_join(workspace.path, 'skill', 'operations'));
     await operationsRoot.create(recursive: true);
+    final bindingTruth = await _skillBindingTruth(workspace);
     final manifestPath =
         _join(operationsRoot.path, 'skill_version_manifest.json');
     final current = await _readJsonObject(manifestPath);
@@ -39610,7 +39620,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     versions.add({
       'version_id': nextVersion,
       'event': event,
-      'skill_id': 'S1',
+      'skill_id': bindingTruth.primarySkillId,
+      'legacy_skill_alias': 'S1',
+      'legacy_compatibility_only': true,
       'artifact': skillPath,
       'snapshot_path': snapshotPath,
       'config': config,

@@ -19262,16 +19262,34 @@ void main() {
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();
-    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
       ..createSync(recursive: true);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
     File('${kbDir.path}${Platform.pathSeparator}manifest.json')
         .writeAsStringSync('{"schema_version":"test_kb.v1"}');
     File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
         .writeAsStringSync('{"text":"产品分析证据","source_path":"alpha.txt"}\n');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+    File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
         .writeAsStringSync(jsonEncode({
       'sources': [
         {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
+      ],
+    }));
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'owner_product_kb',
+          'kb_name': 'Owner 产品知识库',
+          'status': 'searchable',
+        }
       ],
     }));
 
@@ -19308,7 +19326,7 @@ void main() {
 
     expect(requests.single.actionId, 'package_to_skill');
     expect(requests.single.arguments, contains('Owner 产品方法论 Skill'));
-    final skillRoot = '${workspace.path}${Platform.pathSeparator}skill';
+    final skillRoot = '${activeWorkspace.path}${Platform.pathSeparator}skill';
     expect(
         File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}SKILL.md')
             .readAsStringSync(),
@@ -19327,6 +19345,13 @@ void main() {
           contains('"personalization_goal": "agent_specific"'),
           contains('"skill_name": "Owner 产品方法论 Skill"'),
         ));
+    final primarySkillConfig = jsonDecode(File(
+            '$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}skill_config.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(primarySkillConfig['skill_config_id'], 'knowledge_qa_skill');
+    expect(primarySkillConfig['legacy_skill_alias'], 'S1');
+    expect(primarySkillConfig['legacy_compatibility_only'], isTrue);
+    expect(primarySkillConfig['source_kb_ids'], ['owner_product_kb']);
     expect(
         File('$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
@@ -19344,6 +19369,9 @@ void main() {
     final skillGenerationManifest = jsonDecode(File(
             '$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
+    expect(skillGenerationManifest['source_kb_ids'], ['owner_product_kb']);
+    expect(skillGenerationManifest['legacy_skill_aliases'],
+        containsPair('S1', 'knowledge_qa_skill'));
     final skillRouteBinding =
         skillGenerationManifest['model_route_binding'] as Map;
     expect(skillRouteBinding['module'], 'skill_factory');
@@ -19359,6 +19387,15 @@ void main() {
         contains('external_skill_localization'));
     final skillVersionManifestPath =
         '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_version_manifest.json';
+    final skillVersionManifestJson =
+        jsonDecode(File(skillVersionManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect((skillVersionManifestJson['versions'] as List).single['skill_id'],
+        'knowledge_qa_skill');
+    expect(
+        (skillVersionManifestJson['versions'] as List)
+            .single['legacy_skill_alias'],
+        'S1');
     expect(
         File(skillVersionManifestPath).readAsStringSync(),
         allOf(
@@ -19439,6 +19476,20 @@ void main() {
           contains('"operation": "fusion"'),
           contains('fused_product_ops_skill'),
         ));
+    final operationManifestJson =
+        jsonDecode(operationManifest) as Map<String, dynamic>;
+    final bindingManifestJson = jsonDecode(File(
+            '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(bindingManifestJson['skill_ids'], contains('knowledge_qa_skill'));
+    expect(
+        bindingManifestJson['skill_ids'], contains('localized_writing_skill'));
+    expect(bindingManifestJson['skill_ids'], isNot(contains('S1')));
+    expect(bindingManifestJson['skill_ids'], isNot(contains('S2')));
+    expect(bindingManifestJson['legacy_skill_aliases'],
+        containsPair('S2', 'localized_writing_skill'));
+    expect(
+        operationManifestJson['schema_version'], 'prd_v2_skill_operations.v1');
     final factoryAuditPath =
         '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_factory_audit.json';
     final skillPackageManifestPath =
@@ -19451,6 +19502,23 @@ void main() {
     expect(skillPackageManifest['status'], 'ready');
     expect(skillPackageManifest['skill_packages'], isA<List>());
     expect(skillPackageManifest['missing_required_artifacts'], isEmpty);
+    expect(skillPackageManifest['source_kb_ids'], ['owner_product_kb']);
+    expect(
+        (skillPackageManifest['skill_packages'] as List)
+            .map((item) => (item as Map)['skill_id'])
+            .toList(),
+        containsAll([
+          'knowledge_qa_skill',
+          'localized_writing_skill',
+          'fused_product_ops_skill',
+        ]));
+    expect(
+        (skillPackageManifest['skill_packages'] as List)
+            .map((item) => (item as Map)['skill_id'])
+            .toList(),
+        isNot(contains('S1')));
+    expect(skillPackageManifest['legacy_skill_aliases'],
+        containsPair('S1', 'knowledge_qa_skill'));
     final skillPackageBoundary = skillPackageManifest['tool_boundary'] as Map;
     expect(skillPackageBoundary['local_kb_only'], isTrue);
     expect(skillPackageBoundary['arbitrary_shell_enabled'], isFalse);
@@ -19505,6 +19573,12 @@ void main() {
     expect(skillRuntimeManifest['runtime_loaded'], isTrue);
     expect(skillRuntimeManifest['secondary_fusion_runtime_available'], isTrue);
     expect(skillRuntimeManifest['multi_version_runtime_available'], isTrue);
+    expect(skillRuntimeManifest['source_kb_ids'], ['owner_product_kb']);
+    expect(skillRuntimeManifest['source_skill_ids'],
+        contains('knowledge_qa_skill'));
+    expect(skillRuntimeManifest['source_skill_ids'], isNot(contains('S1')));
+    expect(skillRuntimeManifest['legacy_skill_aliases'],
+        containsPair('S2', 'localized_writing_skill'));
     expect((skillRuntimeManifest['model_route_binding'] as Map)['module'],
         'skill_factory');
     expect(
@@ -19543,7 +19617,7 @@ void main() {
           contains('"multi_version_runtime_available":true'),
         ));
     final skillRuntimeStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
     final skillPreflight =
         skillRuntimeStatus['stage_2_industrial_preflight'] as Map;
