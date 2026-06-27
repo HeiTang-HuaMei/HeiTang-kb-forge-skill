@@ -19613,6 +19613,26 @@ void main() {
     expect(skillGenerationManifest['source_kb_ids'], ['owner_product_kb']);
     expect(skillGenerationManifest['legacy_skill_aliases'],
         containsPair('S1', 'knowledge_qa_skill'));
+    for (final helperSkillId in const [
+      'reading_summary_skill',
+      'quality_check_skill',
+      'operation_conversion_skill',
+      'product_analysis_skill',
+    ]) {
+      final helperManifest = jsonDecode(File(
+              '$skillRoot${Platform.pathSeparator}$helperSkillId${Platform.pathSeparator}skill_manifest.json')
+          .readAsStringSync()) as Map<String, dynamic>;
+      expect(helperManifest['generation_mode'], 'built_in_template');
+      expect(helperManifest['source_mode'], 'template_plus_current_kb');
+      expect(helperManifest['is_method_extracted_from_kb'], isFalse);
+      expect(helperManifest['status'], 'built_in_template_skill');
+      final helperVerification = jsonDecode(File(
+              '$skillRoot${Platform.pathSeparator}$helperSkillId${Platform.pathSeparator}verification_report.json')
+          .readAsStringSync()) as Map<String, dynamic>;
+      expect(helperVerification['generation_mode'], 'built_in_template');
+      expect(helperVerification['source_mode'], 'template_plus_current_kb');
+      expect(helperVerification['is_method_extracted_from_kb'], isFalse);
+    }
     final skillRouteBinding =
         skillGenerationManifest['model_route_binding'] as Map;
     expect(skillRouteBinding['module'], 'skill_factory');
