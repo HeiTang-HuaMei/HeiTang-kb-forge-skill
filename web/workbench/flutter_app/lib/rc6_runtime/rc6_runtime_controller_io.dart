@@ -43065,7 +43065,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       {String sourceName = 'input'}) async {
     final workspace = _requireWorkspace();
     final imported = <Map<String, Object?>>[];
-    await for (final file in _supportedSourceFiles(inputDir)) {
+    final duplicates = <Map<String, Object?>>[];
+    final primaryByHash = <String, Map<String, Object?>>{};
+    final files = await _supportedSourceFiles(inputDir).toList();
+    files.sort((a, b) => _relativePath(a.absolute.path, inputDir.absolute.path)
+        .compareTo(_relativePath(b.absolute.path, inputDir.absolute.path)));
+    for (final file in files) {
       final relative = _relativePath(file.absolute.path, inputDir.absolute.path)
           .replaceAll('\\', '/');
       final source = {
@@ -43075,9 +43080,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source_type': relative.endsWith('.url.md') ? 'web_link' : 'local_file',
       };
       final stats = await _sourceStructureStats(file);
-      imported.add({
+      final contentHash = await _fileContentHash(file);
+      final record = {
         ...source,
         'document_id': _documentId(source),
+        'content_hash': contentHash,
         'extension': _extension(file.path).toLowerCase(),
         'size_bytes': await file.length(),
         'word_count': stats['word_count'],
@@ -43085,7 +43092,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         'table_count': stats['table_count'],
         'link_count': stats['link_count'],
         'structure_status': stats['structure_status'],
-      });
+      };
+      final primary = primaryByHash[contentHash];
+      if (primary == null) {
+        primaryByHash[contentHash] = record;
+        imported.add(record);
+      } else {
+        duplicates.add({
+          ...record,
+          'duplicate_of': (primary['document_id'] ?? '').toString(),
+          'duplicate_of_relative_path':
+              (primary['relative_path'] ?? '').toString(),
+        });
+        await _clearWorkspacePath(file.path);
+      }
     }
     imported.sort((a, b) => (a['relative_path'] ?? '')
         .toString()
@@ -43097,7 +43117,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_path': inputDir.path,
       'source_name': sourceName,
       'source_count': imported.length,
+      'duplicate_count': duplicates.length,
       'sources': imported,
+      'duplicate_sources': duplicates,
       'workspace': workspace.path,
     };
     await File(manifestPath).writeAsString(
@@ -43105,6 +43127,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return manifestPath;
+  }
+
+  static Future<String> _fileContentHash(File file) async {
+    final bytes = await file.readAsBytes();
+    var hash = 17;
+    for (final byte in bytes) {
+      hash = (hash * 31 + byte) & 0x7fffffff;
+    }
+    return hash.toRadixString(16).padLeft(8, '0');
   }
 
   Future<Directory> _resolveWorkspace() async {

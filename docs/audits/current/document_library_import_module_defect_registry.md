@@ -41,10 +41,43 @@ capability_chain_status_json_unchanged = true
 
 ## Current Counts
 
-- defect_count: 1
+- defect_count: 2
 - S0_count: 0
-- S1_count: 1
+- S1_count: 2
 - S2_count: 0
 - S3_count: 0
-- fixed_defects: DOCUMENT-IMPORT-S1-001
+- fixed_defects: DOCUMENT-IMPORT-S1-001, DOCUMENT-IMPORT-S1-002
 - remaining_defects: Module 4 fixed-sample matrix still to be audited after this verifier repair
+
+## DOCUMENT-IMPORT-S1-002
+
+- defect_id: DOCUMENT-IMPORT-S1-002
+- severity: S1
+- module: Document Library / Import Module
+- page: Import / Document Library
+- user_path: import UI008_TXT_A + UI008_DUPLICATE_A_COPY + UI008_TXT_B -> inspect source_manifest -> reload document library
+- expected_behavior: same-content sources are identified by content_hash, ordinary source list contains only usable unique sources, duplicate sources are recorded with duplicate_of metadata, and restart recovery reads the same deduped truth
+- actual_behavior: UI008_TXT_A and UI008_DUPLICATE_A_COPY were treated as two ordinary usable sources because source_manifest did not persist content_hash or duplicate metadata
+- reproduce_steps: run `flutter test test/rc6_runtime_truth_blocker_repair_test.dart --plain-name "module4 UI008 duplicate content import records content hash and dedupes"` before the fix
+- exact_error: expected `source_count = 2`, actual `source_count = 3`
+- root_cause_category: state_not_persisted
+- root_cause_evidence: `_writeSourceManifestFromInput` built source records from relative paths and file stats only; no content fingerprint was persisted, and duplicate input files stayed in `input/`
+- minimal_fix_scope: compute a stable local content hash while writing source_manifest, keep the first source per hash, move repeated content to `duplicate_sources`, remove duplicate input files before downstream parsing, and add UI008 fixed-sample regression coverage
+- allowed_files: `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart`, `web/workbench/flutter_app/test/rc6_runtime_truth_blocker_repair_test.dart`, this registry
+- forbidden_files: `capability_chain_status.json`, P0/P1/P2 gate reports, package/build artifacts
+- white_box_result: pass
+- black_box_result: pass
+- regression_result: pass
+- commit_id: this commit
+
+Evidence:
+
+```text
+failing_test_before_fix = output/module_repair/module4_document_import/module4_ui008_duplicate_content_before_fix.log -> expected source_count 2, actual 3
+targeted_after_fix = output/module_repair/module4_document_import/module4_ui008_duplicate_content_after_hash_fix.log -> All tests passed
+working_tree_regression = output/module_repair/module4_document_import/module4_duplicate_import_regression_working_tree.log -> All tests passed
+staged_snapshot_targeted_after_fix = output/module_repair/module4_document_import/module4_staged_snapshot_ui008_duplicate_after_fix.log -> All tests passed
+staged_snapshot_regression = output/module_repair/module4_document_import/module4_staged_snapshot_duplicate_regression.log -> All tests passed
+staged_snapshot_code_quality = output/module_repair/module4_document_import/module4_staged_snapshot_duplicate_flutter_analyze.log -> No issues found
+capability_chain_status_json_unchanged = true
+```

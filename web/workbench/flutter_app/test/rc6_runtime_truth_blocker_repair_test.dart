@@ -1788,6 +1788,82 @@ void main() {
         containsAll(sources.map((source) => source['document_id'])));
   });
 
+  test('module4 UI008 duplicate content import records content hash and dedupes',
+      () async {
+    final workspace = await createWorkspace();
+    final sampleRoot = Directory([
+      Directory.current.path,
+      '..',
+      '..',
+      '..',
+      'docs',
+      'design_source',
+      'test_samples',
+    ].join(Platform.pathSeparator));
+    expect(sampleRoot.existsSync(), isTrue);
+    final sourceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}ui008_sources')
+          ..createSync(recursive: true);
+    for (final name in const [
+      'UI008_TXT_A.txt',
+      'UI008_DUPLICATE_A_COPY.txt',
+      'UI008_TXT_B.txt',
+    ]) {
+      File('${sampleRoot.path}${Platform.pathSeparator}$name')
+          .copySync('${sourceDir.path}${Platform.pathSeparator}$name');
+    }
+    final requests = <CoreBridgeRequest>[];
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (request) async {
+              requests.add(request);
+              final output = Directory(request.outputPath!)
+                ..createSync(recursive: true);
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync(
+                      '{"status":"completed","imported_count":2,"duplicate_count":1}');
+              return const CoreBridgeProcessResult(
+                  exitCode: 0, stdout: 'ok', stderr: '');
+            },
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    await controller.importFolderPath(sourceDir.path);
+
+    final manifest = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final sources = (manifest['sources'] as List).cast<Map>();
+    final duplicates =
+        ((manifest['duplicate_sources'] as List?) ?? const []).cast<Map>();
+    expect(manifest['source_count'], 2);
+    expect(manifest['duplicate_count'], 1);
+    expect(sources, hasLength(2));
+    expect(duplicates, hasLength(1));
+    expect(sources.map((source) => source['content_hash']),
+        everyElement(isNotEmpty));
+    expect(
+        sources.map((source) => source['content_hash']).toSet(), hasLength(2));
+    expect(sources.map((source) => source['content_hash']),
+        contains(duplicates.single['content_hash']));
+    expect(duplicates.single['duplicate_of'], isNotEmpty);
+    expect(controller.state.sourceCount, 2);
+    expect(controller.state.sourceRecords, hasLength(2));
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.sourceRecords, hasLength(2));
+    expect(requests.map((request) => request.actionId),
+        everyElement('batch_import_documents'));
+  });
+
   test('prd document library imports web links as real source records',
       () async {
     final workspace = await createWorkspace();
