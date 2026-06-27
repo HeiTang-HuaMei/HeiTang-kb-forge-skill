@@ -39,6 +39,15 @@ staged_snapshot_code_quality = output/module_repair/module4_document_import/modu
 capability_chain_status_json_unchanged = true
 ```
 
+## Module 4 Evidence Without New Defect
+
+```text
+unsupported_import_explainable_failure = output/module_repair/module4_document_import/module4_unsupported_import_evidence_working_tree.log -> All tests passed
+unsupported_import_staged_snapshot = output/module_repair/module4_document_import/module4_staged_snapshot_unsupported_import_evidence.log -> All tests passed
+unsupported_import_staged_analyze = output/module_repair/module4_document_import/module4_staged_snapshot_unsupported_flutter_analyze.log -> No issues found
+unsupported_import_result = no new S0/S1; unsupported .exe import is rejected before core execution, source_manifest is not created, and failure_event is written to Event Ledger
+```
+
 ## Current Counts
 
 - defect_count: 3

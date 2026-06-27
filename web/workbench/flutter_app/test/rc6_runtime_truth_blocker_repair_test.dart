@@ -1945,6 +1945,46 @@ void main() {
         containsAll(['batch_import_documents', 'document_understanding']));
   });
 
+  test('module4 unsupported import fails explainably without source manifest',
+      () async {
+    final workspace = await createWorkspace();
+    final unsupported =
+        File('${workspace.path}${Platform.pathSeparator}UI008_BAD.exe')
+          ..writeAsBytesSync([0, 1, 2, 3]);
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'unexpected', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    await controller.importFilePath(unsupported.path);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(requests, isEmpty);
+    expect(controller.state.phase, Rc6RuntimePhase.failed);
+    expect(controller.state.lastError, contains('暂不支持该文件格式'));
+    expect(
+        File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
+            .existsSync(),
+        isFalse);
+    final ledger = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(ledger.map((row) => row['event_type']), contains('failure_event'));
+    expect(ledger.map((row) => row['error_message']).join('\n'),
+        contains('暂不支持该文件格式'));
+  });
+
   test('prd document library imports web links as real source records',
       () async {
     final workspace = await createWorkspace();
