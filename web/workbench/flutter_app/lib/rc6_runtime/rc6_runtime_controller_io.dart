@@ -1505,6 +1505,30 @@ class Rc6RuntimeController extends ChangeNotifier {
           'output_format': config.outputFormat,
         },
       );
+      final docDir = _join(workspace.path, 'doc');
+      final readingNotesPath = _join(docDir, 'reading_notes.md');
+      final generatedPath = _join(docDir, 'generated.md');
+      await _recordDocumentLifecycle(
+        eventType: 'generate_document',
+        action: 'generate_document',
+        targetId: 'generated_document_current',
+        targetName: config.title,
+        artifactId: 'generated_document_current',
+        artifactPath: await File(readingNotesPath).exists()
+            ? readingNotesPath
+            : generatedPath,
+        sourceId: 'generate_document',
+        metadata: {
+          'generation_type': config.generationType,
+          'template_mode': config.templateMode,
+          'output_format': config.outputFormat,
+          'manifest_path': _join(docDir, 'generation_manifest.json'),
+          'outline_path': _join(docDir, 'outline.json'),
+          'citations_path': _join(docDir, 'citations.json'),
+          'document_validation_report_path':
+              _join(docDir, 'document_validation_report.json'),
+        },
+      );
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -1632,6 +1656,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(manifest),
       encoding: utf8,
     );
+    await _recordDocumentLifecycle(
+      eventType: 'clear_document_history',
+      action: 'clear_document_generation_history',
+      targetId: 'document_generation_history',
+      targetName: '文档生成历史',
+      artifactPath: manifestPath,
+      upsertArtifact: false,
+      metadata: {
+        'history_count_after': 0,
+        'preserved_body': true,
+        'preserved_exports': true,
+        'manifest_path': manifestPath,
+      },
+    );
     state = state.copyWith(
       documentGenerationHistoryCount: 0,
       lastMessage: '文档生成历史已清空；正文和导出产物已保留。',
@@ -1663,6 +1701,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(manifestPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert(manifest),
       encoding: utf8,
+    );
+    await _recordDocumentLifecycle(
+      eventType: 'delete_document_history',
+      action: 'delete_latest_document_generation_history',
+      targetId: 'document_generation_history',
+      targetName: '最近一条文档生成历史',
+      artifactPath: manifestPath,
+      upsertArtifact: false,
+      metadata: {
+        'deleted_event': (deleted['event'] ?? '').toString(),
+        'deleted_history_markdown':
+            (deleted['history_markdown'] ?? '').toString(),
+        'history_count_after': history.length,
+        'preserved_body': true,
+        'preserved_exports': true,
+        'manifest_path': manifestPath,
+      },
     );
     state = state.copyWith(
       documentGenerationHistoryCount: history.length,
@@ -2132,6 +2187,21 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(manifestPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
+    );
+    await _recordDocumentLifecycle(
+      eventType: 'edit_document',
+      action: 'save_edited_document',
+      targetId: 'edited_document_current',
+      targetName: '文档编辑稿',
+      artifactId: 'edited_document_current',
+      artifactPath: edited.path,
+      sourceId: 'save_edited_document',
+      metadata: {
+        'source_document': source,
+        'manifest_path': manifestPath,
+        'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
+        'size_bytes': await edited.length(),
+      },
     );
     state = state.copyWith(
       running: false,
@@ -37978,6 +38048,43 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(docDir.path, 'generation_manifest.json')).writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
+    );
+  }
+
+  Future<void> _recordDocumentLifecycle({
+    required String eventType,
+    required String action,
+    required String targetId,
+    required String targetName,
+    required String artifactPath,
+    String artifactId = '',
+    String sourceId = '',
+    bool upsertArtifact = true,
+    Map<String, Object?> metadata = const {},
+  }) async {
+    await _appendEventLedgerRecord(
+      eventType: eventType,
+      module: 'document_generation',
+      action: action,
+      status: 'completed',
+      targetId: targetId,
+      targetName: targetName,
+      artifactPath: artifactPath,
+      source: 'document_generation',
+      metadata: metadata,
+    );
+    if (!upsertArtifact) {
+      return;
+    }
+    await _upsertArtifactRecord(
+      artifactId: artifactId.isEmpty ? targetId : artifactId,
+      artifactType: 'generated_document',
+      title: targetName,
+      sourceModule: 'document_generation',
+      sourceId: sourceId.isEmpty ? action : sourceId,
+      filePath: artifactPath,
+      status: 'completed',
+      metadata: metadata,
     );
   }
 

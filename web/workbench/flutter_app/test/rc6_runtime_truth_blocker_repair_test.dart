@@ -9841,6 +9841,78 @@ void main() {
         'edited_document');
     expect((structuredPayload['document'] as Map)['preview'],
         contains('final edited body from real KB'));
+    final eventRows = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    final documentLifecycleActions =
+        eventRows.map((row) => row['action']).toList(growable: false);
+    expect(
+        documentLifecycleActions,
+        containsAll([
+          'generate_markdown',
+          'generate_document',
+          'delete_latest_document_generation_history',
+          'clear_document_generation_history',
+          'save_edited_document',
+          'export_document_md',
+          'export_document_json',
+        ]));
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'generate_document' &&
+            row['artifact_path'] ==
+                '$docRoot${Platform.pathSeparator}reading_notes.md' &&
+            ((row['metadata'] as Map)['manifest_path'] as String)
+                .endsWith('generation_manifest.json')),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'delete_latest_document_generation_history' &&
+            ((row['metadata'] as Map)['preserved_body']) == true &&
+            ((row['metadata'] as Map)['history_count_after']) == 1),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'clear_document_generation_history' &&
+            ((row['metadata'] as Map)['preserved_exports']) == true &&
+            ((row['metadata'] as Map)['history_count_after']) == 0),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'save_edited_document' &&
+            row['artifact_path'] == editedPath &&
+            ((row['metadata'] as Map)['generation_manifest'] as String)
+                .endsWith('generation_manifest.json')),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifactRows = (artifactCatalog['artifacts'] as List)
+        .whereType<Map>()
+        .toList(growable: false);
+    final artifactIds =
+        artifactRows.map((row) => row['artifact_id']).toList(growable: false);
+    expect(
+        artifactIds,
+        containsAll([
+          'generated_document_current',
+          'edited_document_current',
+          'generated_document_export_md',
+          'generated_document_export_json',
+        ]));
+    expect(
+        artifactRows.any((row) =>
+            row['artifact_id'] == 'generated_document_current' &&
+            row['file_path'] ==
+                '$docRoot${Platform.pathSeparator}reading_notes.md' &&
+            ((row['metadata'] as Map)['manifest_path'] as String)
+                .endsWith('generation_manifest.json')),
+        isTrue);
+    expect(
+        artifactRows.any((row) =>
+            row['artifact_id'] == 'edited_document_current' &&
+            row['file_path'] == editedPath &&
+            row['source_id'] == 'save_edited_document'),
+        isTrue);
 
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -9859,6 +9931,14 @@ void main() {
         controller.state.documentCitationsPath);
     expect(reloadedController.state.documentValidationReportPath,
         controller.state.documentValidationReportPath);
+    expect(
+        reloadedController.state.eventLedgerRecords
+            .map((record) => record.action),
+        contains('save_edited_document'));
+    expect(
+        reloadedController.state.artifactRecords
+            .map((record) => record.artifactId),
+        contains('edited_document_current'));
   });
 
   test('document template registry has artifact lifecycle evidence', () async {
