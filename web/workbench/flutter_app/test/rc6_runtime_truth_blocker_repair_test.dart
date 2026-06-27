@@ -7777,36 +7777,59 @@ void main() {
           'source_name': 'alpha.md',
           'relative_path': 'alpha.md',
         },
+        {
+          'document_id': 'doc_beta',
+          'source_name': 'beta.md',
+          'relative_path': 'beta.md',
+        },
       ],
-      inputChunks: const [],
+      inputChunks: const [
+        {
+          'source_doc_id': 'doc_beta',
+          'relative_path': 'beta.md',
+          'text': 'beta fallback evidence',
+          'heading_path': ['Beta'],
+          'block_ids': ['doc_beta_block_001'],
+        },
+      ],
     );
 
-    expect(result.chunks, hasLength(1));
-    expect(result.chunks.single['text'], 'canonical parsed document evidence');
-    expect(result.chunks.single['block_ids'], ['doc_alpha_intro']);
-    expect(result.chunks.single['heading_path'], ['Canonical']);
-    expect(result.chunks.single['page_number'], 7);
-    expect(result.chunks.single['section_id'], 'sec-intro');
-    expect(result.chunks.single['source_span'], {'start': 11, 'end': 47});
-    expect((result.chunks.single['lineage'] as Map)['parsed_document_source'],
+    expect(result.chunks, hasLength(2));
+    final alphaChunk = result.chunks
+        .firstWhere((chunk) => chunk['source_doc_id'] == 'doc_alpha');
+    final betaChunk = result.chunks
+        .firstWhere((chunk) => chunk['source_doc_id'] == 'doc_beta');
+    expect(alphaChunk['text'], 'canonical parsed document evidence');
+    expect(alphaChunk['block_ids'], ['doc_alpha_intro']);
+    expect(alphaChunk['heading_path'], ['Canonical']);
+    expect(alphaChunk['page_number'], 7);
+    expect(alphaChunk['section_id'], 'sec-intro');
+    expect(alphaChunk['source_span'], {'start': 11, 'end': 47});
+    expect((alphaChunk['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
-    expect((result.chunks.single['lineage'] as Map)['page_number'], 7);
-    expect((result.chunks.single['lineage'] as Map)['section_id'],
-        'sec-intro');
-    expect((result.chunks.single['lineage'] as Map)['source_span'],
+    expect((alphaChunk['lineage'] as Map)['page_number'], 7);
+    expect((alphaChunk['lineage'] as Map)['section_id'], 'sec-intro');
+    expect((alphaChunk['lineage'] as Map)['source_span'],
         {'start': 11, 'end': 47});
-    expect(result.chunks.single['text'], isNot(contains('fallback-only')));
+    expect(alphaChunk['text'], isNot(contains('fallback-only')));
+    expect(betaChunk['text'], 'beta fallback evidence');
+    expect(betaChunk['block_ids'], ['doc_beta_block_001']);
+    expect(betaChunk['heading_path'], ['Beta']);
 
     final writtenChunks = readJsonlFile(
         '${kbDir.path}${Platform.pathSeparator}chunks.jsonl');
     final writtenTrace = readJsonlFile(
         '${kbDir.path}${Platform.pathSeparator}source_trace.jsonl');
-    expect(writtenChunks.single['source_trace_id'],
-        writtenTrace.single['source_trace_id']);
-    expect(writtenTrace.single['page_number'], 7);
-    expect(writtenTrace.single['section_id'], 'sec-intro');
-    expect(writtenTrace.single['source_span'], {'start': 11, 'end': 47});
-    expect((writtenTrace.single['lineage'] as Map)['parsed_document_source'],
+    expect(writtenChunks.map((chunk) => chunk['source_doc_id']).toSet(),
+        {'doc_alpha', 'doc_beta'});
+    expect(writtenTrace.map((trace) => trace['source_doc_id']).toSet(),
+        {'doc_alpha', 'doc_beta'});
+    final alphaTrace = writtenTrace
+        .firstWhere((trace) => trace['source_doc_id'] == 'doc_alpha');
+    expect(alphaTrace['page_number'], 7);
+    expect(alphaTrace['section_id'], 'sec-intro');
+    expect(alphaTrace['source_span'], {'start': 11, 'end': 47});
+    expect((alphaTrace['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
   });
   test('prd external Skill import localizes real file content into workspace',

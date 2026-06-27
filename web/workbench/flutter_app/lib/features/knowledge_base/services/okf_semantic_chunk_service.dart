@@ -28,29 +28,24 @@ class OkfSemanticChunkService {
     final sourceDocsByRelativePath = {
       for (final doc in sourceDocs) _normalize(doc['relative_path']): doc,
     };
-    final parsedResult = await _semanticChunksFromParsedDocuments(
-      kbId: kbId,
-      sourceDocs: sourceDocs,
-      normalizedByRelativePath: normalizedByRelativePath,
-    );
-    if (parsedResult.chunks.isNotEmpty) {
-      await _writeJsonl(
-        File(_join(kbDir.path, 'chunks.jsonl')),
-        parsedResult.chunks,
-      );
-      await _writeJsonl(
-        File(_join(kbDir.path, 'source_trace.jsonl')),
-        parsedResult.sourceTraceRows,
-      );
-      return parsedResult;
-    }
-
     final allowedRelativePaths = sourceDocsByRelativePath.keys
         .where((key) => key.isNotEmpty)
         .toSet();
     final resultChunks = <Map<String, dynamic>>[];
     final traceRows = <Map<String, dynamic>>[];
     var fallbackIndex = 0;
+
+    final parsedResult = await _semanticChunksFromParsedDocuments(
+      kbId: kbId,
+      sourceDocs: sourceDocs,
+      normalizedByRelativePath: normalizedByRelativePath,
+    );
+    resultChunks.addAll(parsedResult.chunks);
+    traceRows.addAll(parsedResult.sourceTraceRows);
+    final parsedRelativePaths = parsedResult.chunks
+        .map((chunk) => _normalize(chunk['relative_path']))
+        .where((path) => path.isNotEmpty)
+        .toSet();
 
     for (final entry in inputChunks.asMap().entries) {
       final input = entry.value;
@@ -63,6 +58,9 @@ class OkfSemanticChunkService {
       );
       if (allowedRelativePaths.isNotEmpty &&
           !allowedRelativePaths.contains(_normalize(relativePath))) {
+        continue;
+      }
+      if (parsedRelativePaths.contains(_normalize(relativePath))) {
         continue;
       }
       final sourceDoc =
@@ -144,8 +142,21 @@ class OkfSemanticChunkService {
       });
     }
 
-    if (resultChunks.isEmpty && sourceDocs.isNotEmpty) {
-      for (final sourceDoc in sourceDocs) {
+    final coveredRelativePaths = resultChunks
+        .map((chunk) => _normalize(chunk['relative_path'] ??
+            chunk['source_document'] ??
+            chunk['source_path']))
+        .where((path) => path.isNotEmpty)
+        .toSet();
+    final missingSourceDocs = sourceDocs.where((sourceDoc) {
+      final relativePath = _stringValue(sourceDoc['relative_path'],
+          _stringValue(sourceDoc['source_name']));
+      return relativePath.isNotEmpty &&
+          !coveredRelativePaths.contains(_normalize(relativePath));
+    }).toList(growable: false);
+
+    if (missingSourceDocs.isNotEmpty) {
+      for (final sourceDoc in missingSourceDocs) {
         fallbackIndex += 1;
         final relativePath = _stringValue(
           sourceDoc['relative_path'],
