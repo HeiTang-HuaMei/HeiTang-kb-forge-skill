@@ -48,8 +48,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = await _resolveWorkspace();
     await workspace.create(recursive: true);
     _workspaceDir = workspace;
+    final workbookManifest = await _readWorkbookManifest(workspace);
+    final currentWorkbookName = workbookManifest.$1;
+    final workbookWorkspace =
+        _workbookWorkspaceDir(workspace, currentName: currentWorkbookName);
     state = state.copyWith(
-      workspacePath: workspace.path,
+      workspacePath: workbookWorkspace.path,
+      currentWorkbookName: currentWorkbookName,
+      workbookNames: workbookManifest.$2,
       phase: Rc6RuntimePhase.ready,
       lastMessage: 'rc10 产品链路本地工作区已准备。',
     );
@@ -193,15 +199,18 @@ class Rc6RuntimeController extends ChangeNotifier {
       return;
     }
     final workbookName = name.trim().isEmpty ? '默认工作本' : name.trim();
-    final workspace = _requireWorkspace();
+    final workspace = _requireWorkspaceRoot();
     final manifestPath = await _writeWorkbookManifest(
       workspace,
       currentName: workbookName,
       addName: workbookName,
     );
-    await _loadExistingArtifacts();
+    final workbookWorkspace =
+        _workbookWorkspaceDir(workspace, currentName: workbookName);
+    await _loadExistingArtifacts(workbookWorkspace);
     state = state.copyWith(
       currentWorkbookName: workbookName,
+      workspacePath: workbookWorkspace.path,
       workbookManifestPath: manifestPath,
       lastMessage: '已切换到工作本：$workbookName。',
       lastError: '',
@@ -231,7 +240,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (workbookName.isEmpty) {
       return;
     }
-    final workspace = _requireWorkspace();
+    final workspace = _requireWorkspaceRoot();
     final result = await _deleteWorkbookFromManifest(workspace, workbookName);
     if (result == null) {
       state = state.copyWith(
@@ -241,10 +250,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    await _deleteWorkbookAssetDirectory(workspace, workbookName);
     final (manifestPath, currentName, workbookNames) = result;
-    await _loadExistingArtifacts();
+    final workbookWorkspace =
+        _workbookWorkspaceDir(workspace, currentName: currentName);
+    await _loadExistingArtifacts(workbookWorkspace);
     state = state.copyWith(
       currentWorkbookName: currentName,
+      workspacePath: workbookWorkspace.path,
       workbookManifestPath: manifestPath,
       workbookNames: workbookNames,
       lastMessage: '已删除工作本：$workbookName。',
@@ -20626,11 +20639,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       await _writeExporterValidationReport(workspace, settings: defaults);
     }
 
+    final workspaceRoot = _requireWorkspaceRoot();
     if (!await File(
-            _join(workspace.path, 'workbooks', 'workbook_manifest.json'))
+            _join(workspaceRoot.path, 'workbooks', 'workbook_manifest.json'))
         .exists()) {
       await _writeWorkbookManifest(
-        workspace,
+        workspaceRoot,
         currentName: state.currentWorkbookName,
         addName: state.currentWorkbookName,
       );
@@ -35044,8 +35058,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadExistingArtifacts() async {
-    final workspace = _workspaceDir;
+  Future<void> _loadExistingArtifacts([Directory? targetWorkspace]) async {
+    final workspace = targetWorkspace ?? _currentWorkbookWorkspace();
     if (workspace == null || !await workspace.exists()) {
       return;
     }
@@ -35214,8 +35228,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'tasks/parallel_validation/task_recovery_report.json');
     final kbCatalogPath =
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
+    final workspaceRoot = _requireWorkspaceRoot();
     final workbookManifestPath =
-        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+        _join(workspaceRoot.path, 'workbooks', 'workbook_manifest.json');
 
     final importReport = await _readJsonObject(importReportPath);
     final sourceManifest = await _readJsonObject(sourceManifestPath);
@@ -35226,7 +35241,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         await File(multiQueryPath).exists() ? multiQueryPath : singleQueryPath;
     final queryReport = await _readJsonObject(queryPath);
     final kbCatalog = await _readJsonObject(kbCatalogPath);
-    final workbookManifest = await _readWorkbookManifest(workspace);
+    final workbookManifest = await _readWorkbookManifest(workspaceRoot);
 
     final sourceNames = _sourceNamesFromManifest(sourceManifest);
     final sourceRecords = _sourceRecordsFromManifest(sourceManifest);
@@ -35241,8 +35256,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         state.sourceCount;
     final refreshedWorkbookManifestPath =
         await _refreshCurrentWorkbookAssetIndex(
-      workspace,
+      workspaceRoot,
       workbookManifest.$1,
+      workspace,
       sourceCount,
       kbCatalog,
     );
@@ -35806,35 +35822,32 @@ class Rc6RuntimeController extends ChangeNotifier {
             .toList(growable: true)
         : <Map<String, dynamic>>[];
     final now = DateTime.now().toUtc().toIso8601String();
+    final normalizedAdd = addName.trim().isEmpty ? '默认工作本' : addName.trim();
+    final assetWorkspace =
+        _workbookWorkspaceDir(workspace, currentName: normalizedAdd);
+    final assetIndex = await _workbookAssetIndex(assetWorkspace);
+    final assetSourceCount = _asInt(assetIndex['source_document_count']) ?? 0;
+    final assetKnowledgeBaseCount =
+        _listOfStrings(assetIndex['knowledge_base_ids']).length;
     if (rows.isEmpty) {
       rows.add({
-        'workbook_id': 'WB_${_stableHash(state.currentWorkbookName)}',
-        'name': state.currentWorkbookName,
-        'status':
-            state.currentWorkbookName == currentName ? 'active' : 'available',
+        'workbook_id': 'WB_${_stableHash(normalizedAdd)}',
+        'name': normalizedAdd,
+        'status': normalizedAdd == currentName ? 'active' : 'available',
         'created_at': now,
         'last_opened_at': now,
-        'document_count': state.sourceCount,
-        'knowledge_base_count': state.knowledgeBases.isNotEmpty
-            ? state.knowledgeBases.length
-            : state.hasKnowledgeBase
-                ? 1
-                : 0,
+        'document_count': assetSourceCount,
+        'knowledge_base_count': assetKnowledgeBaseCount,
+        'asset_index': assetIndex,
       });
     }
-    final normalizedAdd = addName.trim().isEmpty ? '默认工作本' : addName.trim();
-    final assetIndex = await _workbookAssetIndex(workspace);
     var found = false;
     for (final row in rows) {
       if ((row['name'] ?? '').toString() == normalizedAdd) {
         row['status'] = 'active';
         row['last_opened_at'] = now;
-        row['document_count'] = state.sourceCount;
-        row['knowledge_base_count'] = state.knowledgeBases.isNotEmpty
-            ? state.knowledgeBases.length
-            : state.hasKnowledgeBase
-                ? 1
-                : 0;
+        row['document_count'] = assetSourceCount;
+        row['knowledge_base_count'] = assetKnowledgeBaseCount;
         row['asset_index'] = assetIndex;
         found = true;
       } else {
@@ -35848,12 +35861,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'status': 'active',
         'created_at': now,
         'last_opened_at': now,
-        'document_count': state.sourceCount,
-        'knowledge_base_count': state.knowledgeBases.isNotEmpty
-            ? state.knowledgeBases.length
-            : state.hasKnowledgeBase
-                ? 1
-                : 0,
+        'document_count': assetSourceCount,
+        'knowledge_base_count': assetKnowledgeBaseCount,
         'asset_index': assetIndex,
       });
     }
@@ -35939,14 +35948,36 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<void> _deleteWorkbookAssetDirectory(
+    Directory workspaceRoot,
+    String workbookName,
+  ) async {
+    final assetsRoot =
+        Directory(_joinNested(workspaceRoot.path, 'workbooks/assets'));
+    final target =
+        _workbookWorkspaceDir(workspaceRoot, currentName: workbookName);
+    final normalizedRoot =
+        assetsRoot.absolute.path.endsWith(Platform.pathSeparator)
+            ? assetsRoot.absolute.path
+            : '${assetsRoot.absolute.path}${Platform.pathSeparator}';
+    final normalizedTarget = target.absolute.path;
+    if (!normalizedTarget.startsWith(normalizedRoot)) {
+      throw StateError('refuse to delete workbook assets outside workspace');
+    }
+    if (await target.exists()) {
+      await target.delete(recursive: true);
+    }
+  }
+
   Future<String> _refreshCurrentWorkbookAssetIndex(
-    Directory workspace,
+    Directory workspaceRoot,
     String currentName,
+    Directory assetWorkspace,
     int sourceCount,
     Map<String, dynamic> kbCatalog,
   ) async {
     final manifestPath =
-        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+        _join(workspaceRoot.path, 'workbooks', 'workbook_manifest.json');
     final manifestFile = File(manifestPath);
     if (!await manifestFile.exists()) {
       return '';
@@ -35969,7 +36000,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (index < 0) {
       return manifestPath;
     }
-    rows[index]['asset_index'] = await _workbookAssetIndex(workspace);
+    rows[index]['asset_index'] = await _workbookAssetIndex(assetWorkspace);
     rows[index]['document_count'] = sourceCount;
     rows[index]['knowledge_base_count'] = _catalogRecords(kbCatalog).length;
     rows[index]['updated_at'] = DateTime.now().toUtc().toIso8601String();
@@ -36170,7 +36201,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'agent_artifacts': agentArtifacts,
       'audit_artifacts': auditArtifacts,
       'secret_plaintext_written': false,
-      'directory_isolation': 'single_workspace_asset_index',
+      'directory_isolation': 'workbook_asset_directory',
     };
   }
 
@@ -54924,11 +54955,46 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Directory _requireWorkspace() {
+    return _workbookWorkspaceDir(
+      _requireWorkspaceRoot(),
+      currentName: state.currentWorkbookName,
+    );
+  }
+
+  Directory _requireWorkspaceRoot() {
     final workspace = _workspaceDir;
     if (workspace == null) {
       throw StateError('document flow workspace is not initialized');
     }
     return workspace;
+  }
+
+  Directory? _currentWorkbookWorkspace() {
+    final workspace = _workspaceDir;
+    if (workspace == null) {
+      return null;
+    }
+    return _workbookWorkspaceDir(
+      workspace,
+      currentName: state.currentWorkbookName,
+      createIfMissing: false,
+    );
+  }
+
+  Directory _workbookWorkspaceDir(
+    Directory workspaceRoot, {
+    required String currentName,
+    bool createIfMissing = true,
+  }) {
+    final name = currentName.trim().isEmpty ? '默认工作本' : currentName.trim();
+    final dir = Directory(_joinNested(
+      workspaceRoot.path,
+      'workbooks/assets/${_safeFileName(name)}',
+    ));
+    if (createIfMissing) {
+      dir.createSync(recursive: true);
+    }
+    return dir;
   }
 
   void _fail(String message) {

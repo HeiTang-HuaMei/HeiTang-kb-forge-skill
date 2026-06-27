@@ -7419,31 +7419,6 @@ void main() {
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();
-    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
-      ..createSync(recursive: true);
-    File('${input.path}${Platform.pathSeparator}alpha.md')
-        .writeAsStringSync('alpha real document');
-    File('${input.path}${Platform.pathSeparator}beta.md')
-        .writeAsStringSync('beta real document');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
-        .writeAsStringSync(jsonEncode({
-      'source_path': input.path,
-      'sources': [
-        {
-          'document_id': 'doc_alpha',
-          'source_name': 'alpha.md',
-          'relative_path': 'alpha.md',
-        },
-        {
-          'document_id': 'doc_beta',
-          'source_name': 'beta.md',
-          'relative_path': 'beta.md',
-        },
-      ],
-    }));
-    Directory('${workspace.path}${Platform.pathSeparator}du')
-        .createSync(recursive: true);
-    writeDuRecords(workspace, ['alpha.md', 'beta.md']);
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -7454,7 +7429,7 @@ void main() {
           File('${output.path}${Platform.pathSeparator}manifest.json')
               .writeAsStringSync('{"status":"searchable"}');
           final normalizedRoot =
-              '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
+              '${output.parent.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
           File('${output.path}${Platform.pathSeparator}chunks.jsonl')
               .writeAsStringSync(jsonl([
             {
@@ -7483,14 +7458,42 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final input =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}input')
+          ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha real document');
+    File('${input.path}${Platform.pathSeparator}beta.md')
+        .writeAsStringSync('beta real document');
+    File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'source_path': input.path,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+        {
+          'document_id': 'doc_beta',
+          'source_name': 'beta.md',
+          'relative_path': 'beta.md',
+        },
+      ],
+    }));
+    Directory('${activeWorkspace.path}${Platform.pathSeparator}du')
+        .createSync(recursive: true);
+    writeDuRecords(activeWorkspace, ['alpha.md', 'beta.md']);
+
     await controller.buildKnowledgeBase(documentIds: const ['doc_alpha']);
     expect(requests.single.actionId, 'knowledge_base_build');
-    expectMainKnowledgeArtifacts(workspace, controller.state);
+    expectMainKnowledgeArtifacts(activeWorkspace, controller.state);
     expect(controller.state.knowledgeBases, hasLength(1));
     expect(controller.state.knowledgeBases.first.id, 'K1');
     expect(controller.state.knowledgeBases.first.sourceCount, 1);
     final firstCatalogFile = File(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
     final firstCatalog =
         jsonDecode(firstCatalogFile.readAsStringSync()) as Map<String, dynamic>;
     final firstRecord =
@@ -7513,16 +7516,16 @@ void main() {
     await controller.copyKnowledgeBase(fullKbId);
     final copyId = '${fullKbId}_COPY1';
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId',
         kbId: copyId);
     await controller.mergeKnowledgeBases([fullKbId, copyId]);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1',
         kbId: 'K_MERGED1');
     await controller.splitKnowledgeBase(fullKbId);
     final splitId = '${fullKbId}_SPLIT1';
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$splitId',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$splitId',
         kbId: splitId);
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
         containsAll(['K1', fullKbId, copyId, 'K_MERGED1', splitId]));
@@ -7530,7 +7533,7 @@ void main() {
 
     await controller.updateKnowledgeBaseIncremental(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
         kbId: fullKbId);
     final updatedFullKb =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
@@ -7545,33 +7548,33 @@ void main() {
 
     await controller.rollbackKnowledgeBaseVersion(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
         kbId: fullKbId);
     final rolledBackFullKb =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
     expect(rolledBackFullKb.operation, 'rollback');
     expect(rolledBackFullKb.versionCount, 1);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId${Platform.pathSeparator}rollback.log')
+        File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId${Platform.pathSeparator}rollback.log')
             .existsSync(),
         isTrue);
 
     await controller.rebuildKnowledgeBaseFull(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
         kbId: fullKbId);
     final rebuiltFullKb =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
     expect(rebuiltFullKb.operation, 'full_rebuild');
 
     final catalogFile = File(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
     final catalog =
         jsonDecode(catalogFile.readAsStringSync()) as Map<String, dynamic>;
     expect(catalog['schema_version'], 'prd_v2_knowledge_base_catalog.v1');
     expect(catalog['knowledge_bases'], isA<List>());
     expect(
-        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1${Platform.pathSeparator}source_map.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1${Platform.pathSeparator}source_map.json')
             .existsSync(),
         isTrue);
 
@@ -7580,7 +7583,7 @@ void main() {
         isNot(contains(copyId)));
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId')
+                '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId')
             .existsSync(),
         isFalse);
   });
@@ -20055,11 +20058,26 @@ void main() {
 
   test('prd workbook creation and switching persists across restart', () async {
     final workspace = await createWorkspace();
-    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('产品研究工作本');
+    final researchWorkspace = Directory(controller.state.workspacePath);
+    final input =
+        Directory('${researchWorkspace.path}${Platform.pathSeparator}input')
       ..createSync(recursive: true);
     File('${input.path}${Platform.pathSeparator}alpha.md')
         .writeAsStringSync('alpha workbook source');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+    File('${researchWorkspace.path}${Platform.pathSeparator}source_manifest.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'rc10_source_manifest.v1',
       'source_path': input.path,
@@ -20073,9 +20091,9 @@ void main() {
         }
       ]
     }));
-    final kbCatalogDir =
-        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
-          ..createSync(recursive: true);
+    final kbCatalogDir = Directory(
+        '${researchWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
     File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'prd_v2_knowledge_base_catalog.v1',
@@ -20090,17 +20108,17 @@ void main() {
       ],
     }));
     final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+        '${researchWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
       ..createSync(recursive: true);
     File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
         .writeAsStringSync('# Skill');
     final agentDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+        '${researchWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
       ..createSync(recursive: true);
     File('${agentDir.path}${Platform.pathSeparator}agent_manifest.json')
         .writeAsStringSync('{"agent_id":"A"}');
     final auditDir =
-        Directory('${workspace.path}${Platform.pathSeparator}audit')
+        Directory('${researchWorkspace.path}${Platform.pathSeparator}audit')
           ..createSync(recursive: true);
     File('${auditDir.path}${Platform.pathSeparator}audit_report.json')
         .writeAsStringSync('{"status":"pass"}');
@@ -20115,8 +20133,6 @@ void main() {
           isWebRuntime: false,
         );
 
-    final controller = buildController();
-    await controller.initialize();
     await controller.createOrSwitchWorkbook('产品研究工作本');
     await controller.createOrSwitchWorkbook('运营复盘工作本');
 
@@ -20132,24 +20148,27 @@ void main() {
     final assetIndex =
         (activeWorkbook['asset_index'] as Map).cast<String, dynamic>();
     expect(assetIndex['schema_version'], 'prd_v2_workbook_asset_index.v1');
-    expect(assetIndex['workspace_boundary'], workspace.path);
-    expect(assetIndex['source_manifest_path'],
-        '${workspace.path}${Platform.pathSeparator}source_manifest.json');
-    expect(assetIndex['document_ids'], contains('doc_alpha'));
-    expect(assetIndex['knowledge_base_ids'], contains('K1'));
+    expect(assetIndex['workspace_boundary'], controller.state.workspacePath);
+    expect(assetIndex['source_manifest_path'], isEmpty);
+    expect(assetIndex['document_ids'], isEmpty);
+    expect(assetIndex['knowledge_base_ids'], isEmpty);
     expect(assetIndex['knowledge_index_artifacts'], isA<List>());
-    expect(assetIndex['skill_artifacts'], isNotEmpty);
-    expect(assetIndex['agent_artifacts'], isNotEmpty);
-    expect(assetIndex['audit_artifacts'], isNotEmpty);
+    expect(assetIndex['skill_artifacts'], isEmpty);
+    expect(assetIndex['agent_artifacts'], isEmpty);
+    expect(assetIndex['audit_artifacts'], isEmpty);
     expect(assetIndex['secret_plaintext_written'], isFalse);
-    expect(assetIndex['directory_isolation'], 'single_workspace_asset_index');
+    expect(assetIndex['directory_isolation'], 'workbook_asset_directory');
     expect(controller.state.currentWorkbookName, '运营复盘工作本');
+    expect(controller.state.workspacePath,
+        contains('workbooks${Platform.pathSeparator}assets'));
     expect(controller.state.workbookNames,
         containsAll(['默认工作本', '产品研究工作本', '运营复盘工作本']));
 
     final reloaded = buildController();
     await reloaded.initialize();
     expect(reloaded.state.currentWorkbookName, '运营复盘工作本');
+    expect(reloaded.state.workspacePath,
+        contains('运营复盘工作本'));
     expect(reloaded.state.workbookManifestPath, manifest.path);
     expect(reloaded.state.workbookNames, containsAll(['产品研究工作本', '运营复盘工作本']));
   });
@@ -20460,6 +20479,7 @@ void main() {
     final controller = buildController();
     await controller.initialize();
     await controller.createOrSwitchWorkbook('产品研究工作本');
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final manifestPath =
         '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}workbook_manifest.json';
     var payload = jsonDecode(File(manifestPath).readAsStringSync())
@@ -20469,11 +20489,12 @@ void main() {
         .firstWhere((row) => row['name'] == '产品研究工作本');
     expect((activeWorkbook['asset_index'] as Map)['document_ids'], isEmpty);
 
-    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
-      ..createSync(recursive: true);
+    final input =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}input')
+          ..createSync(recursive: true);
     File('${input.path}${Platform.pathSeparator}alpha.md')
         .writeAsStringSync('alpha workbook source');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+    File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'rc10_source_manifest.v1',
       'source_path': input.path,
@@ -20487,9 +20508,9 @@ void main() {
         }
       ]
     }));
-    final kbCatalogDir =
-        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
-          ..createSync(recursive: true);
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
     File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'prd_v2_knowledge_base_catalog.v1',
@@ -20498,41 +20519,41 @@ void main() {
       ],
     }));
     final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
       ..createSync(recursive: true);
     File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
         .writeAsStringSync('# Skill');
     final skillOps = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations')
       ..createSync(recursive: true);
     final skillBindingPath =
         '${skillOps.path}${Platform.pathSeparator}agent_binding_manifest.json';
     File(skillBindingPath).writeAsStringSync('{"status":"bound"}');
     final skillExportDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports')
       ..createSync(recursive: true);
     final skillExportPath =
         '${skillExportDir.path}${Platform.pathSeparator}skills_export.md';
     File(skillExportPath).writeAsStringSync('# exported Skill');
     final agentDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
       ..createSync(recursive: true);
     File('${agentDir.path}${Platform.pathSeparator}agent_manifest.json')
         .writeAsStringSync('{"agent_id":"A"}');
     final dialogueExportDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
       ..createSync(recursive: true);
     final dialogueExportPath =
         '${dialogueExportDir.path}${Platform.pathSeparator}agent_dialogue_export.md';
     File(dialogueExportPath).writeAsStringSync('# dialogue export');
     final multiAgentDir =
-        Directory('${workspace.path}${Platform.pathSeparator}multi_agent')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}multi_agent')
           ..createSync(recursive: true);
     final discussionPath =
         '${multiAgentDir.path}${Platform.pathSeparator}multi_agent_discussion.md';
     File(discussionPath).writeAsStringSync('# A2A discussion');
     final a2aDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
       ..createSync(recursive: true);
     final a2aSessionManifestPath =
         '${a2aDir.path}${Platform.pathSeparator}a2a_session_manifest.json';
