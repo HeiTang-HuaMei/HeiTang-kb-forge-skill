@@ -42,3 +42,32 @@ running_ui_workspace = UI008_DeleteTmp
 backend_manifest_current_workbook = UI008_DeleteTmp
 capability_chain_status_json_unchanged = true
 ```
+
+### WORKSPACE-S1-002
+
+```text
+defect_id = WORKSPACE-S1-002
+severity = S1
+module = Workspace
+page = runtime/controller workspace lifecycle
+user_path = create workbook -> switch workbook -> delete workbook -> restart -> inspect operation evidence
+expected_behavior = workspace create/switch/delete writes durable Event Ledger records so restart recovery and support diagnostics can explain who changed the active workspace and what was deleted
+actual_behavior = clean HEAD plus the workbook event-ledger E2E did not create audit/event_ledger.jsonl for workbook create/switch/delete, so the workspace manifest changed without operation evidence
+root_cause_category = event_not_recorded
+root_cause_evidence = Rc6RuntimeController.createOrSwitchWorkbook and deleteWorkbook updated workbook_manifest.json and runtime state but never called _appendEventLedgerRecord on the successful path
+minimal_fix_scope = append workspace_lifecycle Event Ledger records for successful create_workbook and delete_workbook operations; add a targeted restart-readable ledger E2E
+white_box_result = pass
+black_box_result = covered by existing running UI workspace-chain recovery evidence
+regression_result = pass
+commit_id = this commit
+```
+
+Evidence:
+
+```text
+failing_test_before_fix = output/module_repair/module3_workspace/module3_workbook_event_ledger_before_fix.log -> ledger.existsSync expected true, actual false
+targeted_test_after_fix = output/module_repair/module3_workspace/module3_workbook_event_ledger_after_fix.log -> All tests passed
+workspace_delete_restart_regression = output/module_repair/module3_workspace/module3_prd_workbook_deletion_persists_after_event_ledger_fix.log -> All tests passed
+code_quality_gate = output/module_repair/module3_workspace/module3_flutter_analyze_after_workbook_event_ledger_fix.log -> No issues found
+capability_chain_status_json_unchanged = true
+```

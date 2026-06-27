@@ -205,6 +205,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: '已切换到工作本：$workbookName。',
       lastError: '',
     );
+    await _appendEventLedgerRecord(
+      eventType: 'workspace_lifecycle',
+      module: 'workspace',
+      action: 'create_workbook',
+      status: 'completed',
+      targetId: 'WB_${_stableHash(workbookName)}',
+      targetName: workbookName,
+      artifactPath: manifestPath,
+      source: 'workbook_manifest',
+      metadata: {
+        'current_workbook': workbookName,
+        'workbook_manifest_path': manifestPath,
+      },
+    );
     notifyListeners();
   }
 
@@ -234,6 +248,21 @@ class Rc6RuntimeController extends ChangeNotifier {
       workbookNames: workbookNames,
       lastMessage: '已删除工作本：$workbookName。',
       lastError: '',
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'workspace_lifecycle',
+      module: 'workspace',
+      action: 'delete_workbook',
+      status: 'completed',
+      targetId: 'WB_${_stableHash(workbookName)}',
+      targetName: workbookName,
+      artifactPath: manifestPath,
+      source: 'workbook_manifest',
+      metadata: {
+        'deleted_workbook': workbookName,
+        'next_current_workbook': currentName,
+        'remaining_workbook_count': workbookNames.length,
+      },
     );
     notifyListeners();
   }

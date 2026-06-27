@@ -20003,6 +20003,49 @@ void main() {
     expect(reloaded.state.workbookNames, isNot(contains('运营复盘工作本')));
   });
 
+  test('prd workbook operations write event ledger across restart', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('产品研究工作本');
+    await controller.createOrSwitchWorkbook('运营复盘工作本');
+    await controller.deleteWorkbook('产品研究工作本');
+
+    final ledger = File(
+        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+    expect(ledger.existsSync(), isTrue);
+    final rows = ledger
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(rows.where((row) => row['action'] == 'create_workbook'), hasLength(2));
+    expect(rows.where((row) => row['action'] == 'delete_workbook'), hasLength(1));
+    expect(rows.map((row) => row['target_name']), contains('产品研究工作本'));
+    expect(rows.map((row) => row['target_name']), contains('运营复盘工作本'));
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.eventLedgerRecords.map((record) => record.action),
+        containsAll(['create_workbook', 'delete_workbook']));
+    expect(
+        reloaded.state.eventLedgerRecords.any((record) =>
+            record.action == 'delete_workbook' &&
+            record.targetName == '产品研究工作本' &&
+            record.status == 'completed'),
+        isTrue);
+  });
   test('phase 1b workspace import kb lifecycle e2e persists and deletes safely',
       () async {
     final workspace = await createWorkspace();
