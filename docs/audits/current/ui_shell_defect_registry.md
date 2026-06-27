@@ -44,3 +44,42 @@ intermediate_workspace_created = 新知识工作
 auto_deleted = false
 reason_not_deleted = not a UI008_ test marker
 ```
+
+### UISHELL-S1-002
+
+```text
+defect_id = UISHELL-S1-002
+severity = S1
+module = UI shell / Knowledge Base page language state
+page = Knowledge Base
+user_path = switch running UI to English -> open Knowledge Base -> inspect primary build action
+expected_behavior = English Knowledge Base page uses the design-source user action wording "Generate Knowledge Base"; old or implementation-like wording must not remain visible
+actual_behavior = widget regression previously failed when the expected English action was missing; fresh running UI now shows the English Knowledge Base page with the disabled "Generate Knowledge Base" action when no source materials exist
+root_cause_category = copy_contract_drift
+root_cause_evidence = docs/design_source/I18N_AND_COPYWRITING_SPEC.md keeps the ordinary user action as generate/build knowledge base; merge-only copy is reserved for "Merge into new KB"
+minimal_fix_scope = restore the Knowledge Base primary action label in web/workbench/flutter_app/lib/features/knowledge_base/knowledge_base_product_workflow.dart without changing gates or state machine
+white_box_result = pass
+black_box_result = pass
+regression_result = pass
+commit_id = evidence commit for UISHELL-S1-002
+```
+
+Evidence:
+
+```text
+source_label = web/workbench/flutter_app/lib/features/knowledge_base/knowledge_base_product_workflow.dart:730 -> Generate Knowledge Base
+old_copy_scan = rg found no "Create new Knowledge Base" in lib/ or test/
+widget_test = output/module_repair/phase2_ui_shell/phase2_english_mode_test_after_kb_copy_fix.log -> All tests passed
+analyze = output/module_repair/phase2_ui_shell/phase2_flutter_analyze_after_kb_copy_fix.log -> No issues found
+running_ui_method = flutter run -d windows
+running_ui_meta = output/module_repair/phase2_ui_shell/phase2_running_ui_restart_meta_20260627_224407.json
+running_ui_pid = 11504
+running_ui_git_head = 7ab3ce5
+running_ui_dirty_marker = true
+running_ui_workspace = UI008_DeleteTmp
+running_ui_visible_page = Knowledge Base
+running_ui_visible_tabs = Overview, Sources, Verification
+running_ui_visible_primary_action = Generate Knowledge Base
+running_ui_forbidden_old_copy_visible = false
+capability_chain_status_json_unchanged = true
+```
