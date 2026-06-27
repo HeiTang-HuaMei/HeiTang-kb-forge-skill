@@ -9490,6 +9490,17 @@ void main() {
           'citation': 'alpha.txt#chunk=1',
           'kb_id': 'K2',
           'kb_name': '真实输入知识库',
+          'chunk_id': 'K2_chunk_001',
+          'source_trace_id': 'trace_K2_alpha_001',
+          'source_doc_id': 'doc_alpha',
+          'source_document': 'alpha.txt',
+          'page_number': 3,
+          'section_id': 'sec-product',
+          'block_ids': ['doc_alpha_block_001'],
+          'heading_path': ['产品分析'],
+          'lineage': {
+            'parsed_document_source': 'canonical_blocks',
+          },
         }
       ],
     }));
@@ -9566,7 +9577,23 @@ void main() {
         allOf(
           contains('prd_v3_document_citations.v1'),
           contains('alpha.txt#chunk=1'),
+          contains('trace_K2_alpha_001'),
+          contains('K2_chunk_001'),
+          contains('doc_alpha'),
         ));
+    final citationsJson = jsonDecode(
+            File(controller.state.documentCitationsPath).readAsStringSync())
+        as Map<String, dynamic>;
+    final citation = (citationsJson['citations'] as List).single as Map;
+    expect(citation['source_trace_id'], 'trace_K2_alpha_001');
+    expect(citation['chunk_id'], 'K2_chunk_001');
+    expect(citation['source_doc_id'], 'doc_alpha');
+    expect(citation['source_document'], 'alpha.txt');
+    expect(citation['page_number'], 3);
+    expect(citation['section_id'], 'sec-product');
+    expect(citation['block_ids'], ['doc_alpha_block_001']);
+    expect(citation['heading_path'], ['产品分析']);
+    expect(citation['trace_complete'], isTrue);
     expect(
         File(controller.state.documentValidationReportPath).readAsStringSync(),
         allOf(
@@ -9579,6 +9606,10 @@ void main() {
     expect(generationManifestJson['selected_kb_id'], 'K2');
     expect(generationManifestJson['selected_kb_ids'], ['K2']);
     expect(generationManifestJson['source_kb_ids'], ['K2']);
+    expect(
+        ((generationManifestJson['citations'] as List).single
+            as Map)['source_trace_id'],
+        'trace_K2_alpha_001');
     expect(generationManifestJson['generation_history'], hasLength(2));
     final historyEntries =
         (generationManifestJson['generation_history'] as List)
@@ -9677,7 +9708,8 @@ void main() {
     final structuredPayload = jsonDecode(File(
             '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
         .readAsStringSync()) as Map<String, dynamic>;
-    expect((structuredPayload['knowledge_base'] as Map)['selected_kb_id'], 'K2');
+    expect(
+        (structuredPayload['knowledge_base'] as Map)['selected_kb_id'], 'K2');
     expect(
         (structuredPayload['knowledge_base'] as Map)['source_kb_ids'], ['K2']);
 

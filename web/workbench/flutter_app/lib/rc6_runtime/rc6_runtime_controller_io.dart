@@ -38044,23 +38044,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
-  static List<Map<String, String>> _citationsFromQueryReport(
+  static List<Map<String, Object?>> _citationsFromQueryReport(
       Map<String, dynamic> queryReport) {
-    final rows = queryReport['selected'] ??
-        queryReport['results'] ??
-        queryReport['records'];
-    if (rows is! List) return const <Map<String, String>>[];
-    return rows
-        .whereType<Map>()
-        .map((row) => {
-              'text': _compact(row['text'] ?? row['excerpt'] ?? row['title']),
-              'citation':
-                  (row['citation'] ?? row['source_path'] ?? '').toString(),
-              'kb_id': (row['kb_id'] ?? '').toString(),
-              'kb_name': (row['kb_name'] ?? '').toString(),
-            })
-        .where((row) => row['citation']!.trim().isNotEmpty)
-        .toList(growable: false);
+    return const DocumentCitationTraceService().fromQueryReport(queryReport);
   }
 
   Future<Map<String, Object?>> _structuredDocumentExportPayload(
