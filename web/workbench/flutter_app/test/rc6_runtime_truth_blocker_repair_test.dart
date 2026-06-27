@@ -7502,61 +7502,67 @@ void main() {
 
     await controller
         .buildKnowledgeBase(documentIds: const ['doc_alpha', 'doc_beta']);
-    final fullKb =
+    final alphaKb =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
+    expect(alphaKb.sourceCount, 1);
+    final fullKb = controller.state.knowledgeBases
+        .firstWhere((kb) => kb.id != 'K1' && kb.sourceCount == 2);
+    final fullKbId = fullKb.id;
     expect(fullKb.sourceCount, 2);
 
-    await controller.copyKnowledgeBase('K1');
+    await controller.copyKnowledgeBase(fullKbId);
+    final copyId = '${fullKbId}_COPY1';
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_COPY1',
-        kbId: 'K1_COPY1');
-    await controller.mergeKnowledgeBases(['K1', 'K1_COPY1']);
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId',
+        kbId: copyId);
+    await controller.mergeKnowledgeBases([fullKbId, copyId]);
     expectIndustrialIndexArtifacts(
         '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1',
         kbId: 'K_MERGED1');
-    await controller.splitKnowledgeBase('K1');
+    await controller.splitKnowledgeBase(fullKbId);
+    final splitId = '${fullKbId}_SPLIT1';
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_SPLIT1',
-        kbId: 'K1_SPLIT1');
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$splitId',
+        kbId: splitId);
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
-        containsAll(['K1', 'K1_COPY1', 'K_MERGED1', 'K1_SPLIT1']));
-    expect(controller.state.knowledgeBases.first.versionCount, 1);
+        containsAll(['K1', fullKbId, copyId, 'K_MERGED1', splitId]));
+    expect(fullKb.versionCount, 1);
 
-    await controller.updateKnowledgeBaseIncremental('K1');
+    await controller.updateKnowledgeBaseIncremental(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
-        kbId: 'K1');
-    final updatedK1 =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
-    expect(updatedK1.operation, 'incremental_update');
-    expect(updatedK1.versionCount, 2);
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        kbId: fullKbId);
+    final updatedFullKb =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
+    expect(updatedFullKb.operation, 'incremental_update');
+    expect(updatedFullKb.versionCount, 2);
 
-    await controller.compareKnowledgeBaseVersions('K1');
-    final comparedK1 =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
-    expect(comparedK1.versionComparePath, isNotEmpty);
-    expect(File(comparedK1.versionComparePath).existsSync(), isTrue);
+    await controller.compareKnowledgeBaseVersions(fullKbId);
+    final comparedFullKb =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
+    expect(comparedFullKb.versionComparePath, isNotEmpty);
+    expect(File(comparedFullKb.versionComparePath).existsSync(), isTrue);
 
-    await controller.rollbackKnowledgeBaseVersion('K1');
+    await controller.rollbackKnowledgeBaseVersion(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
-        kbId: 'K1');
-    final rolledBackK1 =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
-    expect(rolledBackK1.operation, 'rollback');
-    expect(rolledBackK1.versionCount, 1);
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        kbId: fullKbId);
+    final rolledBackFullKb =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
+    expect(rolledBackFullKb.operation, 'rollback');
+    expect(rolledBackFullKb.versionCount, 1);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}rollback.log')
+        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId${Platform.pathSeparator}rollback.log')
             .existsSync(),
         isTrue);
 
-    await controller.rebuildKnowledgeBaseFull('K1');
+    await controller.rebuildKnowledgeBaseFull(fullKbId);
     expectIndustrialIndexArtifacts(
-        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
-        kbId: 'K1');
-    final rebuiltK2 =
-        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
-    expect(rebuiltK2.operation, 'full_rebuild');
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$fullKbId',
+        kbId: fullKbId);
+    final rebuiltFullKb =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == fullKbId);
+    expect(rebuiltFullKb.operation, 'full_rebuild');
 
     final catalogFile = File(
         '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
@@ -7569,12 +7575,12 @@ void main() {
             .existsSync(),
         isTrue);
 
-    await controller.deleteKnowledgeBaseRecord('K1_COPY1');
+    await controller.deleteKnowledgeBaseRecord(copyId);
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
-        isNot(contains('K1_COPY1')));
+        isNot(contains(copyId)));
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_COPY1')
+                '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$copyId')
             .existsSync(),
         isFalse);
   });

@@ -33,6 +33,33 @@ fix_test_log = web/workbench/flutter_app/output/module_repair/module5_kb_build/m
 analyze_log = web/workbench/flutter_app/output/module_repair/module5_kb_build/module5_okf_semantic_chunking_flutter_analyze.log
 ```
 
+## KBBUILD-S1-002
+
+```text
+status = fixed
+severity = S1
+module = knowledge_base
+page = 知识库
+user_path = build KB from source A -> build KB from source A+B -> copy/merge/split/update/delete
+expected_behavior = building a different source set creates or reuses the matching KB record without overwriting the original KB identity; lifecycle operations target the derived KB
+actual_behavior = regression test still assumed K1 was overwritten by the A+B build, so it missed the product invariant that source-specific KB identities are preserved
+root_cause_category = regression_spec_drift
+root_cause_evidence = web/workbench/flutter_app/output/module_repair/module5_kb_build/module5_multi_kb_catalog_active_workbook_repro.log
+minimal_fix_scope = update the multi-KB catalog regression to assert K1 remains source-specific and to run copy/merge/split/update/delete against the derived full-source KB
+white_box_result = pass
+black_box_result = controller/runtime product-flow test pass
+regression_result = pass for multi-KB catalog copy/merge/split/update/rollback/rebuild/delete chain
+commit_id = pending
+```
+
+## Evidence - KBBUILD-S1-002
+
+```text
+repro_log = web/workbench/flutter_app/output/module_repair/module5_kb_build/module5_multi_kb_catalog_active_workbook_repro.log
+fix_test_log = web/workbench/flutter_app/output/module_repair/module5_kb_build/module5_multi_kb_catalog_derivative_semantics_test.log
+current_dirty_probe_log = web/workbench/flutter_app/output/module_repair/module5_kb_build/module5_multi_kb_catalog_active_workbook_fix_test.log
+```
+
 ## Remaining Items
 
 ```text
