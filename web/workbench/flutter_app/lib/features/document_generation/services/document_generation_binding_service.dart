@@ -546,6 +546,81 @@ class DocumentExportSourceResolver {
   }
 }
 
+class DocumentCitationPolicyResult {
+  const DocumentCitationPolicyResult({
+    required this.passed,
+    required this.status,
+    required this.reason,
+    required this.usableCitationCount,
+  });
+
+  final bool passed;
+  final String status;
+  final String reason;
+  final int usableCitationCount;
+
+  Map<String, Object?> toJson() {
+    return {
+      'passed': passed,
+      'status': status,
+      'reason': reason,
+      'usable_citation_count': usableCitationCount,
+    };
+  }
+}
+
+class DocumentCitationPolicyService {
+  const DocumentCitationPolicyService();
+
+  DocumentCitationPolicyResult validate({
+    required String citationStrategy,
+    required List<Map<String, Object?>> citations,
+  }) {
+    final usableCitationCount = citations.where(_hasUsableEvidence).length;
+    if (citationStrategy != 'strict_citation') {
+      return DocumentCitationPolicyResult(
+        passed: true,
+        status: 'not_required',
+        reason: '',
+        usableCitationCount: usableCitationCount,
+      );
+    }
+    if (usableCitationCount > 0) {
+      return DocumentCitationPolicyResult(
+        passed: true,
+        status: 'pass',
+        reason: '',
+        usableCitationCount: usableCitationCount,
+      );
+    }
+    return const DocumentCitationPolicyResult(
+      passed: false,
+      status: 'blocked_missing_source_evidence',
+      reason: '严格引用模式需要至少一条可追溯来源证据。',
+      usableCitationCount: 0,
+    );
+  }
+
+  static bool _hasUsableEvidence(Map<String, Object?> citation) {
+    final citationText = _stringValue(citation['citation']);
+    final kbId = _stringValue(citation['kb_id']);
+    final sourceTraceId = _stringValue(citation['source_trace_id']);
+    final chunkId = _stringValue(citation['chunk_id']);
+    final sourceDocId = _stringValue(citation['source_doc_id']);
+    final traceComplete = citation['trace_complete'] == true;
+    return citationText.isNotEmpty &&
+        (traceComplete ||
+            (kbId.isNotEmpty &&
+                (sourceTraceId.isNotEmpty ||
+                    chunkId.isNotEmpty ||
+                    sourceDocId.isNotEmpty)));
+  }
+
+  static String _stringValue(Object? value) {
+    return value?.toString().trim() ?? '';
+  }
+}
+
 class DocumentGenerationBindingService {
   const DocumentGenerationBindingService();
 

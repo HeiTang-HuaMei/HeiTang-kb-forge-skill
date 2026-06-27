@@ -9403,6 +9403,64 @@ void main() {
         contains('K_OKF1'));
   });
 
+  test('strict citation document generation blocks missing source evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    final queryDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
+    File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
+        .writeAsStringSync(jsonEncode({
+      'query': '缺少引用',
+      'selected_kb_ids': ['K_STRICT'],
+      'selected_count': 1,
+      'selected': [
+        {
+          'text': '这条结果没有可用引用和追溯字段。',
+          'kb_id': 'K_STRICT',
+          'kb_name': '严格引用知识库',
+        }
+      ],
+    }));
+
+    await controller.generateMarkdown(
+      config: const Rc6DocumentGenerationConfig(
+        generationType: 'structured_report',
+        citationStrategy: 'strict_citation',
+      ),
+    );
+
+    expect(requests, isEmpty);
+    expect(controller.state.lastError, contains('严格引用模式需要至少一条可追溯来源证据'));
+    expect(controller.state.phase, Rc6RuntimePhase.failed);
+    expect(
+        File('${activeWorkspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}generation_manifest.json')
+            .existsSync(),
+        isFalse);
+  });
+
   test('document generation persists template config into real artifacts',
       () async {
     final workspace = await createWorkspace();

@@ -1461,6 +1461,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'doc', 'generation_manifest.json'));
     final historyBeforeClear =
         _listOfMaps(existingManifest['generation_history']);
+    final queryReport = await _readLatestQueryReport(workspace);
+    final citationPolicy = _documentCitationPolicy(
+      config,
+      _citationsFromQueryReport(queryReport),
+    );
+    if (!citationPolicy.passed) {
+      _fail(citationPolicy.reason);
+      return;
+    }
     await _clearWorkspacePath(_join(workspace.path, 'doc'));
     await _runCoreAction(
       actionId: 'generate_markdown',
@@ -1482,6 +1491,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       await _writeDocumentGenerationManifest(
         config: config,
         existingHistory: historyBeforeClear,
+        citationPolicy: citationPolicy,
       );
       await _appendOrchestrationPlanRecord(
         layer: 'document',
@@ -37816,6 +37826,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> _writeDocumentGenerationManifest({
     required Rc6DocumentGenerationConfig config,
     List<Map<String, dynamic>> existingHistory = const [],
+    DocumentCitationPolicyResult? citationPolicy,
   }) async {
     final workspace = _requireWorkspace();
     final docDir = Directory(_join(workspace.path, 'doc'));
@@ -37831,6 +37842,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         : generatedPath;
     final sources = await _sourceNames();
     final citations = _citationsFromQueryReport(queryReport);
+    final policy =
+        citationPolicy ?? _documentCitationPolicy(config, citations);
     final structure = const DocumentGenerationStructureService().resolve(
       title: config.title,
       generationType: config.generationType,
@@ -37864,12 +37877,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       'selected_kb_ids': binding.selectedKbIds,
       'source_kb_ids': binding.sourceKbIds,
       'source_kb_names': binding.sourceKbNames,
-      'section_titles': structure.sectionTitles,
-      'required_variables': structure.requiredVariables,
-      'template_effects': structure.templateEffects,
-      'citation_count': citations.length,
-      'created_at': createdAt,
-    });
+        'section_titles': structure.sectionTitles,
+        'required_variables': structure.requiredVariables,
+        'template_effects': structure.templateEffects,
+        'citation_count': citations.length,
+        'citation_policy': policy.toJson(),
+        'created_at': createdAt,
+      });
     await File(outlinePath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'prd_v3_document_outline.v1',
@@ -37896,10 +37910,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'schema_version': 'prd_v3_document_citations.v1',
         ...binding.toJson(),
         'citation_strategy': config.citationStrategy,
-        'citation_count': citations.length,
-        'citations': citations,
-        'retrieval_report_path':
-            queryReport.isEmpty ? '' : state.queryResultPath,
+          'citation_count': citations.length,
+          'citations': citations,
+          'citation_policy': policy.toJson(),
+          'retrieval_report_path':
+              queryReport.isEmpty ? '' : state.queryResultPath,
         'generated_at': createdAt,
       }),
       encoding: utf8,
@@ -37917,10 +37932,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'has_required_variables': structure.requiredVariables.isNotEmpty,
         'required_variables': structure.requiredVariables,
         'template_effects': structure.templateEffects,
-        'citation_list_status': 'written',
-        'citation_count': citations.length,
-        'history_snapshot_status': await File(historyMarkdownPath).exists()
-            ? 'written'
+          'citation_list_status': 'written',
+          'citation_count': citations.length,
+          'citation_policy': policy.toJson(),
+          'history_snapshot_status': await File(historyMarkdownPath).exists()
+              ? 'written'
             : 'not_written',
         'export_format_requested': config.outputFormat,
         'secret_plaintext_written': false,
@@ -37939,9 +37955,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'retrieval_report_path': queryReport.isEmpty ? '' : state.queryResultPath,
       'retrieval_query': (queryReport['query'] ?? state.searchQuery).toString(),
       'source_count': sources.length,
-      'sources': sources,
-      'citations': citations,
-      'document_structure': structure.toJson(),
+        'sources': sources,
+        'citations': citations,
+        'citation_policy': policy.toJson(),
+        'document_structure': structure.toJson(),
       'section_titles': structure.sectionTitles,
       'required_variables': structure.requiredVariables,
       'template_effects': structure.templateEffects,
@@ -38040,6 +38057,16 @@ class Rc6RuntimeController extends ChangeNotifier {
   static List<Map<String, Object?>> _citationsFromQueryReport(
       Map<String, dynamic> queryReport) {
     return const DocumentCitationTraceService().fromQueryReport(queryReport);
+  }
+
+  static DocumentCitationPolicyResult _documentCitationPolicy(
+    Rc6DocumentGenerationConfig config,
+    List<Map<String, Object?>> citations,
+  ) {
+    return const DocumentCitationPolicyService().validate(
+      citationStrategy: config.citationStrategy,
+      citations: citations,
+    );
   }
 
   Future<Map<String, Object?>> _structuredDocumentExportPayload(
