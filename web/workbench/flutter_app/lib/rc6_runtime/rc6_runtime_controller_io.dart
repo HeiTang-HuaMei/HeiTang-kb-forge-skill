@@ -11,6 +11,7 @@ import '../features/document_generation/services/document_generation_binding_ser
 import '../features/agent/services/agent_binding_truth_service.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
 import '../features/skill/services/skill_binding_truth_service.dart';
+import '../features/skill/services/skill_source_trace_service.dart';
 import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
@@ -38628,6 +38629,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         'skill_validation',
       ],
     );
+    final sourceTrace = await const SkillSourceTraceService()
+        .materializeSourceTrace(
+      workspace: workspace,
+      skillRoot: skillRoot,
+      sourceKbIds: bindingTruth.sourceKbIds,
+      primarySkillId: bindingTruth.primarySkillId,
+    );
     final primaryDir = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
     await primaryDir.create(recursive: true);
     final primarySkill = File(_join(primaryDir.path, 'SKILL.md'));
@@ -38667,6 +38675,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'skill_type_label': config.skillTypeLabel,
       'source_mode': 'from_kb',
       'source_kb_ids': bindingTruth.sourceKbIds,
+      ...sourceTrace.toJson(),
       'source_kb_manifest': kbManifestPath,
       'external_skill_path': '',
       'localization_goal': config.personalizationGoal,
@@ -38704,8 +38713,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           'files': [
             'SKILL.md',
             'skill_config.json',
-            'verification_report.json'
+            'verification_report.json',
+            '../source_trace.jsonl'
           ],
+          ...sourceTrace.toJson(),
         }),
         encoding: utf8);
 
@@ -38973,6 +38984,7 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'external_skill_localization': externalSkillRoute,
               },
               'source_kb_ids': bindingTruth.sourceKbIds,
+              ...sourceTrace.toJson(),
               'legacy_skill_aliases': bindingTruth.legacyAliases,
               'skills': manifest,
               'external_skills': [externalManifest],
@@ -39193,6 +39205,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     await operationsRoot.create(recursive: true);
     final bindingTruth = await _skillBindingTruth(workspace);
     final sourceKbIds = bindingTruth.sourceKbIds;
+    final sourceTrace = await const SkillSourceTraceService()
+        .materializeSourceTrace(
+      workspace: workspace,
+      skillRoot: skillRoot,
+      sourceKbIds: sourceKbIds,
+      primarySkillId: bindingTruth.primarySkillId,
+    );
     final skillModelRouteBinding =
         await _currentModelRouteModuleBinding('skill_factory');
     final skillGenerationRoute = _modelRouteEvidenceForScopes(
@@ -39228,6 +39247,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       {
         'artifact_id': 'generation_manifest',
         'path': _join(skillRoot.path, 'skill_generation_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'source_trace',
+        'path': sourceTrace.sourceTracePath,
         'required': true,
       },
       {
@@ -39318,6 +39342,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': missingRequired.isEmpty ? 'ready' : 'needs_repair',
       'requested_operation': requestedOperation,
       'source_kb_ids': sourceKbIds,
+      ...sourceTrace.toJson(),
       'legacy_skill_aliases': bindingTruth.legacyAliases,
       'skill_packages': [
         {
@@ -39333,6 +39358,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'verification_path': _joinNested(
               skillRoot.path, 'knowledge_qa_skill/verification_report.json'),
           'source_kb_ids': sourceKbIds,
+          ...sourceTrace.toJson(),
         },
         {
           'skill_id': bindingTruth.localizedSkillId,
@@ -39345,6 +39371,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'manifest_path': _joinNested(skillRoot.path,
               'localized_writing_skill/S2/localized_skill_manifest.json'),
           'source_kb_ids': sourceKbIds,
+          ...sourceTrace.toJson(),
         },
         {
           'skill_id': bindingTruth.fusedSkillId,
@@ -39355,6 +39382,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'manifest_path': _joinNested(
               skillRoot.path, 'fused_product_ops_skill/skill_manifest.json'),
           'source_kb_ids': sourceKbIds,
+          ...sourceTrace.toJson(),
         },
       ],
       'operation_manifest_path':
@@ -39423,6 +39451,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'requested_operation': requestedOperation,
       'package_manifest_path': packageManifestPath,
       'source_kb_ids': sourceKbIds,
+      ...sourceTrace.toJson(),
       'model_route_binding': skillModelRouteBinding,
       'model_route_evidence': {
         'skill_generation': skillGenerationRoute,

@@ -19512,11 +19512,29 @@ void main() {
     File('${kbDir.path}${Platform.pathSeparator}manifest.json')
         .writeAsStringSync('{"schema_version":"test_kb.v1"}');
     File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
-        .writeAsStringSync('{"text":"产品分析证据","source_path":"alpha.txt"}\n');
+        .writeAsStringSync(
+            '${jsonEncode({
+                  'text': '产品分析证据',
+                  'source_path': 'alpha.txt',
+                  'source_doc_id': 'doc_alpha',
+                  'chunk_id': 'chunk_alpha_001',
+                  'source_trace_id': 'trace_alpha_001',
+                  'block_ids': ['block_alpha_001'],
+                  'heading_path': ['产品分析'],
+                  'semantic_unit_type': 'paragraph',
+                  'lineage': {
+                    'source_doc_id': 'doc_alpha',
+                    'block_ids': ['block_alpha_001'],
+                  },
+                })}\n');
     File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
         .writeAsStringSync(jsonEncode({
       'sources': [
-        {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
+        {
+          'source_name': 'alpha.txt',
+          'relative_path': 'alpha.txt',
+          'document_id': 'doc_alpha',
+        }
       ],
     }));
     final kbCatalogDir = Directory(
@@ -19593,6 +19611,28 @@ void main() {
     expect(primarySkillConfig['legacy_skill_alias'], 'S1');
     expect(primarySkillConfig['legacy_compatibility_only'], isTrue);
     expect(primarySkillConfig['source_kb_ids'], ['owner_product_kb']);
+    final skillSourceTracePath =
+        '$skillRoot${Platform.pathSeparator}source_trace.jsonl';
+    expect(File(skillSourceTracePath).existsSync(), isTrue);
+    final skillSourceTraceRows = readJsonlFile(skillSourceTracePath);
+    expect(skillSourceTraceRows, hasLength(1));
+    final skillSourceTrace = skillSourceTraceRows.single;
+    expect(skillSourceTrace['schema_version'], 'prd_v3_skill_source_trace.v1');
+    expect(skillSourceTrace['skill_id'], 'knowledge_qa_skill');
+    expect(skillSourceTrace['kb_id'], 'owner_product_kb');
+    expect(skillSourceTrace['source_kb_ids'], ['owner_product_kb']);
+    expect(skillSourceTrace['source_doc_id'], 'doc_alpha');
+    expect(skillSourceTrace['source_chunk_id'], 'chunk_alpha_001');
+    expect(skillSourceTrace['chunk_id'], 'chunk_alpha_001');
+    expect(skillSourceTrace['source_trace_id'], 'trace_alpha_001');
+    expect(skillSourceTrace['source_path'], 'alpha.txt');
+    expect(skillSourceTrace['block_ids'], ['block_alpha_001']);
+    expect(skillSourceTrace['heading_path'], ['产品分析']);
+    expect(skillSourceTrace['semantic_unit_type'], 'paragraph');
+    expect(primarySkillConfig['source_trace_path'], skillSourceTracePath);
+    expect(primarySkillConfig['source_doc_ids'], ['doc_alpha']);
+    expect(primarySkillConfig['source_chunk_ids'], ['chunk_alpha_001']);
+    expect(primarySkillConfig['source_trace_ids'], ['trace_alpha_001']);
     expect(
         File('$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
@@ -19611,6 +19651,10 @@ void main() {
             '$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(skillGenerationManifest['source_kb_ids'], ['owner_product_kb']);
+    expect(skillGenerationManifest['source_trace_path'], skillSourceTracePath);
+    expect(skillGenerationManifest['source_doc_ids'], ['doc_alpha']);
+    expect(skillGenerationManifest['source_chunk_ids'], ['chunk_alpha_001']);
+    expect(skillGenerationManifest['source_trace_ids'], ['trace_alpha_001']);
     expect(skillGenerationManifest['legacy_skill_aliases'],
         containsPair('S1', 'knowledge_qa_skill'));
     for (final helperSkillId in const [
@@ -19764,6 +19808,15 @@ void main() {
     expect(skillPackageManifest['skill_packages'], isA<List>());
     expect(skillPackageManifest['missing_required_artifacts'], isEmpty);
     expect(skillPackageManifest['source_kb_ids'], ['owner_product_kb']);
+    expect(skillPackageManifest['source_trace_path'], skillSourceTracePath);
+    expect(skillPackageManifest['source_doc_ids'], ['doc_alpha']);
+    expect(skillPackageManifest['source_chunk_ids'], ['chunk_alpha_001']);
+    expect(skillPackageManifest['source_trace_ids'], ['trace_alpha_001']);
+    expect(
+        (skillPackageManifest['artifact_records'] as List).any((item) =>
+            (item as Map)['artifact_id'] == 'source_trace' &&
+            item['exists'] == true),
+        isTrue);
     expect(
         (skillPackageManifest['skill_packages'] as List)
             .map((item) => (item as Map)['skill_id'])
@@ -19795,6 +19848,10 @@ void main() {
     expect(skillValidationReport['missing_required_artifacts'], isEmpty);
     expect(skillValidationReport['ready_for_agent_binding'], isTrue);
     expect(skillValidationReport['ready_for_export'], isTrue);
+    expect(skillValidationReport['source_trace_path'], skillSourceTracePath);
+    expect(skillValidationReport['source_doc_ids'], ['doc_alpha']);
+    expect(skillValidationReport['source_chunk_ids'], ['chunk_alpha_001']);
+    expect(skillValidationReport['source_trace_ids'], ['trace_alpha_001']);
     final factoryAudit = jsonDecode(File(factoryAuditPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(factoryAudit['schema_version'], 'prd_v3_skill_factory_audit.v1');
