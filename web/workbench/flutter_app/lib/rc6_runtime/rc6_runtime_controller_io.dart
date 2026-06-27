@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
+import '../features/document_generation/services/document_generation_binding_service.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
 import 'project_config_profile.dart';
 
@@ -1528,10 +1529,12 @@ class Rc6RuntimeController extends ChangeNotifier {
             : generated;
     final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
     await source.copy(exported.path);
+    final binding = await _documentGenerationBinding(workspace);
     final manifest = {
       'schema_version': 'rc10_document_export.v1',
       'status': 'pass',
       'format': 'markdown',
+      ...binding.toJson(),
       'source': source.path,
       'output': exported.path,
       'size_bytes': await exported.length(),
@@ -2100,10 +2103,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     await edited.writeAsString(markdown, encoding: utf8);
     final source = await notes.exists() ? notes.path : generated.path;
     final manifestPath = _join(docDir.path, 'edit_manifest.json');
+    final binding = await _documentGenerationBinding(workspace);
     final payload = {
       'schema_version': 'prd_v2_document_edit.v1',
       'status': 'pass',
       'workspace': workspace.path,
+      ...binding.toJson(),
       'source_document': source,
       'edited_output_markdown': edited.path,
       'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
@@ -2201,11 +2206,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _writeXlsxFile(output, structured);
     }
     final manifestPath = _join(exportDir.path, 'generated_file_report.json');
+    final binding = await _documentGenerationBinding(workspace);
     final manifest = {
       'schema_version': 'prd_v3_builtin_document_export_adapter.v1',
       'status': 'pass',
       'format': normalized,
       'adapter': 'builtin_local_${normalized}_adapter',
+      ...binding.toJson(),
       'source_markdown':
           await File(_join(docDir.path, 'edited_document.md')).exists()
               ? _join(docDir.path, 'edited_document.md')
@@ -2314,11 +2321,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final outputPath = format == 'json' ? jsonPath : csvPath;
     final manifestPath =
         _join(exportDir.path, 'structured_export_manifest.json');
+    final binding = await _documentGenerationBinding(workspace);
     await File(manifestPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'prd_v2_structured_document_export.v1',
         'status': 'pass',
         'requested_format': format,
+        ...binding.toJson(),
         'json_output': jsonPath,
         'csv_output': csvPath,
         'selected_output': outputPath,
@@ -37809,14 +37818,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final kbManifest =
         await _readJsonObject(_join(workspace.path, 'kb', 'manifest.json'));
     final queryReport = await _readLatestQueryReport(workspace);
-    final catalog = await _loadKnowledgeCatalog(workspace);
-    final records = _catalogRecords(catalog);
-    final selectedKbIds = records.isEmpty
-        ? const ['current_kb']
-        : records
-            .map((record) => (record['kb_id'] ?? '').toString())
-            .where((id) => id.isNotEmpty)
-            .toList(growable: false);
+    final binding = await _documentGenerationBinding(workspace);
     final readingNotesPath = _join(docDir.path, 'reading_notes.md');
     final generatedPath = _join(docDir.path, 'generated.md');
     final outputPath = await File(readingNotesPath).exists()
@@ -37848,6 +37850,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'output_format': config.outputFormat,
       'output_markdown': outputPath,
       'history_markdown': historyMarkdownPath,
+      'selected_kb_id': binding.selectedKbId,
+      'selected_kb_ids': binding.selectedKbIds,
+      'source_kb_ids': binding.sourceKbIds,
+      'source_kb_names': binding.sourceKbNames,
       'citation_count': citations.length,
       'created_at': createdAt,
     });
@@ -37857,7 +37863,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'title': config.title,
         'generation_type': config.generationType,
         'template_mode': config.templateMode,
-        'selected_kb_ids': selectedKbIds,
+        ...binding.toJson(),
         'sections': [
           '生成配置',
           '核心摘要',
@@ -37875,6 +37881,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(citationsPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'prd_v3_document_citations.v1',
+        ...binding.toJson(),
         'citation_strategy': config.citationStrategy,
         'citation_count': citations.length,
         'citations': citations,
@@ -37888,6 +37895,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'prd_v3_document_validation_report.v1',
         'status': 'pass',
+        ...binding.toJson(),
         'body_status':
             await File(outputPath).exists() ? 'generated' : 'missing_output',
         'outline_status': 'generated_from_template',
@@ -37907,7 +37915,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': 'pass',
       'workspace': workspace.path,
       'generation_config': config.toJson(),
-      'selected_kb_ids': selectedKbIds,
+      ...binding.toJson(),
       'kb_manifest_path': _join(workspace.path, 'kb', 'manifest.json'),
       'kb_schema_version': (kbManifest['schema_version'] ?? '').toString(),
       'retrieval_report_path': queryReport.isEmpty ? '' : state.queryResultPath,
@@ -37995,6 +38003,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     return config is Map ? Map<String, dynamic>.from(config) : const {};
   }
 
+  Future<DocumentGenerationBinding> _documentGenerationBinding(
+      Directory workspace) async {
+    final queryReport = await _readLatestQueryReport(workspace);
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    return const DocumentGenerationBindingService().resolve(
+      queryReport: queryReport,
+      knowledgeBaseRecords: _catalogRecords(catalog),
+    );
+  }
+
   static List<Map<String, String>> _citationsFromQueryReport(
       Map<String, dynamic> queryReport) {
     final rows = queryReport['selected'] ??
@@ -38041,6 +38059,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
         queryReport['records'];
+    final binding = await _documentGenerationBinding(workspace);
     return {
       'schema_version': 'prd_v2_structured_document_export_payload.v1',
       'status': 'pass',
@@ -38057,6 +38076,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           .toList(growable: false),
       'knowledge_base': {
         'manifest': _join(workspace.path, 'kb', 'manifest.json'),
+        ...binding.toJson(),
         'schema_version': (kbManifest['schema_version'] ?? '').toString(),
         'chunk_count': chunks.length,
         'card_count': cards.length,

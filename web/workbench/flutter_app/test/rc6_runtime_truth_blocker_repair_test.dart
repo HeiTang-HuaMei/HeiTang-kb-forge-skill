@@ -9213,48 +9213,6 @@ void main() {
   test('document generation persists template config into real artifacts',
       () async {
     final workspace = await createWorkspace();
-    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
-      ..createSync(recursive: true);
-    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
-        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
-    File('${kbDir.path}${Platform.pathSeparator}quality_report.json')
-        .writeAsStringSync('{"status":"pass"}');
-    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
-        .writeAsStringSync(jsonl([
-      {
-        'text': '真实产品分析证据',
-        'source_path': 'alpha.txt',
-        'citation': 'alpha.txt#chunk=1',
-      },
-    ]));
-    File('${kbDir.path}${Platform.pathSeparator}cards.jsonl')
-        .writeAsStringSync('{"title":"产品分析","summary":"真实主题"}\n');
-    File('${kbDir.path}${Platform.pathSeparator}qa_pairs.jsonl')
-        .writeAsStringSync('{"question":"主题是什么?","answer":"产品分析"}\n');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
-        .writeAsStringSync(jsonEncode({
-      'sources': [
-        {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
-      ],
-    }));
-    final queryDir =
-        Directory('${workspace.path}${Platform.pathSeparator}query')
-          ..createSync(recursive: true);
-    File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
-        .writeAsStringSync(jsonEncode({
-      'query': '产品分析',
-      'selected_count': 1,
-      'selected': [
-        {
-          'text': '真实产品分析证据',
-          'source_path': 'alpha.txt',
-          'citation': 'alpha.txt#chunk=1',
-          'kb_id': 'K1',
-          'kb_name': '真实输入知识库',
-        }
-      ],
-    }));
-
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -9275,6 +9233,73 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    File('${kbDir.path}${Platform.pathSeparator}quality_report.json')
+        .writeAsStringSync('{"status":"pass"}');
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'text': '真实产品分析证据',
+        'source_path': 'alpha.txt',
+        'citation': 'alpha.txt#chunk=1',
+      },
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}cards.jsonl')
+        .writeAsStringSync('{"title":"产品分析","summary":"真实主题"}\n');
+    File('${kbDir.path}${Platform.pathSeparator}qa_pairs.jsonl')
+        .writeAsStringSync('{"question":"主题是什么?","answer":"产品分析"}\n');
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': '未选择知识库',
+          'source_documents': [
+            {'document_id': 'doc_unselected'}
+          ],
+        },
+        {
+          'kb_id': 'K2',
+          'kb_name': '真实输入知识库',
+          'source_documents': [
+            {'document_id': 'doc_alpha'}
+          ],
+        },
+      ],
+    }));
+    File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'sources': [
+        {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
+      ],
+    }));
+    final queryDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
+    File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
+        .writeAsStringSync(jsonEncode({
+      'query': '产品分析',
+      'selected_kb_ids': ['K2'],
+      'selected_count': 1,
+      'selected': [
+        {
+          'text': '真实产品分析证据',
+          'source_path': 'alpha.txt',
+          'citation': 'alpha.txt#chunk=1',
+          'kb_id': 'K2',
+          'kb_name': '真实输入知识库',
+        }
+      ],
+    }));
     await controller.generateMarkdown(
       config: const Rc6DocumentGenerationConfig(
         generationType: 'product_analysis',
@@ -9285,7 +9310,7 @@ void main() {
     );
     expect(requests.single.actionId, 'generate_markdown');
     expect(requests.single.arguments, contains('真实输入产品分析'));
-    final docRoot = '${workspace.path}${Platform.pathSeparator}doc';
+    final docRoot = '${activeWorkspace.path}${Platform.pathSeparator}doc';
     final firstGenerationManifest =
         File('$docRoot${Platform.pathSeparator}generation_manifest.json')
             .readAsStringSync();
@@ -9318,6 +9343,8 @@ void main() {
           contains('"citations":'),
           contains('alpha.txt#chunk=1'),
           contains('"kb_name": "真实输入知识库"'),
+          contains('"selected_kb_id": "K2"'),
+          contains('"source_kb_ids":'),
           contains('"outline_path":'),
         ));
     expect(
@@ -9356,12 +9383,17 @@ void main() {
         ));
     final generationManifestJson =
         jsonDecode(generationManifest) as Map<String, dynamic>;
+    expect(generationManifestJson['selected_kb_id'], 'K2');
+    expect(generationManifestJson['selected_kb_ids'], ['K2']);
+    expect(generationManifestJson['source_kb_ids'], ['K2']);
     expect(generationManifestJson['generation_history'], hasLength(2));
     final historyEntries =
         (generationManifestJson['generation_history'] as List)
             .whereType<Map>()
             .toList();
     for (final entry in historyEntries) {
+      expect(entry['selected_kb_id'], 'K2');
+      expect(entry['source_kb_ids'], ['K2']);
       final historyMarkdown = entry['history_markdown'].toString();
       expect(historyMarkdown, endsWith('.md'));
       expect(File(historyMarkdown).existsSync(), isTrue);
@@ -9378,6 +9410,8 @@ void main() {
     expect(latestDeletedManifest['generation_history'], hasLength(1));
     expect((latestDeletedManifest['generation_history'] as List).single,
         containsPair('generation_type', 'product_analysis'));
+    expect((latestDeletedManifest['generation_history'] as List).single,
+        containsPair('selected_kb_id', 'K2'));
     expect(latestDeletedManifest['latest_history_deleted_event'],
         'generate_document');
     expect(controller.state.documentGenerationHistoryCount, 1);
@@ -9419,13 +9453,18 @@ void main() {
         allOf(
           contains('prd_v2_document_edit.v1'),
           contains('edited_document.md'),
+          contains('"selected_kb_id": "K2"'),
           contains('"secret_plaintext_written": false'),
         ));
 
     await controller.exportMarkdownDocument();
+    final exportManifest = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(exportManifest['selected_kb_id'], 'K2');
+    expect(exportManifest['source_kb_ids'], ['K2']);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
-            .readAsStringSync(),
+        const JsonEncoder.withIndent('  ').convert(exportManifest),
         allOf(
           contains('generation_manifest.json'),
           contains('edit_manifest.json'),
@@ -9433,9 +9472,21 @@ void main() {
           contains('"output_format": "md"'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
             .readAsStringSync(),
         contains('final edited body from real KB'));
+    await controller.exportDocumentFormat('json');
+    final structuredManifest = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}structured_export_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(structuredManifest['selected_kb_id'], 'K2');
+    expect(structuredManifest['source_kb_ids'], ['K2']);
+    final structuredPayload = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect((structuredPayload['knowledge_base'] as Map)['selected_kb_id'], 'K2');
+    expect(
+        (structuredPayload['knowledge_base'] as Map)['source_kb_ids'], ['K2']);
 
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
