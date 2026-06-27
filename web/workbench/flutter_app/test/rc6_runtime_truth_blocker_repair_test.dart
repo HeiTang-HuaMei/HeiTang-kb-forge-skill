@@ -7758,6 +7758,9 @@ void main() {
                     'block_id': 'doc_alpha_intro',
                     'block_type': 'paragraph',
                     'heading_path': ['Canonical'],
+                    'page_number': 7,
+                    'section_id': 'sec-intro',
+                    'source_span': {'start': 11, 'end': 47},
                     'text': 'canonical parsed document evidence',
                   },
                 ],
@@ -7782,8 +7785,16 @@ void main() {
     expect(result.chunks.single['text'], 'canonical parsed document evidence');
     expect(result.chunks.single['block_ids'], ['doc_alpha_intro']);
     expect(result.chunks.single['heading_path'], ['Canonical']);
+    expect(result.chunks.single['page_number'], 7);
+    expect(result.chunks.single['section_id'], 'sec-intro');
+    expect(result.chunks.single['source_span'], {'start': 11, 'end': 47});
     expect((result.chunks.single['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
+    expect((result.chunks.single['lineage'] as Map)['page_number'], 7);
+    expect((result.chunks.single['lineage'] as Map)['section_id'],
+        'sec-intro');
+    expect((result.chunks.single['lineage'] as Map)['source_span'],
+        {'start': 11, 'end': 47});
     expect(result.chunks.single['text'], isNot(contains('fallback-only')));
 
     final writtenChunks = readJsonlFile(
@@ -7792,6 +7803,9 @@ void main() {
         '${kbDir.path}${Platform.pathSeparator}source_trace.jsonl');
     expect(writtenChunks.single['source_trace_id'],
         writtenTrace.single['source_trace_id']);
+    expect(writtenTrace.single['page_number'], 7);
+    expect(writtenTrace.single['section_id'], 'sec-intro');
+    expect(writtenTrace.single['source_span'], {'start': 11, 'end': 47});
     expect((writtenTrace.single['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
   });
