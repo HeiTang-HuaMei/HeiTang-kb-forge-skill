@@ -867,10 +867,21 @@ class Rc6RuntimeController extends ChangeNotifier {
       successMessage: '解析/OCR/Chunking 完成。',
       timeout: const Duration(minutes: 20),
     );
-    if (state.lastResult?.passed == true) {
+    final duSummary = await _readDocumentUnderstandingUserSummary(workspace);
+    if (state.lastResult?.passed == true || duSummary.usableCount > 0) {
       await _writeParseReportAlias();
     }
     await _loadExistingArtifacts();
+    if (duSummary.usableCount > 0 && duSummary.hasIssues) {
+      state = state.copyWith(
+        phase: Rc6RuntimePhase.documentUnderstanding,
+        running: false,
+        lastMessage:
+            '资料已整理，${duSummary.usableCount} 个来源可用；${duSummary.failedCount} 个失败，${duSummary.skippedCount} 个重复或跳过。',
+        lastError:
+            '资料整理需要处理：${duSummary.failedCount} 个失败，${duSummary.skippedCount} 个重复或跳过。',
+      );
+    }
     notifyListeners();
   }
 
@@ -911,6 +922,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     final alias = File(_join(workspace.path, 'parse_report.json'));
     await alias.writeAsString(await duManifest.readAsString(encoding: utf8),
         encoding: utf8);
+  }
+
+  Future<({int usableCount, int failedCount, int skippedCount, bool hasIssues})>
+      _readDocumentUnderstandingUserSummary(Directory workspace) async {
+    final manifest = await _readJsonObject(
+        _join(workspace.path, 'du', 'document_understanding_manifest.json'));
+    final normalizedCount = _asInt(manifest['normalized_source_count']) ?? 0;
+    final successCount = _asInt(manifest['success_count']) ?? 0;
+    final failedCount = _asInt(manifest['failed_count']) ?? 0;
+    final skippedCount = _asInt(manifest['skipped_count']) ?? 0;
+    final usableCount = normalizedCount > 0 ? normalizedCount : successCount;
+    return (
+      usableCount: usableCount,
+      failedCount: failedCount,
+      skippedCount: skippedCount,
+      hasIssues: failedCount > 0 || skippedCount > 0,
+    );
   }
 
   Future<void> search(String query) async {

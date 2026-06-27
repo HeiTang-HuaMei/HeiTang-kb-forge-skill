@@ -1864,6 +1864,87 @@ void main() {
         everyElement('batch_import_documents'));
   });
 
+  test('module4 UI008 parse partial failure reports failed sources', () async {
+    final workspace = await createWorkspace();
+    final sampleRoot = Directory([
+      Directory.current.path,
+      '..',
+      '..',
+      '..',
+      'docs',
+      'design_source',
+      'test_samples',
+    ].join(Platform.pathSeparator));
+    expect(sampleRoot.existsSync(), isTrue);
+    final sourceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}ui008_parse')
+          ..createSync(recursive: true);
+    for (final name in const [
+      'UI008_TXT_A.txt',
+      'UI008_BAD_EMPTY.txt',
+    ]) {
+      File('${sampleRoot.path}${Platform.pathSeparator}$name')
+          .copySync('${sourceDir.path}${Platform.pathSeparator}$name');
+    }
+    final requests = <CoreBridgeRequest>[];
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (request) async {
+              requests.add(request);
+              final output = Directory(request.outputPath!)
+                ..createSync(recursive: true);
+              switch (request.actionId) {
+                case 'batch_import_documents':
+                  File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                      .writeAsStringSync(
+                          '{"status":"completed","imported_count":2}');
+                case 'document_understanding':
+                  writeDuRecords(workspace, ['UI008_TXT_A.txt']);
+                  File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                      .writeAsStringSync(jsonEncode({
+                    'status': 'completed',
+                    'normalized_source_count': 1,
+                    'success_count': 1,
+                    'failed_count': 1,
+                    'skipped_count': 0,
+                    'items': [
+                      {
+                        'relative_path': 'UI008_TXT_A.txt',
+                        'status': 'success',
+                      },
+                      {
+                        'relative_path': 'UI008_BAD_EMPTY.txt',
+                        'status': 'failed',
+                        'error_message': '文件无法解析：文档为空。',
+                      },
+                    ],
+                  }));
+              }
+              return const CoreBridgeProcessResult(
+                  exitCode: 0, stdout: 'ok', stderr: '');
+            },
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.importFolderPath(sourceDir.path);
+    expect(controller.state.sourceRecords, hasLength(2));
+
+    await controller.parseAndChunkSources();
+
+    expect(controller.state.parseReportPath, isNotEmpty);
+    expect(controller.state.lastMessage, contains('1 个来源可用'));
+    expect(controller.state.lastError, contains('1 个失败'));
+    expect(controller.state.sourceRecords, hasLength(2));
+    expect(requests.map((request) => request.actionId),
+        containsAll(['batch_import_documents', 'document_understanding']));
+  });
+
   test('prd document library imports web links as real source records',
       () async {
     final workspace = await createWorkspace();
