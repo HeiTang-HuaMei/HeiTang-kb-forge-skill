@@ -39,6 +39,47 @@ owner_visible_ui_after_recreate = true
 capability_chain_status_json_unchanged = true
 ```
 
+### 3. UISHELL-S1-003
+
+```text
+status = verified
+defect = Document Generation export preview drifted from export manifest/list wording to vague export info wording
+source = docs/design_source/USER_TASK_CHAIN_DESIGN.md
+next_action = none for this checkpoint
+```
+
+Retest steps completed:
+
+```text
+1. Confirm no capability_chain_status.json diff.
+2. Reproduce with campaign_4 full UI shell regression: documents are a first-class top-level workbench entry failed on missing 生成本地文件与导出清单.
+3. Restore only Document Generation export preview copy to 生成本地文件与导出清单 / Writes local file and manifest.
+4. Restore export detail field wording to 导出清单 / Export manifest.
+5. Run targeted documents top-level test.
+6. Run full campaign_4 UI shell regression.
+7. Close stale heitang_workbench.exe.
+8. Launch fresh running UI with flutter run -d windows.
+9. Open Owner-visible 文档生成 page.
+10. Open 导出预览.
+11. Confirm visible 文档导出 table shows 生成本地文件与导出清单.
+12. Confirm visible manifest row shows 导出清单 and old 生成本地文件与导出信息 / 导出信息 copy is not visible.
+```
+
+Pass criteria:
+
+```text
+running_ui_verified_latest = true
+owner_visible_ui_tested = true
+document_generation_top_level_entry_loaded = true
+export_preview_loaded = true
+local_export_copy = 生成本地文件与导出清单
+export_manifest_row = 导出清单
+old_export_info_copy_absent = true
+targeted_widget_test_passed = true
+campaign_4_full_regression_passed = true
+capability_chain_status_json_unchanged = true
+```
+
 ### 2. UISHELL-S1-002
 
 ```text

@@ -37,6 +37,48 @@ cold_restart_active_workspace_recovery = true
 capability_chain_status_json_unchanged = true
 ```
 
+### UISHELL-S1-003
+
+```text
+defect_id = UISHELL-S1-003
+severity = S1
+module = UI shell / Document Generation page state
+page = Document Generation -> Export Preview
+user_path = open top-level Document Generation -> open Export Preview -> inspect local export artifact wording
+expected_behavior = Document export artifact wording must tell users that local exports write a file and an export manifest/list; it must match the product task chain and not drift to vague "export info"
+actual_behavior = campaign_4 regression failed because the current dirty UI text changed "生成本地文件与导出清单" to "生成本地文件与导出信息"; the export manifest detail row also still used "导出信息 / Export info"
+root_cause_category = copy_contract_drift
+root_cause_evidence = docs/design_source/USER_TASK_CHAIN_DESIGN.md requires generated documents to show file, format, save location, open/export/delete; the existing test contract expects the export manifest/list wording for local export evidence
+minimal_fix_scope = restore manifest/list wording in web/workbench/flutter_app/lib/features/document_generation/document_generation_product_workflow.dart without changing generation logic, gates, or state machine
+white_box_result = pass
+black_box_result = pass
+regression_result = pass
+commit_id = evidence commit for UISHELL-S1-003
+```
+
+Evidence:
+
+```text
+source_label = web/workbench/flutter_app/lib/features/document_generation/document_generation_product_workflow.dart:1152 -> 生成本地文件与导出清单 / Writes local file and manifest
+source_manifest_row = web/workbench/flutter_app/lib/features/document_generation/document_generation_product_workflow.dart:1345 -> 导出清单 / Export manifest
+head_contract = HEAD already preserves manifest/list wording; current dirty drift was restored to that product contract before validation
+targeted_test = output/module_repair/phase2_ui_shell/phase2_documents_top_level_test_after_manifest_head_restore.log -> All tests passed
+full_campaign_4_regression = output/module_repair/phase2_ui_shell/phase2_campaign_4_full_after_manifest_head_restore.log -> All tests passed
+running_ui_method = flutter run -d windows
+running_ui_meta = output/module_repair/phase2_ui_shell/phase2_doc_generation_manifest_restart_meta_20260627_230504.json
+running_ui_pid = 31372
+running_ui_git_head = ce4e0ad
+running_ui_dirty_marker = true
+running_ui_workspace = UI008_DeleteTmp
+running_ui_visible_page = 文档生成
+running_ui_visible_tab = 导出预览
+running_ui_visible_panel = 文档导出
+running_ui_visible_artifact_copy = 生成本地文件与导出清单
+running_ui_visible_manifest_row = 导出清单
+running_ui_forbidden_old_copy_visible = false
+capability_chain_status_json_unchanged = true
+```
+
 Disturbance recorded:
 
 ```text
