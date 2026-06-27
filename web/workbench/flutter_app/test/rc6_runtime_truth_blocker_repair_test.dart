@@ -1735,11 +1735,12 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.importFilePath(first.path);
     await controller.importFilePath(second.path);
 
-    final manifestFile =
-        File('${workspace.path}${Platform.pathSeparator}source_manifest.json');
+    final manifestFile = File(
+        '${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json');
     final manifest =
         jsonDecode(manifestFile.readAsStringSync()) as Map<String, dynamic>;
     final sources = (manifest['sources'] as List).cast<Map>();
@@ -1770,11 +1771,11 @@ void main() {
     expect(controller.state.sourceRecords.map((source) => source.documentId),
         containsAll(sources.map((source) => source['document_id'])));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
             .existsSync(),
         isTrue);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
+        File('${activeWorkspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
             .existsSync(),
         isTrue);
 
@@ -7390,10 +7391,6 @@ void main() {
         .writeAsStringSync('alpha real document');
     File('${input.path}${Platform.pathSeparator}beta.txt')
         .writeAsStringSync('beta real document');
-    Directory('${workspace.path}${Platform.pathSeparator}kb')
-        .createSync(recursive: true);
-    File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
-        .writeAsStringSync('{}');
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (request) async => const CoreBridgeProcessResult(
@@ -7406,24 +7403,31 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final staleKb =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
+    File('${staleKb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{}');
     await controller.importFolderPath(input.path);
     await controller.deleteImportedSource('alpha.md');
 
     final manifest = jsonDecode(
-        File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
             .readAsStringSync()) as Map<String, dynamic>;
     final sources = (manifest['sources'] as List).cast<Map>();
     expect(sources.map((source) => source['source_name']), ['beta.txt']);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
             .existsSync(),
         isFalse);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
+        File('${activeWorkspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
             .existsSync(),
         isTrue);
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}kb').existsSync(),
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+            .existsSync(),
         isFalse);
     expect(controller.state.sourceNames, ['beta.txt']);
     expect(controller.state.hasKnowledgeBase, isFalse);
