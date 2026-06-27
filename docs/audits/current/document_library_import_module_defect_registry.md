@@ -3,7 +3,7 @@
 ## Module Status
 
 - module: Document Library / Import Module
-- current_status: module_4_s0_s1_repair_in_progress
+- current_status: module_4_document_library_import_s0_s1_closed
 - boundary: UI closure repair only; Final Owner Review Gate not entered
 - state_machine_changed: false
 - package_build_run: false
@@ -57,6 +57,26 @@ unsupported_import_result = no new S0/S1; unsupported .exe import is rejected be
 - S3_count: 0
 - fixed_defects: DOCUMENT-IMPORT-S1-001, DOCUMENT-IMPORT-S1-002, DOCUMENT-IMPORT-S1-003
 - remaining_defects: Module 4 fixed-sample matrix still to be audited after this verifier repair
+
+Final Module 4 HEAD regression:
+
+```text
+module_status = module_4_document_library_import_s0_s1_closed
+defect_count = 3
+S0_count = 0
+S1_count = 3
+S2_count = not_reviewed_in_first_round
+S3_count = not_reviewed_in_first_round
+fixed_defects = DOCUMENT-IMPORT-S1-001, DOCUMENT-IMPORT-S1-002, DOCUMENT-IMPORT-S1-003
+remaining_defects = none_for_S0_S1_current_scope
+white_box_result = pass
+black_box_result = pass via controller/runtime product-flow tests
+regression_result = pass
+head_regression = output/module_repair/module4_document_import/module4_head_final_regression.log -> All tests passed
+code_quality_gate = output/module_repair/module4_document_import/module4_head_final_flutter_analyze.log -> No issues found
+capability_chain_status_json_unchanged = true
+next_module = Module 5 Knowledge Base Build Module
+```
 
 ## DOCUMENT-IMPORT-S1-002
 
