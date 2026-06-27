@@ -25,7 +25,7 @@ minimal_fix_scope = no product code change; use verified running UI path, manife
 white_box_result = manifest reconciled
 black_box_result = pass
 regression_result = pass
-commit_id = pending
+commit_id = 7ab3ce5
 ```
 
 Evidence already established:
@@ -53,7 +53,7 @@ minimal_fix_scope = restore manifest/list wording in web/workbench/flutter_app/l
 white_box_result = pass
 black_box_result = pass
 regression_result = pass
-commit_id = evidence commit for UISHELL-S1-003
+commit_id = dfe3af8
 ```
 
 Evidence:
@@ -103,7 +103,7 @@ minimal_fix_scope = restore the Knowledge Base primary action label in web/workb
 white_box_result = pass
 black_box_result = pass
 regression_result = pass
-commit_id = evidence commit for UISHELL-S1-002
+commit_id = ce4e0ad
 ```
 
 Evidence:
