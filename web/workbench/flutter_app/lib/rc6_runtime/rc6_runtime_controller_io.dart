@@ -1524,11 +1524,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exportDir = Directory(_join(workspace.path, 'export'));
     await _clearWorkspacePath(exportDir.path);
     await exportDir.create(recursive: true);
-    final source = await edited.exists()
-        ? edited
-        : await notes.exists()
-            ? notes
-            : generated;
+    final sourceTruth = await _documentExportSource(workspace);
+    final source = File(sourceTruth.path);
     final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
     await source.copy(exported.path);
     final binding = await _documentGenerationBinding(workspace);
@@ -1538,6 +1535,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'format': 'markdown',
       ...binding.toJson(),
       'source': source.path,
+      'source_body_used': sourceTruth.toJson(),
+      'source_body_priority':
+          const DocumentExportSourceResolver().priorityOrder,
       'output': exported.path,
       'size_bytes': await exported.length(),
       'workspace': workspace.path,
@@ -2191,12 +2191,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _clearWorkspacePath(exportDir.path);
     await exportDir.create(recursive: true);
     final output = File(_join(exportDir.path, 'generated.$normalized'));
-    final structured = normalized == 'xlsx'
-        ? await _structuredDocumentExportPayload(workspace)
-        : const <String, Object?>{};
-    switch (normalized) {
-      case 'txt':
-        await output.writeAsString(_markdownToPlainText(markdown),
+      final structured = normalized == 'xlsx'
+          ? await _structuredDocumentExportPayload(workspace)
+          : const <String, Object?>{};
+      final sourceTruth = await _documentExportSource(workspace);
+      switch (normalized) {
+        case 'txt':
+          await output.writeAsString(_markdownToPlainText(markdown),
             encoding: utf8);
       case 'docx':
         await _writeDocxFile(output, markdown);
@@ -2213,16 +2214,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'schema_version': 'prd_v3_builtin_document_export_adapter.v1',
       'status': 'pass',
       'format': normalized,
-      'adapter': 'builtin_local_${normalized}_adapter',
-      ...binding.toJson(),
-      'source_markdown':
-          await File(_join(docDir.path, 'edited_document.md')).exists()
-              ? _join(docDir.path, 'edited_document.md')
-              : await File(_join(docDir.path, 'reading_notes.md')).exists()
-                  ? _join(docDir.path, 'reading_notes.md')
-                  : _join(docDir.path, 'generated.md'),
-      'output': output.path,
-      'size_bytes': await output.length(),
+        'adapter': 'builtin_local_${normalized}_adapter',
+        ...binding.toJson(),
+        'source_markdown': sourceTruth.path,
+        'source_body_used': sourceTruth.toJson(),
+        'source_body_priority':
+            const DocumentExportSourceResolver().priorityOrder,
+        'output': output.path,
+        'size_bytes': await output.length(),
       'workspace': workspace.path,
       'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
       'generation_config': await _latestDocumentGenerationConfig(workspace),
@@ -2330,11 +2329,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         'status': 'pass',
         'requested_format': format,
         ...binding.toJson(),
-        'json_output': jsonPath,
-        'csv_output': csvPath,
-        'selected_output': outputPath,
-        'source_manifest': _join(workspace.path, 'source_manifest.json'),
-        'kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
+          'json_output': jsonPath,
+          'csv_output': csvPath,
+          'selected_output': outputPath,
+          'source_body_used': structured['source_body_used'],
+          'source_body_priority': structured['source_body_priority'],
+          'source_manifest': _join(workspace.path, 'source_manifest.json'),
+          'kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
         'query_result': await File(_join(
                     workspace.path, 'query', 'multi_kb_query_result.json'))
                 .exists()
@@ -38056,14 +38057,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _readJsonl(File(_join(workspace.path, 'kb', 'cards.jsonl')));
     final qaPairs =
         await _readJsonl(File(_join(workspace.path, 'kb', 'qa_pairs.jsonl')));
-    final readingNotes = File(_join(workspace.path, 'doc', 'reading_notes.md'));
-    final edited = File(_join(workspace.path, 'doc', 'edited_document.md'));
-    final generated = File(_join(workspace.path, 'doc', 'generated.md'));
-    final docText = await edited.exists()
-        ? await edited.readAsString(encoding: utf8)
-        : await readingNotes.exists()
-            ? await readingNotes.readAsString(encoding: utf8)
-            : await generated.readAsString(encoding: utf8);
+    final sourceTruth = await _documentExportSource(workspace);
+    final docText = sourceTruth.path.isEmpty
+        ? ''
+        : await File(sourceTruth.path).readAsString(encoding: utf8);
     final sources = _listOfMaps(sourceManifest['sources']);
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
@@ -38092,13 +38089,17 @@ class Rc6RuntimeController extends ChangeNotifier {
         'qa_pair_count': qaPairs.length,
         'quality_status': (qualityReport['status'] ?? 'unknown').toString(),
       },
-      'document': {
-        'format': 'markdown',
-        'path':
-            await readingNotes.exists() ? readingNotes.path : generated.path,
-        'size_bytes': utf8.encode(docText).length,
-        'preview': _compact(docText),
-      },
+        'document': {
+          'format': 'markdown',
+          'path': sourceTruth.path,
+          'source_kind': sourceTruth.kind,
+          'source_priority': sourceTruth.priority,
+          'size_bytes': utf8.encode(docText).length,
+          'preview': _compact(docText),
+        },
+        'source_body_used': sourceTruth.toJson(),
+        'source_body_priority':
+            const DocumentExportSourceResolver().priorityOrder,
       'retrieval': {
         'query': (queryReport['query'] ?? state.searchQuery).toString(),
         'selected_count': _asInt(queryReport['selected_count']) ?? 0,
@@ -38167,20 +38168,24 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<String> _currentDocumentMarkdown(Directory workspace) async {
+    final sourceTruth = await _documentExportSource(workspace);
+    if (sourceTruth.path.isEmpty) return '';
+    return File(sourceTruth.path).readAsString(encoding: utf8);
+  }
+
+  Future<DocumentExportSource> _documentExportSource(Directory workspace) async {
     final docDir = Directory(_join(workspace.path, 'doc'));
     final edited = File(_join(docDir.path, 'edited_document.md'));
     final notes = File(_join(docDir.path, 'reading_notes.md'));
     final generated = File(_join(docDir.path, 'generated.md'));
-    if (await edited.exists()) {
-      return edited.readAsString(encoding: utf8);
-    }
-    if (await notes.exists()) {
-      return notes.readAsString(encoding: utf8);
-    }
-    if (await generated.exists()) {
-      return generated.readAsString(encoding: utf8);
-    }
-    return '';
+    return const DocumentExportSourceResolver().resolve(
+      hasEditedDocument: await edited.exists(),
+      hasReadingNotes: await notes.exists(),
+      hasGeneratedMarkdown: await generated.exists(),
+      editedDocumentPath: edited.path,
+      readingNotesPath: notes.path,
+      generatedMarkdownPath: generated.path,
+    );
   }
 
   Future<String> _ensureOfficeDocxAdapterSourceMarkdown(

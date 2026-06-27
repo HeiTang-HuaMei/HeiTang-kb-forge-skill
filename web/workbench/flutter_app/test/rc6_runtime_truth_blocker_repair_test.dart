@@ -9741,6 +9741,11 @@ void main() {
         .readAsStringSync()) as Map<String, dynamic>;
     expect(exportManifest['selected_kb_id'], 'K2');
     expect(exportManifest['source_kb_ids'], ['K2']);
+    expect((exportManifest['source_body_used'] as Map)['kind'],
+        'edited_document');
+    expect((exportManifest['source_body_used'] as Map)['path'], editedPath);
+    expect(exportManifest['source_body_priority'],
+        ['edited_document', 'reading_notes', 'generated_markdown']);
     expect(
         const JsonEncoder.withIndent('  ').convert(exportManifest),
         allOf(
@@ -9759,6 +9764,11 @@ void main() {
         .readAsStringSync()) as Map<String, dynamic>;
     expect(structuredManifest['selected_kb_id'], 'K2');
     expect(structuredManifest['source_kb_ids'], ['K2']);
+    expect((structuredManifest['source_body_used'] as Map)['kind'],
+        'edited_document');
+    expect((structuredManifest['source_body_used'] as Map)['path'], editedPath);
+    expect(structuredManifest['source_body_priority'],
+        ['edited_document', 'reading_notes', 'generated_markdown']);
     final structuredPayload = jsonDecode(File(
             '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -9766,6 +9776,13 @@ void main() {
         (structuredPayload['knowledge_base'] as Map)['selected_kb_id'], 'K2');
     expect(
         (structuredPayload['knowledge_base'] as Map)['source_kb_ids'], ['K2']);
+    expect((structuredPayload['document'] as Map)['path'], editedPath);
+    expect((structuredPayload['document'] as Map)['source_kind'],
+        'edited_document');
+    expect((structuredPayload['source_body_used'] as Map)['kind'],
+        'edited_document');
+    expect((structuredPayload['document'] as Map)['preview'],
+        contains('final edited body from real KB'));
 
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(

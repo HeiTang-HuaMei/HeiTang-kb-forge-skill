@@ -478,6 +478,74 @@ class DocumentGenerationMarkdownService {
   }
 }
 
+class DocumentExportSource {
+  const DocumentExportSource({
+    required this.path,
+    required this.kind,
+    required this.priority,
+  });
+
+  final String path;
+  final String kind;
+  final int priority;
+
+  Map<String, Object?> toJson() {
+    return {
+      'path': path,
+      'kind': kind,
+      'priority': priority,
+    };
+  }
+}
+
+class DocumentExportSourceResolver {
+  const DocumentExportSourceResolver();
+
+  DocumentExportSource resolve({
+    required bool hasEditedDocument,
+    required bool hasReadingNotes,
+    required bool hasGeneratedMarkdown,
+    required String editedDocumentPath,
+    required String readingNotesPath,
+    required String generatedMarkdownPath,
+  }) {
+    if (hasEditedDocument) {
+      return DocumentExportSource(
+        path: editedDocumentPath,
+        kind: 'edited_document',
+        priority: 1,
+      );
+    }
+    if (hasReadingNotes) {
+      return DocumentExportSource(
+        path: readingNotesPath,
+        kind: 'reading_notes',
+        priority: 2,
+      );
+    }
+    if (hasGeneratedMarkdown) {
+      return DocumentExportSource(
+        path: generatedMarkdownPath,
+        kind: 'generated_markdown',
+        priority: 3,
+      );
+    }
+    return const DocumentExportSource(
+      path: '',
+      kind: 'missing',
+      priority: 0,
+    );
+  }
+
+  List<String> get priorityOrder {
+    return const [
+      'edited_document',
+      'reading_notes',
+      'generated_markdown',
+    ];
+  }
+}
+
 class DocumentGenerationBindingService {
   const DocumentGenerationBindingService();
 
