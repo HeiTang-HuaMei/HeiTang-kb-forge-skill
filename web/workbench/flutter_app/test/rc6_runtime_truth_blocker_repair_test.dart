@@ -7893,6 +7893,10 @@ void main() {
         {'doc_alpha', 'doc_beta'});
     expect(writtenTrace.map((trace) => trace['source_doc_id']).toSet(),
         {'doc_alpha', 'doc_beta'});
+    expect(writtenChunks.map((chunk) => chunk['chunk_id']).toSet(),
+        hasLength(writtenChunks.length));
+    expect(writtenTrace.map((trace) => trace['chunk_id']).toSet(),
+        hasLength(writtenTrace.length));
     final alphaTrace = writtenTrace
         .firstWhere((trace) => trace['source_doc_id'] == 'doc_alpha');
     expect(alphaTrace['page_number'], 7);
@@ -7901,6 +7905,65 @@ void main() {
     expect((alphaTrace['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
   });
+
+  test('okf missing-source fallback keeps chunk ids unique after parsed blocks',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalizedPath = '${duDir.path}${Platform.pathSeparator}alpha.md';
+    File(normalizedPath).writeAsStringSync('# Alpha\ncanonical alpha evidence');
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync('${jsonEncode({
+              'relative_path': 'alpha.md',
+              'normalized_path': normalizedPath,
+              'parsed_document': {
+                'schema_version': 'parsed_document.v1',
+                'blocks': [
+                  {
+                    'block_id': 'doc_alpha_intro',
+                    'block_type': 'paragraph',
+                    'heading_path': ['Alpha'],
+                    'text': 'canonical alpha evidence',
+                  },
+                ],
+              },
+            })}\n');
+
+    final result = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbDir,
+      kbId: 'K_OKF_MISSING_FALLBACK',
+      sourceDocs: const [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+        {
+          'document_id': 'doc_beta',
+          'source_name': 'beta.md',
+          'relative_path': 'beta.md',
+          'summary': 'beta source summary fallback',
+        },
+      ],
+      inputChunks: const [],
+    );
+
+    expect(result.chunks, hasLength(2));
+    expect(result.chunks.map((chunk) => chunk['chunk_id']).toSet(),
+        hasLength(result.chunks.length));
+    expect(result.sourceTraceRows.map((trace) => trace['chunk_id']).toSet(),
+        hasLength(result.sourceTraceRows.length));
+    final betaChunk = result.chunks
+        .firstWhere((chunk) => chunk['source_doc_id'] == 'doc_beta');
+    expect(betaChunk['text'], 'beta source summary fallback');
+    expect((betaChunk['lineage'] as Map)['fallback_reason'],
+        'no_core_chunk_matched_source_doc');
+  });
+
   test('prd external Skill import localizes real file content into workspace',
       () async {
     final workspace = await createWorkspace();

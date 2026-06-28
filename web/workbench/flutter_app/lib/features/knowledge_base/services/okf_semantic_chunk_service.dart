@@ -180,9 +180,10 @@ class OkfSemanticChunkService {
           'source_trace_id': sourceTraceId,
           'fallback_reason': 'no_core_chunk_matched_source_doc',
         };
+        final chunkId =
+            'okf_${kbId}_chunk_${(resultChunks.length + 1).toString().padLeft(3, '0')}';
         final chunk = {
-          'chunk_id':
-              'okf_${kbId}_chunk_${fallbackIndex.toString().padLeft(3, '0')}',
+          'chunk_id': chunkId,
           'source_doc_id': sourceDocId,
           'document_id': sourceDocId,
           'block_ids': [blockId],
