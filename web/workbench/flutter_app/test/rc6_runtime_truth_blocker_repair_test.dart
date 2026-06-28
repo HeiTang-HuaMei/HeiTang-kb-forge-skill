@@ -8109,6 +8109,63 @@ void main() {
     ));
   });
 
+  test('okf materialize writes source map linked to chunks and trace',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+
+    final result = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbDir,
+      kbId: 'K_OKF_SOURCE_MAP',
+      sourceDocs: const [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+          'source_path': 'materials/alpha.md',
+          'page_or_section': 'p.3 / Alpha',
+        },
+      ],
+      inputChunks: const [
+        {
+          'source_doc_id': 'doc_alpha',
+          'relative_path': 'alpha.md',
+          'source_path': 'materials/alpha.md',
+          'text': 'source map evidence',
+          'block_ids': ['doc_alpha_block_001'],
+          'heading_path': ['Alpha'],
+          'page_or_section': 'p.3 / Alpha',
+        },
+      ],
+    );
+
+    final sourceMap = jsonDecode(File(
+      '${kbDir.path}${Platform.pathSeparator}source_map.json',
+    ).readAsStringSync()) as Map<String, dynamic>;
+    expect(sourceMap['schema_version'], 'prd_v3_okf_source_map.v1');
+    expect(sourceMap['kb_id'], 'K_OKF_SOURCE_MAP');
+    expect(sourceMap['chunks_path'],
+        '${kbDir.path}${Platform.pathSeparator}chunks.jsonl');
+    expect(sourceMap['source_trace_path'],
+        '${kbDir.path}${Platform.pathSeparator}source_trace.jsonl');
+    expect(sourceMap['chunk_count'], result.chunks.length);
+    expect(sourceMap['source_trace_count'], result.sourceTraceRows.length);
+
+    final documents = sourceMap['documents'] as List;
+    expect(documents, hasLength(1));
+    final alphaMap = documents.single as Map;
+    expect(alphaMap['source_doc_id'], 'doc_alpha');
+    expect(alphaMap['source_document'], 'alpha.md');
+    expect(alphaMap['source_path'], 'materials/alpha.md');
+    expect(alphaMap['chunk_ids'], [result.chunks.single['chunk_id']]);
+    expect(alphaMap['source_trace_ids'],
+        [result.sourceTraceRows.single['source_trace_id']]);
+    expect(alphaMap['block_ids'], ['doc_alpha_block_001']);
+    expect(alphaMap['page_or_sections'], ['p.3 / Alpha']);
+  });
+
   test('prd external Skill import localizes real file content into workspace',
       () async {
     final workspace = await createWorkspace();

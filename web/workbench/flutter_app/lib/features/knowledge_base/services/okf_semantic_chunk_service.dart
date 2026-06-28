@@ -251,8 +251,21 @@ class OkfSemanticChunkService {
       }
     }
 
-    await _writeJsonl(File(_join(kbDir.path, 'chunks.jsonl')), resultChunks);
-    await _writeJsonl(File(_join(kbDir.path, 'source_trace.jsonl')), traceRows);
+    final chunksPath = _join(kbDir.path, 'chunks.jsonl');
+    final sourceTracePath = _join(kbDir.path, 'source_trace.jsonl');
+    await _writeJsonl(File(chunksPath), resultChunks);
+    await _writeJsonl(File(sourceTracePath), traceRows);
+    await File(_join(kbDir.path, 'source_map.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(_buildSourceMap(
+        kbId: kbId,
+        chunksPath: chunksPath,
+        sourceTracePath: sourceTracePath,
+        sourceDocs: sourceDocs,
+        chunks: resultChunks,
+        traceRows: traceRows,
+      )),
+      encoding: utf8,
+    );
     return OkfSemanticChunkResult(
       chunks: resultChunks,
       sourceTraceRows: traceRows,
@@ -590,6 +603,128 @@ class OkfSemanticChunkService {
       rows.isEmpty ? '' : '${rows.map(jsonEncode).join('\n')}\n',
       encoding: utf8,
     );
+  }
+
+  Map<String, dynamic> _buildSourceMap({
+    required String kbId,
+    required String chunksPath,
+    required String sourceTracePath,
+    required List<Map<String, dynamic>> sourceDocs,
+    required List<Map<String, dynamic>> chunks,
+    required List<Map<String, dynamic>> traceRows,
+  }) {
+    final documentsById = <String, Map<String, dynamic>>{};
+
+    Map<String, dynamic> ensureDocument({
+      required String sourceDocId,
+      required String sourceDocument,
+      required String sourcePath,
+    }) {
+      final key = _stringValue(
+        sourceDocId,
+        _stringValue(sourceDocument, sourcePath),
+      );
+      return documentsById.putIfAbsent(key, () {
+        final relativePath = _stringValue(sourceDocument, sourcePath);
+        return {
+          'source_doc_id': key,
+          'document_id': key,
+          'source_document': relativePath,
+          'relative_path': relativePath,
+          'source_path': _stringValue(sourcePath, relativePath),
+          'chunk_ids': <String>[],
+          'source_trace_ids': <String>[],
+          'block_ids': <String>[],
+          'page_or_sections': <String>[],
+          'heading_paths': <String>[],
+        };
+      });
+    }
+
+    for (final sourceDoc in sourceDocs) {
+      ensureDocument(
+        sourceDocId: _stringValue(
+          sourceDoc['document_id'],
+          _stringValue(sourceDoc['source_doc_id']),
+        ),
+        sourceDocument: _stringValue(
+          sourceDoc['relative_path'],
+          _stringValue(sourceDoc['source_name']),
+        ),
+        sourcePath: _stringValue(sourceDoc['source_path']),
+      );
+    }
+
+    for (final chunk in chunks) {
+      final document = ensureDocument(
+        sourceDocId: _stringValue(
+          chunk['source_doc_id'],
+          _stringValue(chunk['document_id']),
+        ),
+        sourceDocument: _stringValue(
+          chunk['source_document'],
+          _stringValue(chunk['relative_path']),
+        ),
+        sourcePath: _stringValue(chunk['source_path']),
+      );
+      _addUniqueString(document['chunk_ids'] as List<String>,
+          _stringValue(chunk['chunk_id']));
+      _addUniqueString(document['source_trace_ids'] as List<String>,
+          _stringValue(chunk['source_trace_id']));
+      for (final blockId in _stringList(chunk['block_ids'])) {
+        _addUniqueString(document['block_ids'] as List<String>, blockId);
+      }
+      _addUniqueString(document['page_or_sections'] as List<String>,
+          _stringValue(chunk['page_or_section']));
+      final headingPath = _stringList(chunk['heading_path']).join(' / ');
+      _addUniqueString(document['heading_paths'] as List<String>, headingPath);
+    }
+
+    for (final trace in traceRows) {
+      final document = ensureDocument(
+        sourceDocId: _stringValue(trace['source_doc_id']),
+        sourceDocument: _stringValue(trace['source_document']),
+        sourcePath: _stringValue(trace['source_path']),
+      );
+      _addUniqueString(document['source_trace_ids'] as List<String>,
+          _stringValue(trace['source_trace_id']));
+      _addUniqueString(document['chunk_ids'] as List<String>,
+          _stringValue(trace['chunk_id']));
+      for (final blockId in _stringList(trace['block_ids'])) {
+        _addUniqueString(document['block_ids'] as List<String>, blockId);
+      }
+      _addUniqueString(document['page_or_sections'] as List<String>,
+          _stringValue(trace['page_or_section']));
+      final headingPath = _stringList(trace['heading_path']).join(' / ');
+      _addUniqueString(document['heading_paths'] as List<String>, headingPath);
+    }
+
+    final documents = documentsById.values.map((document) {
+      final chunkIds = document['chunk_ids'] as List<String>;
+      final sourceTraceIds = document['source_trace_ids'] as List<String>;
+      return {
+        ...document,
+        'chunk_count': chunkIds.length,
+        'source_trace_count': sourceTraceIds.length,
+      };
+    }).toList(growable: false);
+
+    return {
+      'schema_version': 'prd_v3_okf_source_map.v1',
+      'kb_id': kbId,
+      'chunks_path': chunksPath,
+      'source_trace_path': sourceTracePath,
+      'chunk_count': chunks.length,
+      'source_trace_count': traceRows.length,
+      'document_count': documents.length,
+      'okf_semantic_chunking': true,
+      'documents': documents,
+    };
+  }
+
+  void _addUniqueString(List<String> values, String value) {
+    if (value.isEmpty || values.contains(value)) return;
+    values.add(value);
   }
 
   Map<String, dynamic> _mapValue(Object? value) {
