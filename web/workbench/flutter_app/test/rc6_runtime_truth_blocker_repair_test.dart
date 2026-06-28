@@ -8137,6 +8137,9 @@ void main() {
           'block_ids': ['doc_alpha_block_001'],
           'heading_path': ['Alpha'],
           'page_or_section': 'p.3 / Alpha',
+          'page_number': 3,
+          'section_id': 'sec-alpha',
+          'source_span': {'start': 8, 'end': 27},
         },
       ],
     );
@@ -8164,6 +8167,11 @@ void main() {
         [result.sourceTraceRows.single['source_trace_id']]);
     expect(alphaMap['block_ids'], ['doc_alpha_block_001']);
     expect(alphaMap['page_or_sections'], ['p.3 / Alpha']);
+    expect(alphaMap['page_numbers'], [3]);
+    expect(alphaMap['section_ids'], ['sec-alpha']);
+    expect(alphaMap['source_spans'], [
+      {'start': 8, 'end': 27},
+    ]);
   });
 
   test('prd external Skill import localizes real file content into workspace',

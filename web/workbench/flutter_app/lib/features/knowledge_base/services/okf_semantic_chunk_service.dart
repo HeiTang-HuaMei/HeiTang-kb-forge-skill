@@ -636,6 +636,9 @@ class OkfSemanticChunkService {
           'source_trace_ids': <String>[],
           'block_ids': <String>[],
           'page_or_sections': <String>[],
+          'page_numbers': <int>[],
+          'section_ids': <String>[],
+          'source_spans': <Map<String, dynamic>>[],
           'heading_paths': <String>[],
         };
       });
@@ -676,6 +679,12 @@ class OkfSemanticChunkService {
       }
       _addUniqueString(document['page_or_sections'] as List<String>,
           _stringValue(chunk['page_or_section']));
+      _addUniqueInt(document['page_numbers'] as List<int>,
+          _intValue(chunk['page_number']));
+      _addUniqueString(document['section_ids'] as List<String>,
+          _stringValue(chunk['section_id']));
+      _addUniqueMap(document['source_spans'] as List<Map<String, dynamic>>,
+          _mapValue(chunk['source_span']));
       final headingPath = _stringList(chunk['heading_path']).join(' / ');
       _addUniqueString(document['heading_paths'] as List<String>, headingPath);
     }
@@ -695,6 +704,12 @@ class OkfSemanticChunkService {
       }
       _addUniqueString(document['page_or_sections'] as List<String>,
           _stringValue(trace['page_or_section']));
+      _addUniqueInt(document['page_numbers'] as List<int>,
+          _intValue(trace['page_number']));
+      _addUniqueString(document['section_ids'] as List<String>,
+          _stringValue(trace['section_id']));
+      _addUniqueMap(document['source_spans'] as List<Map<String, dynamic>>,
+          _mapValue(trace['source_span']));
       final headingPath = _stringList(trace['heading_path']).join(' / ');
       _addUniqueString(document['heading_paths'] as List<String>, headingPath);
     }
@@ -727,6 +742,21 @@ class OkfSemanticChunkService {
     values.add(value);
   }
 
+  void _addUniqueInt(List<int> values, int? value) {
+    if (value == null || values.contains(value)) return;
+    values.add(value);
+  }
+
+  void _addUniqueMap(
+    List<Map<String, dynamic>> values,
+    Map<String, dynamic> value,
+  ) {
+    if (value.isEmpty) return;
+    final encoded = jsonEncode(value);
+    if (values.any((item) => jsonEncode(item) == encoded)) return;
+    values.add(value);
+  }
+
   Map<String, dynamic> _mapValue(Object? value) {
     if (value is Map<String, dynamic>) return value;
     if (value is Map) return value.cast<String, dynamic>();
@@ -736,6 +766,11 @@ class OkfSemanticChunkService {
   String _stringValue(Object? value, [String fallback = '']) {
     final text = (value ?? '').toString().trim();
     return text.isEmpty ? fallback : text;
+  }
+
+  int? _intValue(Object? value) {
+    if (value is int) return value;
+    return int.tryParse(_stringValue(value));
   }
 
   String _normalize(Object? value) {
