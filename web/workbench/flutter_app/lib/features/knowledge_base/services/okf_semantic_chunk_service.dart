@@ -186,14 +186,26 @@ class OkfSemanticChunkService {
           sourceDoc['summary'],
           _stringValue(sourceDoc['source_name'], relativePath),
         );
+        final sourcePath = _stringValue(sourceDoc['source_path'], relativePath);
+        final pageOrSection = _stringValue(
+          sourceDoc['page_or_section'],
+          relativePath,
+        );
+        final pageNumber = sourceDoc['page_number'];
+        final sectionId = _stringValue(sourceDoc['section_id']);
+        final sourceSpan = _mapValue(sourceDoc['source_span']);
         final lineage = {
           'kb_id': kbId,
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
+          'source_path': sourcePath,
           'block_ids': [blockId],
           'source_trace_id': sourceTraceId,
           'chunking_strategy': 'okf_fallback_from_source_manifest',
           'fallback_reason': 'no_core_chunk_matched_source_doc',
+          if (pageNumber != null) 'page_number': pageNumber,
+          if (sectionId.isNotEmpty) 'section_id': sectionId,
+          if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
         };
         final chunkId =
             'okf_${kbId}_chunk_${(resultChunks.length + 1).toString().padLeft(3, '0')}';
@@ -206,11 +218,14 @@ class OkfSemanticChunkService {
           'semantic_unit_type': 'okf_semantic_chunk',
           'source_trace_id': sourceTraceId,
           'lineage': lineage,
-          'page_or_section': relativePath,
+          'page_or_section': pageOrSection,
           'chunk_hash': _stableHash(text).toString(),
           'text': text,
-          'source_path': relativePath,
+          'source_path': sourcePath,
           'citation': '$relativePath#$blockId',
+          if (pageNumber != null) 'page_number': pageNumber,
+          if (sectionId.isNotEmpty) 'section_id': sectionId,
+          if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
         };
         resultChunks.add(chunk);
         traceRows.add({
@@ -220,11 +235,14 @@ class OkfSemanticChunkService {
           'chunk_id': chunk['chunk_id'],
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
-          'source_path': relativePath,
-          'page_or_section': relativePath,
+          'source_path': sourcePath,
+          'page_or_section': pageOrSection,
           'block_ids': [blockId],
           'heading_path': [relativePath],
           'chunk_hash': chunk['chunk_hash'],
+          if (pageNumber != null) 'page_number': pageNumber,
+          if (sectionId.isNotEmpty) 'section_id': sectionId,
+          if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
           'lineage': lineage,
           'source_trace_status': 'linked',
         });

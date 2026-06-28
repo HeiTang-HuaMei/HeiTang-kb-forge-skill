@@ -7947,6 +7947,10 @@ void main() {
           'source_name': 'beta.md',
           'relative_path': 'beta.md',
           'summary': 'beta source summary fallback',
+          'source_path': 'materials/beta.md',
+          'page_number': 9,
+          'section_id': 'beta-sec',
+          'source_span': {'start': 12, 'end': 48},
         },
       ],
       inputChunks: const [],
@@ -7960,10 +7964,25 @@ void main() {
     final betaChunk = result.chunks
         .firstWhere((chunk) => chunk['source_doc_id'] == 'doc_beta');
     expect(betaChunk['text'], 'beta source summary fallback');
+    expect(betaChunk['source_path'], 'materials/beta.md');
+    expect(betaChunk['page_number'], 9);
+    expect(betaChunk['section_id'], 'beta-sec');
+    expect(betaChunk['source_span'], {'start': 12, 'end': 48});
     expect((betaChunk['lineage'] as Map)['fallback_reason'],
         'no_core_chunk_matched_source_doc');
     expect((betaChunk['lineage'] as Map)['chunking_strategy'],
         'okf_fallback_from_source_manifest');
+    expect((betaChunk['lineage'] as Map)['source_path'], 'materials/beta.md');
+    expect((betaChunk['lineage'] as Map)['page_number'], 9);
+    expect((betaChunk['lineage'] as Map)['section_id'], 'beta-sec');
+    expect((betaChunk['lineage'] as Map)['source_span'],
+        {'start': 12, 'end': 48});
+    final betaTrace = result.sourceTraceRows
+        .firstWhere((trace) => trace['source_doc_id'] == 'doc_beta');
+    expect(betaTrace['source_path'], 'materials/beta.md');
+    expect(betaTrace['page_number'], 9);
+    expect(betaTrace['section_id'], 'beta-sec');
+    expect(betaTrace['source_span'], {'start': 12, 'end': 48});
   });
 
   test('okf normalized text fallback is explicitly marked as fallback',
