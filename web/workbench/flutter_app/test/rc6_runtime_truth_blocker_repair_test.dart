@@ -7845,6 +7845,7 @@ void main() {
           'document_id': 'doc_alpha',
           'source_name': 'alpha.md',
           'relative_path': 'alpha.md',
+          'source_path': 'materials/alpha.md',
         },
         {
           'document_id': 'doc_beta',
@@ -7871,6 +7872,11 @@ void main() {
     expect(alphaChunk['text'], 'canonical parsed document evidence');
     expect(alphaChunk['block_ids'], ['doc_alpha_intro']);
     expect(alphaChunk['heading_path'], ['Canonical']);
+    expect(alphaChunk['source_path'], 'materials/alpha.md');
+    expect((alphaChunk['lineage'] as Map)['source_path'],
+        'materials/alpha.md');
+    expect((alphaChunk['lineage'] as Map)['normalized_path'],
+        normalizedPath);
     expect(alphaChunk['page_number'], 7);
     expect(alphaChunk['section_id'], 'sec-intro');
     expect(alphaChunk['source_span'], {'start': 11, 'end': 47});
@@ -7899,6 +7905,7 @@ void main() {
         hasLength(writtenTrace.length));
     final alphaTrace = writtenTrace
         .firstWhere((trace) => trace['source_doc_id'] == 'doc_alpha');
+    expect(alphaTrace['source_path'], 'materials/alpha.md');
     expect(alphaTrace['page_number'], 7);
     expect(alphaTrace['section_id'], 'sec-intro');
     expect(alphaTrace['source_span'], {'start': 11, 'end': 47});

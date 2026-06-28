@@ -275,6 +275,10 @@ class OkfSemanticChunkService {
       );
       final record = normalizedByRelativePath[_normalize(relativePath)];
       final normalizedPath = _stringValue(record?['normalized_path']);
+      final sourcePath = _stringValue(
+        sourceDoc['source_path'],
+        _stringValue(record?['source_path'], normalizedPath),
+      );
       final blocks = _parsedDocumentBlocks(record, sourceDocId, relativePath);
       if (blocks.isEmpty) {
         if (normalizedPath.isEmpty || !await File(normalizedPath).exists()) {
@@ -305,6 +309,7 @@ class OkfSemanticChunkService {
           'kb_id': kbId,
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
+          'source_path': sourcePath,
           'normalized_path': normalizedPath,
           'block_ids': blockIds,
           'source_trace_id': sourceTraceId,
@@ -325,7 +330,8 @@ class OkfSemanticChunkService {
           'document_id': sourceDocId,
           'relative_path': relativePath,
           'source_document': relativePath,
-          'source_path': normalizedPath,
+          'source_path': sourcePath,
+          'normalized_path': normalizedPath,
           'block_ids': blockIds,
           'heading_path': headingPath,
           'semantic_unit_type': 'okf_semantic_chunk',
@@ -349,7 +355,8 @@ class OkfSemanticChunkService {
           'chunk_id': chunkId,
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
-          'source_path': normalizedPath,
+          'source_path': sourcePath,
+          'normalized_path': normalizedPath,
           'page_or_section': chunk['page_or_section'],
           'block_ids': blockIds,
           'heading_path': headingPath,
