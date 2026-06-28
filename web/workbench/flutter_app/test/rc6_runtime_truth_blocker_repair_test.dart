@@ -7963,6 +7963,7 @@ void main() {
           'relative_path': 'beta.md',
           'summary': 'beta source summary fallback',
           'source_path': 'materials/beta.md',
+          'page_or_section': 'p.9 / Beta',
           'page_number': 9,
           'section_id': 'beta-sec',
           'source_span': {'start': 12, 'end': 48},
@@ -7988,6 +7989,7 @@ void main() {
     expect((betaChunk['lineage'] as Map)['chunking_strategy'],
         'okf_fallback_from_source_manifest');
     expect((betaChunk['lineage'] as Map)['source_path'], 'materials/beta.md');
+    expect((betaChunk['lineage'] as Map)['page_or_section'], 'p.9 / Beta');
     expect((betaChunk['lineage'] as Map)['page_number'], 9);
     expect((betaChunk['lineage'] as Map)['section_id'], 'beta-sec');
     expect((betaChunk['lineage'] as Map)['source_span'],
@@ -7995,6 +7997,7 @@ void main() {
     final betaTrace = result.sourceTraceRows
         .firstWhere((trace) => trace['source_doc_id'] == 'doc_beta');
     expect(betaTrace['source_path'], 'materials/beta.md');
+    expect((betaTrace['lineage'] as Map)['page_or_section'], 'p.9 / Beta');
     expect(betaTrace['page_number'], 9);
     expect(betaTrace['section_id'], 'beta-sec');
     expect(betaTrace['source_span'], {'start': 12, 'end': 48});
@@ -8043,6 +8046,7 @@ void main() {
         lineage['fallback_reason'],
         'parsed_document_blocks_unavailable',
       );
+      expect(lineage['page_or_section'], chunk['page_or_section']);
     }
     for (final trace in result.sourceTraceRows) {
       expect(trace['lineage'], containsPair(
@@ -8091,6 +8095,7 @@ void main() {
     expect(chunk['source_span'], {'start': 3, 'end': 31});
     expect(lineage['chunking_strategy'], 'okf_fallback_from_input_chunk');
     expect(lineage['fallback_reason'], 'parsed_document_unavailable');
+    expect(lineage['page_or_section'], 'Legacy');
     expect(lineage['page_number'], 5);
     expect(lineage['section_id'], 'legacy-sec');
     expect(lineage['source_span'], {'start': 3, 'end': 31});
