@@ -299,6 +299,11 @@ class OkfSemanticChunkService {
         final sourceTraceId = 'trace_${kbId}_${blockIds.first}';
         final headingPath = block['heading_path'] as List<String>;
         final text = _stringValue(block['text']);
+        final blockSourcePath = _stringValue(block['source_path'], sourcePath);
+        final pageOrSection = _stringValue(
+          block['page_or_section'],
+          headingPath.isEmpty ? relativePath : headingPath.join(' / '),
+        );
         final chunkId =
             'okf_${kbId}_chunk_${(chunks.length + 1).toString().padLeft(3, '0')}';
         final chunkHash = _stableHash(text).toString();
@@ -309,10 +314,11 @@ class OkfSemanticChunkService {
           'kb_id': kbId,
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
-          'source_path': sourcePath,
+          'source_path': blockSourcePath,
           'normalized_path': normalizedPath,
           'block_ids': blockIds,
           'source_trace_id': sourceTraceId,
+          'page_or_section': pageOrSection,
           'parsed_block_type': block['block_type'],
           'chunking_strategy':
               block['chunking_strategy'] ?? 'okf_semantic_from_parsed_document',
@@ -330,16 +336,14 @@ class OkfSemanticChunkService {
           'document_id': sourceDocId,
           'relative_path': relativePath,
           'source_document': relativePath,
-          'source_path': sourcePath,
+          'source_path': blockSourcePath,
           'normalized_path': normalizedPath,
           'block_ids': blockIds,
           'heading_path': headingPath,
           'semantic_unit_type': 'okf_semantic_chunk',
           'source_trace_id': sourceTraceId,
           'lineage': lineage,
-          'page_or_section': headingPath.isEmpty
-              ? relativePath
-              : headingPath.join(' / '),
+          'page_or_section': pageOrSection,
           'chunk_hash': chunkHash,
           'text': text,
           'citation': '$relativePath#${blockIds.first}',
@@ -355,9 +359,9 @@ class OkfSemanticChunkService {
           'chunk_id': chunkId,
           'source_doc_id': sourceDocId,
           'source_document': relativePath,
-          'source_path': sourcePath,
+          'source_path': blockSourcePath,
           'normalized_path': normalizedPath,
-          'page_or_section': chunk['page_or_section'],
+          'page_or_section': pageOrSection,
           'block_ids': blockIds,
           'heading_path': headingPath,
           'chunk_hash': chunkHash,
@@ -397,6 +401,8 @@ class OkfSemanticChunkService {
       final headingPath = _stringList(item['heading_path']);
       final pageNumber = item['page_number'];
       final sectionId = _stringValue(item['section_id']);
+      final sourcePath = _stringValue(item['source_path']);
+      final pageOrSection = _stringValue(item['page_or_section']);
       final sourceSpan = _mapValue(item['source_span']);
       blocks.add({
         'block_id': blockId,
@@ -406,6 +412,8 @@ class OkfSemanticChunkService {
             : headingPath,
         'text': text,
         'parsed_document_source': 'canonical_blocks',
+        if (sourcePath.isNotEmpty) 'source_path': sourcePath,
+        if (pageOrSection.isNotEmpty) 'page_or_section': pageOrSection,
         if (pageNumber != null) 'page_number': pageNumber,
         if (sectionId.isNotEmpty) 'section_id': sectionId,
         if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,

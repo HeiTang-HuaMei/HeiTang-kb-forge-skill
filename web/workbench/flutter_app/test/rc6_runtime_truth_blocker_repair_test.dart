@@ -7827,6 +7827,8 @@ void main() {
                     'block_id': 'doc_alpha_intro',
                     'block_type': 'paragraph',
                     'heading_path': ['Canonical'],
+                    'source_path': 'materials/alpha.md#section=intro',
+                    'page_or_section': 'p.7 / Intro',
                     'page_number': 7,
                     'section_id': 'sec-intro',
                     'source_span': {'start': 11, 'end': 47},
@@ -7872,9 +7874,11 @@ void main() {
     expect(alphaChunk['text'], 'canonical parsed document evidence');
     expect(alphaChunk['block_ids'], ['doc_alpha_intro']);
     expect(alphaChunk['heading_path'], ['Canonical']);
-    expect(alphaChunk['source_path'], 'materials/alpha.md');
+    expect(alphaChunk['source_path'], 'materials/alpha.md#section=intro');
+    expect(alphaChunk['page_or_section'], 'p.7 / Intro');
     expect((alphaChunk['lineage'] as Map)['source_path'],
-        'materials/alpha.md');
+        'materials/alpha.md#section=intro');
+    expect((alphaChunk['lineage'] as Map)['page_or_section'], 'p.7 / Intro');
     expect((alphaChunk['lineage'] as Map)['normalized_path'],
         normalizedPath);
     expect(alphaChunk['page_number'], 7);
@@ -7905,10 +7909,14 @@ void main() {
         hasLength(writtenTrace.length));
     final alphaTrace = writtenTrace
         .firstWhere((trace) => trace['source_doc_id'] == 'doc_alpha');
-    expect(alphaTrace['source_path'], 'materials/alpha.md');
+    expect(alphaTrace['source_path'], 'materials/alpha.md#section=intro');
+    expect(alphaTrace['page_or_section'], 'p.7 / Intro');
     expect(alphaTrace['page_number'], 7);
     expect(alphaTrace['section_id'], 'sec-intro');
     expect(alphaTrace['source_span'], {'start': 11, 'end': 47});
+    expect((alphaTrace['lineage'] as Map)['source_path'],
+        'materials/alpha.md#section=intro');
+    expect((alphaTrace['lineage'] as Map)['page_or_section'], 'p.7 / Intro');
     expect((alphaTrace['lineage'] as Map)['parsed_document_source'],
         'canonical_blocks');
   });
