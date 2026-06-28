@@ -7962,6 +7962,47 @@ void main() {
     expect(betaChunk['text'], 'beta source summary fallback');
     expect((betaChunk['lineage'] as Map)['fallback_reason'],
         'no_core_chunk_matched_source_doc');
+    expect((betaChunk['lineage'] as Map)['chunking_strategy'],
+        'okf_fallback_from_source_manifest');
+  });
+
+  test('okf input chunk fallback is explicitly marked as fallback', () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+
+    final result = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbDir,
+      kbId: 'K_OKF_INPUT_FALLBACK',
+      sourceDocs: const [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+      ],
+      inputChunks: const [
+        {
+          'source_doc_id': 'doc_alpha',
+          'relative_path': 'alpha.md',
+          'text': 'legacy window chunk evidence',
+          'block_ids': ['doc_alpha_window_001'],
+          'heading_path': ['Legacy'],
+        },
+      ],
+    );
+
+    expect(result.chunks, hasLength(1));
+    final chunk = result.chunks.single;
+    final lineage = chunk['lineage'] as Map;
+    expect(chunk['semantic_unit_type'], 'okf_semantic_chunk');
+    expect(lineage['chunking_strategy'], 'okf_fallback_from_input_chunk');
+    expect(lineage['fallback_reason'], 'parsed_document_unavailable');
+    expect(result.sourceTraceRows.single['lineage'], containsPair(
+      'chunking_strategy',
+      'okf_fallback_from_input_chunk',
+    ));
   });
 
   test('prd external Skill import localizes real file content into workspace',

@@ -104,6 +104,8 @@ class OkfSemanticChunkService {
         'block_ids': blockIds,
         'source_trace_id': sourceTraceId,
         'source_path': _stringValue(input['source_path'], relativePath),
+        'chunking_strategy': 'okf_fallback_from_input_chunk',
+        'fallback_reason': 'parsed_document_unavailable',
       };
       final okfChunk = <String, dynamic>{
         ...input,
@@ -178,6 +180,7 @@ class OkfSemanticChunkService {
           'source_document': relativePath,
           'block_ids': [blockId],
           'source_trace_id': sourceTraceId,
+          'chunking_strategy': 'okf_fallback_from_source_manifest',
           'fallback_reason': 'no_core_chunk_matched_source_doc',
         };
         final chunkId =
