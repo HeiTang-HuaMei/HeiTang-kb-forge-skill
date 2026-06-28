@@ -7966,6 +7966,58 @@ void main() {
         'okf_fallback_from_source_manifest');
   });
 
+  test('okf normalized text fallback is explicitly marked as fallback',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalizedPath = '${duDir.path}${Platform.pathSeparator}alpha.md';
+    File(normalizedPath).writeAsStringSync(
+      '# Alpha\nnormalized fallback evidence from text only',
+    );
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync('${jsonEncode({
+              'relative_path': 'alpha.md',
+              'normalized_path': normalizedPath,
+              'parsed_document': {
+                'schema_version': 'parsed_document.v1',
+              },
+            })}\n');
+
+    final result = await const OkfSemanticChunkService().materialize(
+      workspace: workspace,
+      kbDir: kbDir,
+      kbId: 'K_OKF_NORMALIZED_FALLBACK',
+      sourceDocs: const [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+      ],
+      inputChunks: const [],
+    );
+
+    expect(result.chunks, isNotEmpty);
+    for (final chunk in result.chunks) {
+      final lineage = chunk['lineage'] as Map;
+      expect(lineage['parsed_document_source'], 'normalized_text');
+      expect(lineage['chunking_strategy'], 'okf_fallback_from_normalized_text');
+      expect(
+        lineage['fallback_reason'],
+        'parsed_document_blocks_unavailable',
+      );
+    }
+    for (final trace in result.sourceTraceRows) {
+      expect(trace['lineage'], containsPair(
+        'chunking_strategy',
+        'okf_fallback_from_normalized_text',
+      ));
+    }
+  });
+
   test('okf input chunk fallback is explicitly marked as fallback', () async {
     final workspace = await createWorkspace();
     final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')

@@ -254,6 +254,11 @@ class OkfSemanticChunkService {
           normalizedPath,
         ).readAsString(encoding: utf8);
         blocks.addAll(_semanticBlocks(parsedText, sourceDocId, relativePath));
+        for (final block in blocks) {
+          block['parsed_document_source'] = 'normalized_text';
+          block['chunking_strategy'] = 'okf_fallback_from_normalized_text';
+          block['fallback_reason'] = 'parsed_document_blocks_unavailable';
+        }
       }
       for (final block in blocks) {
         final blockIds = [_stringValue(block['block_id'])];
@@ -274,9 +279,12 @@ class OkfSemanticChunkService {
           'block_ids': blockIds,
           'source_trace_id': sourceTraceId,
           'parsed_block_type': block['block_type'],
-          'chunking_strategy': 'okf_semantic_from_parsed_document',
+          'chunking_strategy':
+              block['chunking_strategy'] ?? 'okf_semantic_from_parsed_document',
           'parsed_document_source':
               block['parsed_document_source'] ?? 'normalized_text',
+          if (block['fallback_reason'] != null)
+            'fallback_reason': block['fallback_reason'],
           if (pageNumber != null) 'page_number': pageNumber,
           if (sectionId.isNotEmpty) 'section_id': sectionId,
           if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
