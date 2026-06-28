@@ -10,6 +10,7 @@ import '../core_bridge/local_core_bridge.dart';
 import '../features/document_generation/services/document_generation_binding_service.dart';
 import '../features/agent/services/agent_binding_truth_service.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
+import '../features/skill/repositories/skill_delete_evidence_repository.dart';
 import '../features/skill/services/skill_binding_truth_service.dart';
 import '../features/skill/services/skill_source_trace_service.dart';
 import 'project_config_profile.dart';
@@ -30780,6 +30781,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       return;
     }
     final workspace = _requireWorkspace();
+    final deletedSkillIds = await _existingSkillIds(workspace);
+    final effectiveDeletedSkillIds = deletedSkillIds.isEmpty
+        ? const ['knowledge_qa_skill']
+        : deletedSkillIds;
+    final deletedPaths = <String>[
+      _join(workspace.path, 'skill'),
+      _join(workspace.path, 'agent', 'dialogue'),
+      _join(workspace.path, 'agent', 'dialogue_export'),
+      _join(workspace.path, 'multi_agent'),
+      _join(workspace.path, 'prd_p0'),
+    ].where((path) => File(path).existsSync() || Directory(path).existsSync())
+        .toList(growable: false);
+    final sourceKbIds = await _activeSourceKbIds(workspace);
     for (final relative in const [
       'skill',
       'agent/dialogue',
@@ -30789,6 +30803,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     ]) {
       await _clearWorkspacePath(_join(workspace.path, relative));
     }
+    final deleteEvidence =
+        await const SkillDeleteEvidenceRepository().writeDeleteEvidence(
+      workspace: workspace,
+      deletedSkillIds: effectiveDeletedSkillIds,
+      sourceKbIds: sourceKbIds,
+      deletedPaths: deletedPaths,
+      kbAssetsDeleted: false,
+    );
     state = state.copyWith(
       phase: state.hasReadingNotes
           ? Rc6RuntimePhase.documentGenerated
@@ -30808,7 +30830,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       localizedSkillDiffPath: '',
       skillVersionManifestPath: '',
       skillOperationManifestPath: '',
-      skillOperationHistoryPath: '',
+      skillOperationHistoryPath: deleteEvidence.historyPath,
       skillFactoryAuditPath: '',
       skillExportPath: '',
       skillAgentBindingManifestPath: '',
@@ -30843,6 +30865,38 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillVersionCount: 0,
       lastMessage: 'Skill 产物已删除；依赖该 Skill 的对话和协作输出已清理，Agent 配置保留。',
       lastError: '',
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'delete_skill',
+      module: 'skill',
+      action: 'delete_skill',
+      status: 'completed',
+      targetId: effectiveDeletedSkillIds.first,
+      targetName: effectiveDeletedSkillIds.join(' / '),
+      artifactPath: deleteEvidence.tombstonePath,
+      source: 'skill_delete_evidence',
+      metadata: {
+        'deleted_skill_ids': effectiveDeletedSkillIds,
+        'source_kb_ids': sourceKbIds,
+        'history_path': deleteEvidence.historyPath,
+        'manifest_path': deleteEvidence.manifestPath,
+        'kb_assets_deleted': false,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'skill_delete_tombstone',
+      artifactType: 'skill_tombstone',
+      title: 'Skill Delete Tombstone',
+      sourceModule: 'skill',
+      sourceId: effectiveDeletedSkillIds.first,
+      filePath: deleteEvidence.tombstonePath,
+      status: 'deleted',
+      metadata: {
+        'deleted_skill_ids': effectiveDeletedSkillIds,
+        'source_kb_ids': sourceKbIds,
+        'history_path': deleteEvidence.historyPath,
+        'manifest_path': deleteEvidence.manifestPath,
+      },
     );
     await _markAgentDependencyMissingAfterSkillDelete(workspace);
     notifyListeners();
@@ -35176,6 +35230,80 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
   }
 
+  Future<List<String>> _existingSkillIds(Directory workspace) async {
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    if (!await skillRoot.exists()) return const <String>[];
+    final ids = <String>[];
+    final packageManifest = await _readJsonObject(
+      _join(skillRoot.path, 'skill_package_manifest.json'),
+    );
+    for (final row in _listOfMaps(packageManifest['skill_packages'])) {
+      final id = _stringValue(row['skill_id'], '');
+      if (id.isNotEmpty) ids.add(id);
+    }
+    final primaryConfig = await _readJsonObject(
+      _joinNested(
+          workspace.path, 'skill/knowledge_qa_skill/skill_config.json'),
+    );
+    final primaryId = _stringValue(
+      primaryConfig['skill_config_id'],
+      await Directory(_joinNested(workspace.path, 'skill/knowledge_qa_skill'))
+              .exists()
+          ? 'knowledge_qa_skill'
+          : '',
+    );
+    if (primaryId.isNotEmpty) ids.add(primaryId);
+    await for (final entry in skillRoot.list(followLinks: false)) {
+      if (entry is! Directory) continue;
+      final manifest = await _readJsonObject(
+        _join(entry.path, 'skill_manifest.json'),
+      );
+      final id = _stringValue(
+        manifest['skill_id'],
+        entry.path.split(Platform.pathSeparator).last,
+      );
+      if (id.isNotEmpty && id != 'operations' && id != 'exports') {
+        ids.add(id);
+      }
+    }
+    return _uniqueNonEmptyStrings(ids);
+  }
+
+  Future<List<String>> _activeSourceKbIds(Directory workspace) async {
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    return _uniqueNonEmptyStrings(_catalogRecords(catalog)
+        .where((record) =>
+            record['is_deleted'] != true &&
+            _stringValue(record['status'], '') != 'deleted')
+        .map((record) => record['kb_id']));
+  }
+
+  Future<String> _latestSkillDeleteHistoryPath(Directory workspace) async {
+    final deleteRoot = Directory(_join(workspace.path, 'skill_deletions'));
+    if (!await deleteRoot.exists()) return '';
+    final dirs = <Directory>[];
+    await for (final entry in deleteRoot.list(followLinks: false)) {
+      if (entry is Directory) dirs.add(entry);
+    }
+    dirs.sort((a, b) =>
+        b.statSync().modified.compareTo(a.statSync().modified));
+    for (final dir in dirs) {
+      final historyPath = _join(dir.path, 'skill_operation_history.json');
+      if (await File(historyPath).exists()) return historyPath;
+    }
+    return '';
+  }
+
+  static List<String> _uniqueNonEmptyStrings(Iterable<Object?> values) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final value in values) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty && seen.add(text)) result.add(text);
+    }
+    return result;
+  }
+
   Future<void> _loadExistingArtifacts([Directory? targetWorkspace]) async {
     final workspace = targetWorkspace ?? _currentWorkbookWorkspace();
     if (workspace == null || !await workspace.exists()) {
@@ -35275,6 +35403,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'skill/operations/skill_operation_manifest.json');
     final skillOperationHistoryPath = _joinNested(
         workspace.path, 'skill/operations/skill_operation_history.json');
+    final latestSkillDeleteHistoryPath =
+        await _latestSkillDeleteHistoryPath(workspace);
     final skillFactoryAuditPath = _joinNested(
         workspace.path, 'skill/operations/skill_factory_audit.json');
     final skillExportPath =
@@ -35568,7 +35698,7 @@ class Rc6RuntimeController extends ChangeNotifier {
               : '',
       skillOperationHistoryPath: await File(skillOperationHistoryPath).exists()
           ? skillOperationHistoryPath
-          : '',
+          : latestSkillDeleteHistoryPath,
       skillFactoryAuditPath: await File(skillFactoryAuditPath).exists()
           ? skillFactoryAuditPath
           : '',

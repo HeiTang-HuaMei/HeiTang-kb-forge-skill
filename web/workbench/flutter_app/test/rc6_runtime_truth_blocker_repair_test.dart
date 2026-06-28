@@ -20073,6 +20073,157 @@ void main() {
         endsWith('agent_binding_manifest.json'));
   });
 
+  test('skill delete preserves tombstone operation history and restart evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
+      ..createSync(recursive: true);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(
+            '${jsonEncode({
+                  'text': '删除 Skill 时不能误删知识库证据',
+                  'source_path': 'alpha.txt',
+                  'source_doc_id': 'doc_alpha',
+                  'chunk_id': 'chunk_alpha_001',
+                  'source_trace_id': 'trace_alpha_001',
+                })}\n');
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'owner_product_kb',
+          'kb_name': 'Owner 产品知识库',
+          'status': 'searchable',
+        }
+      ],
+    }));
+
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}SKILL.md')
+              .writeAsStringSync('# generated skill');
+          File('${output.path}${Platform.pathSeparator}skill_manifest.yaml')
+              .writeAsStringSync('name: generated skill');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.generateSkill();
+    expect(controller.state.hasSkill, isTrue);
+
+    await controller.clearSkillArtifacts();
+
+    expect(controller.state.hasSkill, isFalse);
+    expect(File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl').existsSync(),
+        isTrue);
+    final skillDeleteRoot = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}skill_deletions');
+    expect(skillDeleteRoot.existsSync(), isTrue);
+    final deleteEvidenceDirs = skillDeleteRoot
+        .listSync()
+        .whereType<Directory>()
+        .toList(growable: false);
+    expect(deleteEvidenceDirs, hasLength(1));
+    final tombstonePath =
+        '${deleteEvidenceDirs.single.path}${Platform.pathSeparator}skill_delete_tombstone.json';
+    final historyPath =
+        '${deleteEvidenceDirs.single.path}${Platform.pathSeparator}skill_operation_history.json';
+    final manifestPath =
+        '${deleteEvidenceDirs.single.path}${Platform.pathSeparator}skill_delete_manifest.json';
+    final tombstone =
+        jsonDecode(File(tombstonePath).readAsStringSync()) as Map;
+    expect(tombstone['schema_version'], 'prd_v3_skill_delete_tombstone.v1');
+    expect(tombstone['status'], 'deleted');
+    expect(tombstone['deleted_skill_ids'], contains('knowledge_qa_skill'));
+    expect(tombstone['kb_assets_deleted'], isFalse);
+    expect(tombstone['source_kb_ids'], contains('owner_product_kb'));
+    final deleteHistory =
+        jsonDecode(File(historyPath).readAsStringSync()) as Map;
+    expect(deleteHistory['schema_version'],
+        'prd_v2_skill_operation_history.v1');
+    expect(
+        deleteHistory['records'],
+        contains(isA<Map>()
+            .having((record) => record['action'], 'action', 'delete_skill')
+            .having((record) => record['status'], 'status', 'deleted')));
+    final deleteManifest =
+        jsonDecode(File(manifestPath).readAsStringSync()) as Map;
+    expect(deleteManifest['tombstone_path'], tombstonePath);
+    expect(deleteManifest['history_path'], historyPath);
+    expect(controller.state.hasSkillOperationHistory, isTrue);
+    expect(controller.state.skillOperationHistoryPath, historyPath);
+
+    final eventRows = File(
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'delete_skill' &&
+            row['artifact_path'] == tombstonePath),
+        isTrue);
+    final artifactCatalog = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'skill_delete_tombstone' &&
+            row['artifact_type'] == 'skill_tombstone' &&
+            row['file_path'] == tombstonePath &&
+            row['status'] == 'deleted'),
+        isTrue);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasSkill, isFalse);
+    expect(reloadedController.state.hasSkillOperationHistory, isTrue);
+    expect(reloadedController.state.skillOperationHistoryPath, historyPath);
+    expect(
+        reloadedController.state.eventLedgerRecords.any((record) =>
+            record.eventType == 'delete_skill' &&
+            record.artifactPath == tombstonePath),
+        isTrue);
+    expect(
+        reloadedController.state.artifactRecords.any((record) =>
+            record.artifactId == 'skill_delete_tombstone' &&
+            record.filePath == tombstonePath &&
+            record.status == 'deleted'),
+        isTrue);
+  });
+
   test('agent generation persists creation mode type and output config',
       () async {
     final workspace = await createWorkspace();
