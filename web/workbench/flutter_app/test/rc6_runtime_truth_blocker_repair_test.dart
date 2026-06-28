@@ -8041,6 +8041,9 @@ void main() {
           'text': 'legacy window chunk evidence',
           'block_ids': ['doc_alpha_window_001'],
           'heading_path': ['Legacy'],
+          'page_number': 5,
+          'section_id': 'legacy-sec',
+          'source_span': {'start': 3, 'end': 31},
         },
       ],
     );
@@ -8049,9 +8052,19 @@ void main() {
     final chunk = result.chunks.single;
     final lineage = chunk['lineage'] as Map;
     expect(chunk['semantic_unit_type'], 'okf_semantic_chunk');
+    expect(chunk['page_number'], 5);
+    expect(chunk['section_id'], 'legacy-sec');
+    expect(chunk['source_span'], {'start': 3, 'end': 31});
     expect(lineage['chunking_strategy'], 'okf_fallback_from_input_chunk');
     expect(lineage['fallback_reason'], 'parsed_document_unavailable');
-    expect(result.sourceTraceRows.single['lineage'], containsPair(
+    expect(lineage['page_number'], 5);
+    expect(lineage['section_id'], 'legacy-sec');
+    expect(lineage['source_span'], {'start': 3, 'end': 31});
+    final trace = result.sourceTraceRows.single;
+    expect(trace['page_number'], 5);
+    expect(trace['section_id'], 'legacy-sec');
+    expect(trace['source_span'], {'start': 3, 'end': 31});
+    expect(trace['lineage'], containsPair(
       'chunking_strategy',
       'okf_fallback_from_input_chunk',
     ));

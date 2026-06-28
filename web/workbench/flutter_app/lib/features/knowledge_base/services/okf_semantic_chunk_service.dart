@@ -95,6 +95,9 @@ class OkfSemanticChunkService {
         input['page_or_section'],
         headingPath.isEmpty ? relativePath : headingPath.join(' / '),
       );
+      final pageNumber = input['page_number'];
+      final sectionId = _stringValue(input['section_id']);
+      final sourceSpan = _mapValue(input['source_span']);
       final lineage = _mapValue(input['lineage']);
       final normalizedLineage = {
         ...lineage,
@@ -106,6 +109,9 @@ class OkfSemanticChunkService {
         'source_path': _stringValue(input['source_path'], relativePath),
         'chunking_strategy': 'okf_fallback_from_input_chunk',
         'fallback_reason': 'parsed_document_unavailable',
+        if (pageNumber != null) 'page_number': pageNumber,
+        if (sectionId.isNotEmpty) 'section_id': sectionId,
+        if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
       };
       final okfChunk = <String, dynamic>{
         ...input,
@@ -125,6 +131,9 @@ class OkfSemanticChunkService {
           input['citation'],
           '$relativePath#${blockIds.first}',
         ),
+        if (pageNumber != null) 'page_number': pageNumber,
+        if (sectionId.isNotEmpty) 'section_id': sectionId,
+        if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
       };
       resultChunks.add(okfChunk);
       traceRows.add({
@@ -139,6 +148,9 @@ class OkfSemanticChunkService {
         'block_ids': blockIds,
         'heading_path': headingPath,
         'chunk_hash': chunkHash,
+        if (pageNumber != null) 'page_number': pageNumber,
+        if (sectionId.isNotEmpty) 'section_id': sectionId,
+        if (sourceSpan.isNotEmpty) 'source_span': sourceSpan,
         'lineage': normalizedLineage,
         'source_trace_status': 'linked',
       });
