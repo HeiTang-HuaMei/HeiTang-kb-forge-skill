@@ -692,11 +692,19 @@ class OkfSemanticChunkService {
         document['chunk_mappings'] as List<Map<String, dynamic>>,
         chunkId: _stringValue(chunk['chunk_id']),
         sourceTraceId: _stringValue(chunk['source_trace_id']),
+        sourceDocId: _stringValue(chunk['source_doc_id']),
+        sourceDocument: _stringValue(
+          chunk['source_document'],
+          _stringValue(chunk['relative_path']),
+        ),
+        sourcePath: _stringValue(chunk['source_path']),
         blockIds: _stringList(chunk['block_ids']),
+        headingPath: _stringList(chunk['heading_path']),
         pageOrSection: _stringValue(chunk['page_or_section']),
         pageNumber: _intValue(chunk['page_number']),
         sectionId: _stringValue(chunk['section_id']),
         sourceSpan: _mapValue(chunk['source_span']),
+        lineage: _mapValue(chunk['lineage']),
       );
     }
 
@@ -727,11 +735,16 @@ class OkfSemanticChunkService {
         document['chunk_mappings'] as List<Map<String, dynamic>>,
         chunkId: _stringValue(trace['chunk_id']),
         sourceTraceId: _stringValue(trace['source_trace_id']),
+        sourceDocId: _stringValue(trace['source_doc_id']),
+        sourceDocument: _stringValue(trace['source_document']),
+        sourcePath: _stringValue(trace['source_path']),
         blockIds: _stringList(trace['block_ids']),
+        headingPath: _stringList(trace['heading_path']),
         pageOrSection: _stringValue(trace['page_or_section']),
         pageNumber: _intValue(trace['page_number']),
         sectionId: _stringValue(trace['section_id']),
         sourceSpan: _mapValue(trace['source_span']),
+        lineage: _mapValue(trace['lineage']),
       );
     }
 
@@ -782,11 +795,16 @@ class OkfSemanticChunkService {
     List<Map<String, dynamic>> mappings, {
     required String chunkId,
     required String sourceTraceId,
+    required String sourceDocId,
+    required String sourceDocument,
+    required String sourcePath,
     required List<String> blockIds,
+    required List<String> headingPath,
     required String pageOrSection,
     required int? pageNumber,
     required String sectionId,
     required Map<String, dynamic> sourceSpan,
+    required Map<String, dynamic> lineage,
   }) {
     if (chunkId.isEmpty) return;
     final existing = mappings.cast<Map<String, dynamic>?>().firstWhere(
@@ -800,8 +818,20 @@ class OkfSemanticChunkService {
     if (sourceTraceId.isNotEmpty) {
       mapping['source_trace_id'] = sourceTraceId;
     }
+    if (sourceDocId.isNotEmpty) {
+      mapping['source_doc_id'] = sourceDocId;
+    }
+    if (sourceDocument.isNotEmpty) {
+      mapping['source_document'] = sourceDocument;
+    }
+    if (sourcePath.isNotEmpty) {
+      mapping['source_path'] = sourcePath;
+    }
     if (blockIds.isNotEmpty) {
       mapping['block_ids'] = blockIds;
+    }
+    if (headingPath.isNotEmpty) {
+      mapping['heading_path'] = headingPath;
     }
     if (pageOrSection.isNotEmpty) {
       mapping['page_or_section'] = pageOrSection;
@@ -814,6 +844,9 @@ class OkfSemanticChunkService {
     }
     if (sourceSpan.isNotEmpty) {
       mapping['source_span'] = sourceSpan;
+    }
+    if (lineage.isNotEmpty) {
+      mapping['lineage'] = lineage;
     }
     if (existing == null) {
       mappings.add(mapping);
