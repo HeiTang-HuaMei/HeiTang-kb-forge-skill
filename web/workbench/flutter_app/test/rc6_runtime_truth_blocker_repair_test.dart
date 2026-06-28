@@ -8141,6 +8141,18 @@ void main() {
           'section_id': 'sec-alpha',
           'source_span': {'start': 8, 'end': 27},
         },
+        {
+          'source_doc_id': 'doc_alpha',
+          'relative_path': 'alpha.md',
+          'source_path': 'materials/alpha.md',
+          'text': 'second source map evidence',
+          'block_ids': ['doc_alpha_block_002'],
+          'heading_path': ['Alpha', 'Detail'],
+          'page_or_section': 'p.4 / Alpha Detail',
+          'page_number': 4,
+          'section_id': 'sec-alpha-detail',
+          'source_span': {'start': 28, 'end': 61},
+        },
       ],
     );
 
@@ -8162,15 +8174,41 @@ void main() {
     expect(alphaMap['source_doc_id'], 'doc_alpha');
     expect(alphaMap['source_document'], 'alpha.md');
     expect(alphaMap['source_path'], 'materials/alpha.md');
-    expect(alphaMap['chunk_ids'], [result.chunks.single['chunk_id']]);
-    expect(alphaMap['source_trace_ids'],
-        [result.sourceTraceRows.single['source_trace_id']]);
-    expect(alphaMap['block_ids'], ['doc_alpha_block_001']);
-    expect(alphaMap['page_or_sections'], ['p.3 / Alpha']);
-    expect(alphaMap['page_numbers'], [3]);
-    expect(alphaMap['section_ids'], ['sec-alpha']);
+    expect(alphaMap['chunk_ids'], result.chunks
+        .map((chunk) => chunk['chunk_id'])
+        .toList(growable: false));
+    expect(alphaMap['source_trace_ids'], result.sourceTraceRows
+        .map((trace) => trace['source_trace_id'])
+        .toList(growable: false));
+    expect(alphaMap['block_ids'],
+        ['doc_alpha_block_001', 'doc_alpha_block_002']);
+    expect(alphaMap['page_or_sections'],
+        ['p.3 / Alpha', 'p.4 / Alpha Detail']);
+    expect(alphaMap['page_numbers'], [3, 4]);
+    expect(alphaMap['section_ids'], ['sec-alpha', 'sec-alpha-detail']);
     expect(alphaMap['source_spans'], [
       {'start': 8, 'end': 27},
+      {'start': 28, 'end': 61},
+    ]);
+    expect(alphaMap['chunk_mappings'], [
+      {
+        'chunk_id': result.chunks[0]['chunk_id'],
+        'source_trace_id': result.sourceTraceRows[0]['source_trace_id'],
+        'block_ids': ['doc_alpha_block_001'],
+        'page_or_section': 'p.3 / Alpha',
+        'page_number': 3,
+        'section_id': 'sec-alpha',
+        'source_span': {'start': 8, 'end': 27},
+      },
+      {
+        'chunk_id': result.chunks[1]['chunk_id'],
+        'source_trace_id': result.sourceTraceRows[1]['source_trace_id'],
+        'block_ids': ['doc_alpha_block_002'],
+        'page_or_section': 'p.4 / Alpha Detail',
+        'page_number': 4,
+        'section_id': 'sec-alpha-detail',
+        'source_span': {'start': 28, 'end': 61},
+      },
     ]);
   });
 

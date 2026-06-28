@@ -640,6 +640,7 @@ class OkfSemanticChunkService {
           'section_ids': <String>[],
           'source_spans': <Map<String, dynamic>>[],
           'heading_paths': <String>[],
+          'chunk_mappings': <Map<String, dynamic>>[],
         };
       });
     }
@@ -687,6 +688,16 @@ class OkfSemanticChunkService {
           _mapValue(chunk['source_span']));
       final headingPath = _stringList(chunk['heading_path']).join(' / ');
       _addUniqueString(document['heading_paths'] as List<String>, headingPath);
+      _upsertChunkMapping(
+        document['chunk_mappings'] as List<Map<String, dynamic>>,
+        chunkId: _stringValue(chunk['chunk_id']),
+        sourceTraceId: _stringValue(chunk['source_trace_id']),
+        blockIds: _stringList(chunk['block_ids']),
+        pageOrSection: _stringValue(chunk['page_or_section']),
+        pageNumber: _intValue(chunk['page_number']),
+        sectionId: _stringValue(chunk['section_id']),
+        sourceSpan: _mapValue(chunk['source_span']),
+      );
     }
 
     for (final trace in traceRows) {
@@ -712,6 +723,16 @@ class OkfSemanticChunkService {
           _mapValue(trace['source_span']));
       final headingPath = _stringList(trace['heading_path']).join(' / ');
       _addUniqueString(document['heading_paths'] as List<String>, headingPath);
+      _upsertChunkMapping(
+        document['chunk_mappings'] as List<Map<String, dynamic>>,
+        chunkId: _stringValue(trace['chunk_id']),
+        sourceTraceId: _stringValue(trace['source_trace_id']),
+        blockIds: _stringList(trace['block_ids']),
+        pageOrSection: _stringValue(trace['page_or_section']),
+        pageNumber: _intValue(trace['page_number']),
+        sectionId: _stringValue(trace['section_id']),
+        sourceSpan: _mapValue(trace['source_span']),
+      );
     }
 
     final documents = documentsById.values.map((document) {
@@ -755,6 +776,48 @@ class OkfSemanticChunkService {
     final encoded = jsonEncode(value);
     if (values.any((item) => jsonEncode(item) == encoded)) return;
     values.add(value);
+  }
+
+  void _upsertChunkMapping(
+    List<Map<String, dynamic>> mappings, {
+    required String chunkId,
+    required String sourceTraceId,
+    required List<String> blockIds,
+    required String pageOrSection,
+    required int? pageNumber,
+    required String sectionId,
+    required Map<String, dynamic> sourceSpan,
+  }) {
+    if (chunkId.isEmpty) return;
+    final existing = mappings.cast<Map<String, dynamic>?>().firstWhere(
+          (mapping) => mapping?['chunk_id'] == chunkId,
+          orElse: () => null,
+        );
+    final mapping = existing ??
+        <String, dynamic>{
+          'chunk_id': chunkId,
+        };
+    if (sourceTraceId.isNotEmpty) {
+      mapping['source_trace_id'] = sourceTraceId;
+    }
+    if (blockIds.isNotEmpty) {
+      mapping['block_ids'] = blockIds;
+    }
+    if (pageOrSection.isNotEmpty) {
+      mapping['page_or_section'] = pageOrSection;
+    }
+    if (pageNumber != null) {
+      mapping['page_number'] = pageNumber;
+    }
+    if (sectionId.isNotEmpty) {
+      mapping['section_id'] = sectionId;
+    }
+    if (sourceSpan.isNotEmpty) {
+      mapping['source_span'] = sourceSpan;
+    }
+    if (existing == null) {
+      mappings.add(mapping);
+    }
   }
 
   Map<String, dynamic> _mapValue(Object? value) {
