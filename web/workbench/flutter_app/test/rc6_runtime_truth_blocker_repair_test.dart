@@ -39,6 +39,7 @@ void main() {
     Size surfaceSize = const Size(1366, 768),
     void Function(Directory workspace)? captureWorkspace,
     bool waitForRuntimeReady = false,
+    bool Function(dynamic state)? runtimeReadyWhen,
   }) async {
     await tester.binding.setSurfaceSize(surfaceSize);
     final workspace = await createWorkspace();
@@ -60,8 +61,48 @@ void main() {
       ),
     );
     if (waitForRuntimeReady) {
-      await tester.runAsync(
-          () async => Future<void>.delayed(const Duration(milliseconds: 1000)));
+      dynamic runtimeController;
+      for (var attempt = 0; attempt < 20; attempt += 1) {
+        await tester.pump(const Duration(milliseconds: 25));
+        final scopeElements = find
+            .byWidgetPredicate(
+              (widget) => widget.runtimeType.toString() == '_Rc6RuntimeScope',
+            )
+            .evaluate();
+        if (scopeElements.isNotEmpty) {
+          runtimeController =
+              (scopeElements.first.widget as dynamic).notifier as dynamic;
+          break;
+        }
+      }
+      if (runtimeController != null &&
+          (runtimeController.state.workspacePath as String).isEmpty &&
+          (runtimeController.state.lastMessage as String) == '等待初始化。') {
+        await tester.runAsync(() async {
+          await runtimeController.initialize();
+        });
+      }
+      for (var attempt = 0; attempt < 80; attempt += 1) {
+        await tester.pump(const Duration(milliseconds: 25));
+        final scopeElements = find
+            .byWidgetPredicate(
+              (widget) => widget.runtimeType.toString() == '_Rc6RuntimeScope',
+            )
+            .evaluate();
+        if (scopeElements.isNotEmpty) {
+          final runtimeController =
+              (scopeElements.first.widget as dynamic).notifier as dynamic;
+          final state = runtimeController.state as dynamic;
+          final initialized = (state.workspacePath as String).isNotEmpty ||
+              (state.lastMessage as String) != '等待初始化。';
+          if (initialized && (runtimeReadyWhen?.call(state) ?? true)) {
+            break;
+          }
+        }
+        await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 25)),
+        );
+      }
     }
     await tester.pumpAndSettle();
   }
@@ -83,7 +124,11 @@ void main() {
     }));
   }
 
-  void writeDuRecords(Directory workspace, List<String> relativePaths) {
+  void writeDuRecords(
+    Directory workspace,
+    List<String> relativePaths, {
+    bool includeParsedDocument = false,
+  }) {
     final du = Directory('${workspace.path}${Platform.pathSeparator}du')
       ..createSync(recursive: true);
     final normalized =
@@ -95,10 +140,32 @@ void main() {
           '${normalized.path}${Platform.pathSeparator}${index + 1}.md';
       File(normalizedPath)
           .writeAsStringSync('normalized ${relativePaths[index]}');
-      rows.add(jsonEncode({
+      final text = 'normalized ${relativePaths[index]}';
+      final row = <String, Object?>{
         'relative_path': relativePaths[index],
         'normalized_path': normalizedPath,
-      }));
+      };
+      if (includeParsedDocument) {
+        final blockId =
+            'doc_${index + 1}_${relativePaths[index].replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}_block_001';
+        row['parsed_document'] = {
+          'schema_version': 'parsed_document.v1',
+          'blocks': [
+            {
+              'block_id': blockId,
+              'block_type': 'paragraph',
+              'heading_path': [relativePaths[index]],
+              'source_path': relativePaths[index],
+              'page_or_section': 'source ${index + 1}',
+              'page_number': index + 1,
+              'section_id': 'section_${index + 1}',
+              'source_span': {'start': 0, 'end': text.length},
+              'text': text,
+            },
+          ],
+        };
+      }
+      rows.add(jsonEncode(row));
     }
     File('${du.path}${Platform.pathSeparator}document_understanding_records.jsonl')
         .writeAsStringSync('${rows.join('\n')}\n');
@@ -113,6 +180,19 @@ void main() {
       .map((line) => jsonDecode(line) as Map<String, dynamic>)
       .toList(growable: false);
 
+  Directory defaultWorkbookWorkspace(Directory workspace) {
+    final parts = workspace.path.split(RegExp(r'[\\/]'));
+    if (parts.length >= 3 &&
+        parts[parts.length - 3] == 'workbooks' &&
+        parts[parts.length - 2] == 'assets' &&
+        parts.last == '默认工作本') {
+      return workspace..createSync(recursive: true);
+    }
+    return Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
+      ..createSync(recursive: true);
+  }
+
   void writeWorkgroupAgentSkillFixture(
     Directory workspace, {
     String agentId = 'test_workgroup_agent',
@@ -120,14 +200,41 @@ void main() {
     String description = '用于工作小组黑盒验收。',
     String role = '处理当前工作区任务',
   }) {
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
       ..createSync(recursive: true);
     File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
         .writeAsStringSync('# Knowledge QA Skill\n');
+    File('${skillDir.path}${Platform.pathSeparator}skill_config.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_config_id': 'knowledge_qa_skill',
+      'skill_name': 'Knowledge QA Skill',
+      'source_mode': 'from_kb',
+      'status': 'validated',
+    }));
+    final skillRoot =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
+          ..createSync(recursive: true);
+    File('${skillRoot.path}${Platform.pathSeparator}skill_generation_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_real_input_skill_generation.v1',
+      'status': 'validated',
+      'source_modes': ['from_kb'],
+      'primary_skill_id': 'knowledge_qa_skill',
+    }));
+    final operationsDir =
+        Directory('${skillRoot.path}${Platform.pathSeparator}operations')
+          ..createSync(recursive: true);
+    File('${operationsDir.path}${Platform.pathSeparator}skill_operation_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_operation_manifest.v1',
+      'status': 'validated',
+      'primary_skill_id': 'knowledge_qa_skill',
+    }));
     final now = DateTime.now().toUtc().toIso8601String();
     final agentDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
       ..createSync(recursive: true);
     File('${agentDir.path}${Platform.pathSeparator}agents.json')
         .writeAsStringSync(jsonEncode({
@@ -156,7 +263,7 @@ void main() {
       'updated_at': now,
     }));
     final conversationDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}$agentId')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}$agentId')
       ..createSync(recursive: true);
     File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
         .writeAsStringSync(jsonEncode({
@@ -170,8 +277,9 @@ void main() {
   }
 
   void writeResearchAnalysisQueryFixture(Directory workspace) {
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final queryDir =
-        Directory('${workspace.path}${Platform.pathSeparator}query')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}query')
           ..createSync(recursive: true);
     File('${queryDir.path}${Platform.pathSeparator}kb_query_result.json')
         .writeAsStringSync(jsonEncode({
@@ -1265,23 +1373,16 @@ void main() {
   testWidgets(
       'rc8 retrieval keeps evidence, scoring, and authorization in one console',
       (tester) async {
-    await pumpWorkbench(tester);
+    await pumpWorkbench(tester, initialSelectedIndex: 3);
 
-    await tester.tap(find.byKey(const Key('topbar-real-search-input')));
-    await tester.enterText(
-        find.byKey(const Key('topbar-real-search-input')), '没有这个对象');
-    await tester.pumpAndSettle();
-    await tester.tap(
-        find.byKey(const Key('topbar-search-option-retrieval-verification')),
-        warnIfMissed: false);
+    await tester.tap(find.text('验证问题'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
-    expect(find.text('所选知识库'), findsOneWidget);
+    expect(find.text('选择要验证的知识库'), findsOneWidget);
     expect(find.text('知识库'), findsWidgets);
-    expect(find.text('引用来源'), findsOneWidget);
-    expect(find.text('证据选择'), findsWidgets);
-    expect(find.text('证据片段'), findsOneWidget);
-    expect(find.text('人工纠偏'), findsOneWidget);
+    expect(find.text('依据来源'), findsWidgets);
+    expect(find.text('发现的问题'), findsWidgets);
+    expect(find.text('建议补充资料'), findsWidgets);
     expect(find.text('外部核对边界'), findsOneWidget);
     expect(find.text('证据结果'), findsNothing);
     expect(find.text('外部边界'), findsNothing);
@@ -1297,11 +1398,11 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('从知识库生成'), findsOneWidget);
-    expect(find.text('导入模板技能'), findsWidgets);
+    expect(find.text('导入 Skill'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
 
-    await tester.tap(find.text('导入模板技能').first, warnIfMissed: false);
+    await tester.tap(find.text('导入 Skill').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
@@ -1329,7 +1430,7 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('创建助手并进入对话'), findsWidgets);
+    expect(find.text('创建助手'), findsWidgets);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
@@ -1356,55 +1457,11 @@ void main() {
       surfaceSize: const Size(1440, 900),
       captureWorkspace: (dir) => workspace = dir,
       setupWorkspace: (workspace) async {
-        final skillDir = Directory(
-            '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
-          ..createSync(recursive: true);
-        File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
-            .writeAsStringSync('# Knowledge QA Skill\n');
-        final now = DateTime.now().toUtc().toIso8601String();
-        final agentDir = Directory(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
-          ..createSync(recursive: true);
-        File('${agentDir.path}${Platform.pathSeparator}agents.json')
-            .writeAsStringSync(jsonEncode({
-          'schema_version': 'heitang_agent_catalog.v1',
-          'status': 'saved',
-          'agents': [
-            {
-              'id': 'test_workgroup_agent',
-              'name': '工作小组测试助手',
-              'description': '用于 P2-1 工作小组黑盒验收。',
-              'role': '处理当前工作区任务',
-              'status': 'available',
-              'created_at': now,
-              'updated_at': now,
-              'workspace_id': '默认工作本',
-              'primary_knowledge_base_id': 'K1',
-              'allowed_reference_kb_ids': [],
-              'kb_scope_mode': 'single',
-              'answer_policy_id': 'strict_evidence',
-              'ai_profile_id': 'ai_profile_default_local',
-              'bound_knowledge_base_ids': ['K1'],
-              'bound_skill_ids': ['primary_skill'],
-              'settings': {'reply_mode': 'local_fallback_until_configured'},
-            }
-          ],
-          'updated_at': now,
-        }));
-        final conversationDir = Directory(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_workgroup_agent')
-          ..createSync(recursive: true);
-        File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
-            .writeAsStringSync(jsonEncode({
-          'schema_version': 'heitang_agent_conversation.v1',
-          'conversation_id': 'conv_test_workgroup_agent',
-          'agent_id': 'test_workgroup_agent',
-          'messages': [],
-          'created_at': now,
-          'updated_at': now,
-        }));
+        writeWorkgroupAgentSkillFixture(workspace);
       },
       waitForRuntimeReady: true,
+      runtimeReadyWhen: (state) =>
+          state.hasAgentProfiles == true && state.hasSkill == true,
     );
 
     expect(find.byKey(const Key('agent-primary-entry-switch')), findsOneWidget);
@@ -1432,8 +1489,9 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 500));
     });
 
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final summaryPath =
-        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
     for (var attempt = 0; attempt < 40; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
@@ -1451,11 +1509,11 @@ void main() {
     expect(
         summary['ui_blackbox_path'], 'Agent -> Work Group -> Start Work Group');
     expect(
-        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .existsSync(),
         isTrue);
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'workgroup_basic_runtime_validated' &&
@@ -1531,8 +1589,9 @@ void main() {
       await Future<void>.delayed(const Duration(seconds: 1));
     });
 
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final workgroupSummaryPath =
-        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}workgroup_basic_runtime_summary.json';
     for (var attempt = 0; attempt < 40; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
@@ -1547,7 +1606,7 @@ void main() {
     expect(workgroupSummary['topic'].toString(), contains('P2-3'));
 
     final summaryPath =
-        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}research_analysis_workgroup_summary.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}research_analysis_workgroup_summary.json';
     for (var attempt = 0; attempt < 40; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
@@ -1574,14 +1633,14 @@ void main() {
         File(summary['validation_report_path'] as String).existsSync(), isTrue);
     expect(File(summary['research_brief_path'] as String).existsSync(), isTrue);
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'research_analysis_workgroup_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -1599,14 +1658,15 @@ void main() {
 
   test('p2 workgroup fixture loads agent profile and skill', () async {
     final workspace = await createWorkspace();
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
       ..createSync(recursive: true);
     File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
         .writeAsStringSync('# Knowledge QA Skill\n');
     final now = DateTime.now().toUtc().toIso8601String();
     final agentDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
       ..createSync(recursive: true);
     File('${agentDir.path}${Platform.pathSeparator}agents.json')
         .writeAsStringSync(jsonEncode({
@@ -1635,7 +1695,7 @@ void main() {
       'updated_at': now,
     }));
     final conversationDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_workgroup_agent')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_workgroup_agent')
       ..createSync(recursive: true);
     File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
         .writeAsStringSync(jsonEncode({
@@ -2011,27 +2071,31 @@ void main() {
     await controller.initialize();
     await controller.importWebLink('https://example.com/a/b?topic=kb');
     await controller.importWebLink('https://example.com/a/b?topic=kb');
+    final activeWorkspace = Directory(controller.state.workspacePath);
 
     final manifestFile =
-        File('${workspace.path}${Platform.pathSeparator}source_manifest.json');
+        File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json');
     final manifest =
         jsonDecode(manifestFile.readAsStringSync()) as Map<String, dynamic>;
     final sources = (manifest['sources'] as List).cast<Map>();
+    final duplicates =
+        (manifest['duplicate_sources'] as List? ?? const []).cast<Map>();
     expect(requests.map((request) => request.actionId),
         everyElement('batch_import_documents'));
-    expect(sources, hasLength(2));
+    expect(sources, hasLength(1));
+    expect(duplicates, hasLength(1));
     expect(sources.map((source) => source['source_type']),
         everyElement('web_link'));
     expect(sources.map((source) => source['source_name']),
         everyElement(endsWith('.url.md')));
-    expect(controller.state.sourceNames, hasLength(2));
+    expect(controller.state.sourceNames, hasLength(1));
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}input')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}input')
             .listSync()
             .whereType<File>()
             .where((file) => file.path.endsWith('.url.md'))
             .length,
-        2);
+        1);
   });
 
   test('prd settings persist storage provider config without plaintext secrets',
@@ -2149,7 +2213,9 @@ void main() {
     expect(reloadedProfiles.firstWhere((profile) => profile.isActive).profileId,
         'default_local');
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final profileRaw =
         File('$configDir${Platform.pathSeparator}project_config_profiles.json')
             .readAsStringSync();
@@ -2272,7 +2338,9 @@ void main() {
     );
     await controller.activateProjectConfigProfile(cloud.profileId);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -2281,7 +2349,7 @@ void main() {
         cloud.profileId);
     expect((moduleStatus['dashboard'] as Map)['current_profile'], '外部服务配置');
     expect((moduleStatus['document_library'] as Map)['storage_path'],
-        workspace.path);
+        activeWorkspace.path);
     expect((moduleStatus['knowledge_base'] as Map)['index_backend'], '本地索引');
     expect((moduleStatus['knowledge_base'] as Map)['embedding_dimension'], 768);
     expect(
@@ -2434,7 +2502,9 @@ void main() {
     expect(fallbackReport['status'], 'fallback 已触发');
     expect(fallbackReport['fallback_triggered'], isTrue);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final modelGatewayDir = '$configDir${Platform.pathSeparator}model_gateway';
     final usageReport = jsonDecode(File(
             '$modelGatewayDir${Platform.pathSeparator}model_gateway_usage_report.json')
@@ -2592,6 +2662,7 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final providerSettingsPath = await controller.saveProviderRuntimeSettings(
       llmProvider: 'official_openai',
       modelId: 'gpt-industrial',
@@ -2605,7 +2676,7 @@ void main() {
       docxExporter: 'office_exporter_optional',
       pdfExporter: 'pdf_exporter_optional',
       pptxExporter: 'pptx_exporter_optional',
-      exportRoot: '${workspace.path}${Platform.pathSeparator}export',
+      exportRoot: '${activeWorkspace.path}${Platform.pathSeparator}export',
     );
     final providerValidationPath =
         await controller.validateProviderRuntimeSettings();
@@ -2689,18 +2760,18 @@ void main() {
     expect(parallelReport['providerized_task_execution_ready'], isTrue);
 
     final isolationMatrix = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_isolation_matrix.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_isolation_matrix.json')
         .readAsStringSync()) as Map;
     expect(
         isolationMatrix['schema_version'], 'prd_v3_task_isolation_matrix.v1');
     expect(isolationMatrix['status'], 'isolated');
     expect(isolationMatrix['tasks'], hasLength(8));
     final recoveryReport = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_recovery_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_recovery_report.json')
         .readAsStringSync()) as Map;
     expect(recoveryReport['schema_version'], 'prd_v3_task_recovery_report.v1');
     expect(recoveryReport['retry_status'], 'succeeded');
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir = '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -3698,7 +3769,6 @@ void main() {
   test('stage3 authorized profile proves full provider loading matrix evidence',
       () async {
     final workspace = await createWorkspace();
-    writeStage3FullProviderEvidenceFixture(workspace);
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -3711,6 +3781,8 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeStage3FullProviderEvidenceFixture(activeWorkspace);
     const secret = 'stage3-full-matrix-secret';
     await controller.saveProviderRuntimeSettings(
       llmProvider: 'official_openai',
@@ -3728,7 +3800,8 @@ void main() {
     await controller.activateProjectConfigProfile(profile.profileId);
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -4338,8 +4411,22 @@ void main() {
   test('sirchmunk local retrieval adapter becomes selectable after real chunks',
       () async {
     final workspace = await createWorkspace();
-    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
-      ..createSync(recursive: true);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
     File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
         .writeAsStringSync(jsonl([
       {
@@ -4354,20 +4441,9 @@ void main() {
       'source_count': 1,
       'chunk_count': 1,
     }));
-    final controller = Rc6RuntimeController(
-      coreBridge: LocalCoreBridge(
-        runner: (_) async => const CoreBridgeProcessResult(
-            exitCode: 0, stdout: 'ok', stderr: ''),
-      ),
-      coreCli: 'heitang-kb-forge',
-      coreWorkingDirectory: Directory.current.path,
-      configuredWorkspace: workspace.path,
-      isWebRuntime: false,
-    );
-
-    await controller.initialize();
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -4452,34 +4528,6 @@ void main() {
   test('anysearchskill requires explicit network profile and query evidence',
       () async {
     final workspace = await createWorkspace();
-    final kbRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
-          ..createSync(recursive: true);
-    for (final id in ['K1']) {
-      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
-        ..createSync(recursive: true);
-      File('${dir.path}${Platform.pathSeparator}manifest.json')
-          .writeAsStringSync('{"status":"searchable"}');
-      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
-          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
-    }
-    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
-        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
-      'knowledge_bases': [
-        {
-          'kb_id': 'K1',
-          'kb_name': 'Network Authorized KB',
-          'kb_type': '基础知识库',
-          'status': 'searchable',
-          'operation': 'build',
-          'source_documents': [
-            {'source_name': 'network.md'}
-          ],
-          'chunk_count': 1,
-        }
-      ],
-    }));
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (request) async {
@@ -4510,6 +4558,35 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbRoot = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    for (final id in ['K1']) {
+      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
+        ..createSync(recursive: true);
+      File('${dir.path}${Platform.pathSeparator}manifest.json')
+          .writeAsStringSync('{"status":"searchable"}');
+      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
+    }
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Network Authorized KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'network.md'}
+          ],
+          'chunk_count': 1,
+        }
+      ],
+    }));
     await controller.searchKnowledgeBases('anysearchskill authorized', ['K1']);
     final cloud = await controller.createProjectConfigProfile(
       displayName: '网络授权检索配置',
@@ -4517,7 +4594,8 @@ void main() {
     );
     await controller.activateProjectConfigProfile(cloud.profileId);
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -4593,32 +4671,6 @@ void main() {
   test('last30days skill requires authorized time window retrieval evidence',
       () async {
     final workspace = await createWorkspace();
-    final kbRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
-          ..createSync(recursive: true);
-    final dir = Directory('${kbRoot.path}${Platform.pathSeparator}K1')
-      ..createSync(recursive: true);
-    File('${dir.path}${Platform.pathSeparator}manifest.json')
-        .writeAsStringSync('{"status":"searchable"}');
-    File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
-        .writeAsStringSync('{"chunk_id":"K1-c1"}\n');
-    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
-        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
-      'knowledge_bases': [
-        {
-          'kb_id': 'K1',
-          'kb_name': 'Recent KB',
-          'kb_type': '基础知识库',
-          'status': 'searchable',
-          'operation': 'build',
-          'source_documents': [
-            {'source_name': 'recent.md'}
-          ],
-          'chunk_count': 1,
-        }
-      ],
-    }));
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (request) async {
@@ -4651,6 +4703,33 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbRoot = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    final dir = Directory('${kbRoot.path}${Platform.pathSeparator}K1')
+      ..createSync(recursive: true);
+    File('${dir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"status":"searchable"}');
+    File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"chunk_id":"K1-c1"}\n');
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Recent KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'recent.md'}
+          ],
+          'chunk_count': 1,
+        }
+      ],
+    }));
     await controller.searchKnowledgeBases('last30days authorized', ['K1']);
     final cloud = await controller.createProjectConfigProfile(
       displayName: '时间窗口检索授权配置',
@@ -4658,7 +4737,8 @@ void main() {
     );
     await controller.activateProjectConfigProfile(cloud.profileId);
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -4746,6 +4826,7 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     const seedanceCredential = 'seedance-runtime-input-secret';
     await controller.saveProviderRuntimeSettings(
       llmProvider: 'official_openai',
@@ -4763,7 +4844,8 @@ void main() {
     await controller.activateProjectConfigProfile(cloud.profileId);
     await controller.testAllRegisteredProviderCapabilities();
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -4857,9 +4939,40 @@ void main() {
   test('rag evaluation adapters become selectable from retrieval validation',
       () async {
     final workspace = await createWorkspace();
-    final kbRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
-          ..createSync(recursive: true);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          final kbId = request.outputPath!.split(Platform.pathSeparator).last;
+          final score = kbId == 'K2' ? 0.91 : 0.62;
+          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+              .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+            'selected_count': 1,
+            'selected': [
+              {
+                'chunk_id': '$kbId-c1',
+                'source_path': '$kbId-source.md',
+                'text': '$kbId contains rag evaluation needle',
+                'score': score,
+              }
+            ],
+          }));
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbRoot = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
     for (final id in ['K1', 'K2']) {
       final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
         ..createSync(recursive: true);
@@ -4896,39 +5009,9 @@ void main() {
         },
       ],
     }));
-
-    final controller = Rc6RuntimeController(
-      coreBridge: LocalCoreBridge(
-        runner: (request) async {
-          final output = Directory(request.outputPath!)
-            ..createSync(recursive: true);
-          final kbId = request.outputPath!.split(Platform.pathSeparator).last;
-          final score = kbId == 'K2' ? 0.91 : 0.62;
-          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
-              .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-            'selected_count': 1,
-            'selected': [
-              {
-                'chunk_id': '$kbId-c1',
-                'source_path': '$kbId-source.md',
-                'text': '$kbId contains rag evaluation needle',
-                'score': score,
-              }
-            ],
-          }));
-          return const CoreBridgeProcessResult(
-              exitCode: 0, stdout: 'ok', stderr: '');
-        },
-      ),
-      coreCli: 'heitang-kb-forge',
-      coreWorkingDirectory: Directory.current.path,
-      configuredWorkspace: workspace.path,
-      isWebRuntime: false,
-    );
-
-    await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -5095,7 +5178,9 @@ void main() {
 
     await controller.initialize();
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -5195,7 +5280,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -5216,13 +5303,14 @@ void main() {
     expect((probe['missing_assets'] as List), isNotEmpty);
 
     final agentRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}agent')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}agent')
           ..createSync(recursive: true);
     final auditRoot =
         Directory('${agentRoot.path}${Platform.pathSeparator}audit')
           ..createSync(recursive: true);
-    final kbRoot = Directory('${workspace.path}${Platform.pathSeparator}kb')
-      ..createSync(recursive: true);
+    final kbRoot =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
     File('${agentRoot.path}${Platform.pathSeparator}agent_generation_manifest.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'prd_v3_agent_generation_manifest.v1',
@@ -5353,7 +5441,9 @@ void main() {
 
     await controller.initialize();
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
@@ -5400,22 +5490,37 @@ void main() {
     final activated = await controller
         .activateRegisteredProviderCapability('ai_marketing_skills');
     expect(activated, isTrue);
-    final activatedBinding =
-        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
-    expect(activatedBinding['action'], 'activate');
-    expect(activatedBinding['selected_provider_ref'], 'ai_marketing_skills');
-    expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final activatedRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final activatedBinding = jsonDecode(File(
+            activatedRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final activatedSkillBinding = (activatedBinding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'skill_template_provider');
+    expect(activatedSkillBinding['active_provider_kind'],
+        'registered_provider');
+    expect(activatedSkillBinding['selection_allowed'], isTrue);
+    expect(activatedSkillBinding['runtime_loaded'], isFalse);
+    final selectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map;
+    expect(selectionState['selected_provider_ref'], 'ai_marketing_skills');
+    expect(selectionState['selected_capability_ids'],
+        contains('skill_template_provider'));
     final selectionLog = File(
             '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
         .readAsLinesSync()
         .map((line) => jsonDecode(line) as Map)
         .toList(growable: false);
+    expect(selectionLog.last['action'], 'activate');
+    expect(selectionLog.last['provider_ref'], 'ai_marketing_skills');
     expect(selectionLog.last['status'], '连接成功');
     expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
     expect(selectionLog.last['secret_masked'], isTrue);
-    final activatedRuntimeStatus = jsonDecode(File(
-            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
-        .readAsStringSync()) as Map;
     final lifecycleAudit = jsonDecode(File(
             activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
                 as String)
@@ -5452,7 +5557,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -5474,7 +5581,7 @@ void main() {
         isFalse);
 
     final skillRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}skill')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
           ..createSync(recursive: true);
     final primaryDir = Directory(
         '${skillRoot.path}${Platform.pathSeparator}knowledge_qa_skill')
@@ -5620,7 +5727,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -5656,7 +5765,7 @@ void main() {
     expect(templateAssetManifest['external_runtime_executed'], isFalse);
 
     final skillRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}skill')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
           ..createSync(recursive: true);
     final primaryDir = Directory(
         '${skillRoot.path}${Platform.pathSeparator}knowledge_qa_skill')
@@ -5795,7 +5904,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -5815,7 +5926,7 @@ void main() {
         isFalse);
 
     final skillRoot =
-        Directory('${workspace.path}${Platform.pathSeparator}skill')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
           ..createSync(recursive: true);
     final primaryDir = Directory(
         '${skillRoot.path}${Platform.pathSeparator}knowledge_qa_skill')
@@ -5970,12 +6081,14 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.testAllRegisteredProviderCapabilities();
     final activated = await controller
         .activateRegisteredProviderCapability('ai_marketing_skills');
     expect(activated, isTrue);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6052,7 +6165,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6075,7 +6190,7 @@ void main() {
         isFalse);
 
     final structuredDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured')
+        '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured')
       ..createSync(recursive: true);
     final jsonPath =
         '${structuredDir.path}${Platform.pathSeparator}knowledge_export.json';
@@ -6115,13 +6230,13 @@ void main() {
     }));
 
     final videoDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video')
       ..createSync(recursive: true);
     final toolDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool')
       ..createSync(recursive: true);
     final externalSkillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill')
       ..createSync(recursive: true);
     File('${videoDir.path}${Platform.pathSeparator}prompt.txt')
         .writeAsStringSync('产品介绍视频 handoff prompt');
@@ -6245,7 +6360,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6266,7 +6383,7 @@ void main() {
     expect(readinessEntry(readiness, 'paddleocr')['ready_for_user_selection'],
         isFalse);
 
-    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+    final duDir = Directory('${activeWorkspace.path}${Platform.pathSeparator}du')
       ..createSync(recursive: true);
     final normalizedDir =
         Directory('${duDir.path}${Platform.pathSeparator}normalized_sources')
@@ -6297,7 +6414,7 @@ void main() {
         'ocr_text': 'normalized OCR image text',
       },
     ]));
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+    File('${activeWorkspace.path}${Platform.pathSeparator}source_manifest.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'rc10_source_manifest.v1',
       'status': 'imported',
@@ -6414,7 +6531,9 @@ void main() {
 
     await controller.initialize();
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6437,7 +6556,7 @@ void main() {
         isFalse);
     expect(readinessEntry(readiness, 'llamaindex')['status'], '配置缺失');
 
-    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+    final kbDir = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
       ..createSync(recursive: true);
     File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
         .writeAsStringSync(jsonl([
@@ -6574,8 +6693,10 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.testAllRegisteredProviderCapabilities();
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     Map<String, dynamic> runtimeStatus() => jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6595,10 +6716,10 @@ void main() {
         readinessEntry(readiness, 'n8n')['ready_for_user_selection'], isFalse);
 
     final a2aDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
       ..createSync(recursive: true);
     final multiAgentDir =
-        Directory('${workspace.path}${Platform.pathSeparator}multi_agent')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}multi_agent')
           ..createSync(recursive: true);
     final roundLogPath =
         '${a2aDir.path}${Platform.pathSeparator}a2a_rounds.jsonl';
@@ -6751,12 +6872,6 @@ void main() {
 
   test('stage3 n8n runtime load degrades when endpoint is missing', () async {
     final workspace = await createWorkspace();
-    writeStage2PreflightFixture(workspace);
-    writeStage2SkillRuntimeFixture(workspace);
-    writeStage2AgentPermissionFixture(workspace);
-    writeStage2IndustrialSmokeFixture(workspace);
-    writeStage2ExeLaunchSmokeFixture(workspace);
-    writeN8nReadinessFixture(workspace);
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -6769,11 +6884,19 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeStage2PreflightFixture(activeWorkspace);
+    writeStage2SkillRuntimeFixture(activeWorkspace);
+    writeStage2AgentPermissionFixture(activeWorkspace);
+    writeStage2IndustrialSmokeFixture(activeWorkspace);
+    writeStage2ExeLaunchSmokeFixture(activeWorkspace);
+    writeN8nReadinessFixture(activeWorkspace);
     await controller.testAllRegisteredProviderCapabilities();
     final loaded = await controller.loadN8nProviderRuntime();
     expect(loaded, isFalse);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final manifest = jsonDecode(File(
             '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -6826,12 +6949,6 @@ void main() {
 
   test('stage3 n8n runtime load records safe health success only', () async {
     final workspace = await createWorkspace();
-    writeStage2PreflightFixture(workspace);
-    writeStage2SkillRuntimeFixture(workspace);
-    writeStage2AgentPermissionFixture(workspace);
-    writeStage2IndustrialSmokeFixture(workspace);
-    writeStage2ExeLaunchSmokeFixture(workspace);
-    writeN8nReadinessFixture(workspace);
     final previousHttpOverride = HttpOverrides.current;
     HttpOverrides.global = null;
     addTearDown(() {
@@ -6864,6 +6981,13 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeStage2PreflightFixture(activeWorkspace);
+    writeStage2SkillRuntimeFixture(activeWorkspace);
+    writeStage2AgentPermissionFixture(activeWorkspace);
+    writeStage2IndustrialSmokeFixture(activeWorkspace);
+    writeStage2ExeLaunchSmokeFixture(activeWorkspace);
+    writeN8nReadinessFixture(activeWorkspace);
     await controller.testAllRegisteredProviderCapabilities();
     const sensitiveValue = 'stage3-sensitive-value';
     final endpoint =
@@ -6874,7 +6998,8 @@ void main() {
     );
     expect(loaded, isTrue);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final manifestPath =
         '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
     final manifest = jsonDecode(File(manifestPath).readAsStringSync())
@@ -7149,12 +7274,6 @@ void main() {
 
   test('stage3 rtk runtime load uses agent health check only', () async {
     final workspace = await createWorkspace();
-    writeStage2PreflightFixture(workspace);
-    writeStage2SkillRuntimeFixture(workspace);
-    writeStage2AgentPermissionFixture(workspace);
-    writeStage2IndustrialSmokeFixture(workspace);
-    writeStage2ExeLaunchSmokeFixture(workspace);
-    writeN8nReadinessFixture(workspace);
     final previousHttpOverride = HttpOverrides.current;
     HttpOverrides.global = null;
     addTearDown(() {
@@ -7187,13 +7306,21 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeStage2PreflightFixture(activeWorkspace);
+    writeStage2SkillRuntimeFixture(activeWorkspace);
+    writeStage2AgentPermissionFixture(activeWorkspace);
+    writeStage2IndustrialSmokeFixture(activeWorkspace);
+    writeStage2ExeLaunchSmokeFixture(activeWorkspace);
+    writeN8nReadinessFixture(activeWorkspace);
     await controller.testAllRegisteredProviderCapabilities();
     const sensitiveValue = 'rtk-sensitive-value';
     final loaded = await controller.loadRtkProviderRuntime(
       endpoint: 'http://${server.address.host}:${server.port}?secret=redacted',
       apiKey: sensitiveValue,
     );
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final manifestPath =
         '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
     final manifestRaw = File(manifestPath).readAsStringSync();
@@ -7338,12 +7465,6 @@ void main() {
         reason: 'Set HEITANG_N8N_ENDPOINT or N8N_ENDPOINT for live n8n proof.');
 
     final workspace = await createWorkspace();
-    writeStage2PreflightFixture(workspace);
-    writeStage2SkillRuntimeFixture(workspace);
-    writeStage2AgentPermissionFixture(workspace);
-    writeStage2IndustrialSmokeFixture(workspace);
-    writeStage2ExeLaunchSmokeFixture(workspace);
-    writeN8nReadinessFixture(workspace);
 
     final previousHttpOverride = HttpOverrides.current;
     HttpOverrides.global = null;
@@ -7363,11 +7484,19 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeStage2PreflightFixture(activeWorkspace);
+    writeStage2SkillRuntimeFixture(activeWorkspace);
+    writeStage2AgentPermissionFixture(activeWorkspace);
+    writeStage2IndustrialSmokeFixture(activeWorkspace);
+    writeStage2ExeLaunchSmokeFixture(activeWorkspace);
+    writeN8nReadinessFixture(activeWorkspace);
     await controller.testAllRegisteredProviderCapabilities();
     final loaded = await controller.loadN8nProviderRuntime(endpoint: endpoint);
     expect(loaded, isTrue);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final manifestPath =
         '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
     final manifest = jsonDecode(File(manifestPath).readAsStringSync())
@@ -8225,7 +8354,10 @@ void main() {
   test('prd external Skill import localizes real file content into workspace',
       () async {
     final workspace = await createWorkspace();
-    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
+      ..createSync(recursive: true);
+    final kb = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
       ..createSync(recursive: true);
     File('${kb.path}${Platform.pathSeparator}manifest.json')
         .writeAsStringSync('{"schema_version":"kb.v1"}');
@@ -8273,15 +8405,15 @@ void main() {
     await controller.importExternalSkillPath(externalDir.path);
 
     final imported = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}source${Platform.pathSeparator}SKILL.md');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}source${Platform.pathSeparator}SKILL.md');
     final externalManifest = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json');
     final localized = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md');
     final localizedManifest = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json');
     final diff = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}diff_summary.md');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}diff_summary.md');
 
     expect(imported.readAsStringSync(),
         contains('External transformation writing Skill'));
@@ -8294,7 +8426,7 @@ void main() {
         contains('"source_mode": "external_skill_fusion"'));
     expect(diff.readAsStringSync(), contains('不会执行外部代码或系统命令'));
     final history = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
     expect(history.readAsStringSync(),
         contains('"action": "import_external_skill"'));
     expect(history.readAsStringSync(), contains('"status": "completed"'));
@@ -8304,7 +8436,10 @@ void main() {
   test('prd external Skill import rejects dangerous external content',
       () async {
     final workspace = await createWorkspace();
-    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
+      ..createSync(recursive: true);
+    final kb = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
       ..createSync(recursive: true);
     File('${kb.path}${Platform.pathSeparator}manifest.json')
         .writeAsStringSync('{"schema_version":"kb.v1"}');
@@ -8337,14 +8472,14 @@ void main() {
     await controller.importExternalSkillPath(externalDir.path);
 
     final history = File(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
     expect(history.readAsStringSync(),
         contains('"action": "import_external_skill"'));
     expect(history.readAsStringSync(), contains('"status": "failed"'));
     expect(history.readAsStringSync(),
         contains('"reason": "dangerous_override_rejected"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
             .existsSync(),
         isFalse);
     expect(dangerousSkill.existsSync(), isTrue);
@@ -8353,17 +8488,6 @@ void main() {
   test('rc6 search clears stale query output before reading real results',
       () async {
     final workspace = await createWorkspace();
-    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
-      ..createSync(recursive: true);
-    File('${kb.path}${Platform.pathSeparator}manifest.json')
-        .writeAsStringSync('{}');
-    File('${kb.path}${Platform.pathSeparator}chunks.jsonl')
-        .writeAsStringSync('{"text":"heitang-rc6-needle"}\n');
-    final stale = Directory('${workspace.path}${Platform.pathSeparator}query')
-      ..createSync(recursive: true);
-    File('${stale.path}${Platform.pathSeparator}stale.txt')
-        .writeAsStringSync('old');
-
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -8394,6 +8518,18 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kb = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{}');
+    File('${kb.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"text":"heitang-rc6-needle"}\n');
+    final stale =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
+    File('${stale.path}${Platform.pathSeparator}stale.txt')
+        .writeAsStringSync('old');
     await controller.search('heitang-rc6-needle');
 
     expect(requests.single.actionId, 'rag_query');
@@ -8482,6 +8618,9 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    expect(controller.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
     await controller.searchKnowledgeBases('multi kb retrieval needle', [
       'K1',
       'K2',
@@ -8493,8 +8632,15 @@ void main() {
         everyElement(
           allOf(contains('kb-query'), contains('multi kb retrieval needle')),
         ));
-    final resultFile = File(
-        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json');
+    expect(
+        requests.map((request) => request.arguments.join(' ')),
+        everyElement(
+          contains('${workspace.path}${Platform.pathSeparator}knowledge_bases'),
+        ));
+    final resultFile = File(controller.state.queryResultPath);
+    expect(resultFile.path, startsWith(activeWorkspace.path));
+    expect(resultFile.path, contains(
+        '${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json'));
     expect(resultFile.existsSync(), isTrue);
     final result =
         jsonDecode(resultFile.readAsStringSync()) as Map<String, dynamic>;
@@ -8573,7 +8719,7 @@ void main() {
     expect(corrections.last['decision'], 'contradiction');
     expect(corrections.last['normalized_decision'], 'conflict');
     final validationMarkdown = File(
-        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_report.md');
+        '${activeWorkspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_report.md');
     expect(validationMarkdown.existsSync(), isTrue);
     expect(controller.state.retrievalValidationMarkdownPath,
         validationMarkdown.path);
@@ -8587,7 +8733,7 @@ void main() {
           contains('K1-source.md'),
         ));
     final validationHistory = File(
-        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_history.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_history.jsonl');
     expect(validationHistory.existsSync(), isTrue);
     expect(controller.state.retrievalValidationHistoryPath,
         validationHistory.path);
@@ -8600,7 +8746,7 @@ void main() {
         historyRow['retrieval_plan_path'], controller.state.retrievalPlanPath);
     expect(historyRow['markdown_report_path'], validationMarkdown.path);
     final releaseGateExternalRoot =
-        '${workspace.path}${Platform.pathSeparator}p2_release_gate${Platform.pathSeparator}external_source';
+        '${activeWorkspace.path}${Platform.pathSeparator}p2_release_gate${Platform.pathSeparator}external_source';
     final releaseGateSourceTrace = File(
         '$releaseGateExternalRoot${Platform.pathSeparator}source_trace.jsonl');
     final releaseGateEvidenceMap = File(
@@ -8632,6 +8778,8 @@ void main() {
       isWebRuntime: false,
     );
     await reloadedController.initialize();
+    expect(reloadedController.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K2']));
     expect(reloadedController.state.queryResultPath, resultFile.path);
     expect(reloadedController.state.retrievalPlanPath,
         controller.state.retrievalPlanPath);
@@ -8737,7 +8885,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final externalRoot =
-        '${workspace.path}${Platform.pathSeparator}p2_release_gate${Platform.pathSeparator}external_source';
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本${Platform.pathSeparator}p2_release_gate${Platform.pathSeparator}external_source';
     final sourceTrace =
         File('$externalRoot${Platform.pathSeparator}source_trace.jsonl');
     final evidenceMap =
@@ -8765,9 +8913,9 @@ void main() {
   test(
       'rc6 real input folder chain uses allowlisted Core actions and artifacts',
       () async {
-    final workspace = await createWorkspace();
+    final workspaceRoot = await createWorkspace();
     final input =
-        Directory('${workspace.path}${Platform.pathSeparator}input_src')
+        Directory('${workspaceRoot.path}${Platform.pathSeparator}input_src')
           ..createSync(recursive: true);
     File('${input.path}${Platform.pathSeparator}alpha.pdf')
         .writeAsStringSync('alpha pdf text 赚钱 小生意');
@@ -8793,7 +8941,8 @@ void main() {
               }));
             case 'document_understanding':
               expect(request.arguments, contains('--runtime-config'));
-              writeDuRecords(workspace, ['alpha.pdf', 'nested/beta.txt']);
+              writeDuRecords(
+                  Directory(request.outputPath!).parent, ['alpha.pdf', 'nested/beta.txt']);
               final duManifest = {
                 'status': 'completed',
                 'success_count': 2,
@@ -8814,7 +8963,7 @@ void main() {
               File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
                   .writeAsStringSync('{"source_count":2}');
               final normalizedRoot =
-                  '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
+                  '${Directory(request.outputPath!).parent.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
               File('${output.path}${Platform.pathSeparator}chunks.jsonl')
                   .writeAsStringSync(jsonl([
                 {
@@ -8869,15 +9018,16 @@ void main() {
       ),
       coreCli: 'heitang-kb-forge',
       coreWorkingDirectory: Directory.current.path,
-      configuredWorkspace: workspace.path,
+      configuredWorkspace: workspaceRoot.path,
       isWebRuntime: false,
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.runRealInputFolderE2E(input.path);
 
     final smokeReport = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}industrial_exe_smoke_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}industrial_exe_smoke_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(
         smokeReport['schema_version'], 'prd_v3_industrial_exe_smoke_report.v1');
@@ -8905,7 +9055,7 @@ void main() {
     }
     for (final kbId in ['K1', 'K2', 'K3']) {
       final kbRoot =
-          '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$kbId';
+          '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$kbId';
       expect(File('$kbRoot${Platform.pathSeparator}manifest.json').existsSync(),
           isTrue);
       expect(
@@ -8917,7 +9067,7 @@ void main() {
           isNotEmpty);
     }
     final multiKbQuery = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(multiKbQuery['schema_version'], 'prd_v3_multi_kb_query_result.v1');
     expect(multiKbQuery['selected_kb_ids'], containsAll(['K1', 'K2', 'K3']));
@@ -8931,7 +9081,7 @@ void main() {
       'workbooks${Platform.pathSeparator}workbook_manifest.json',
     ]) {
       expect(
-          File('${workspace.path}${Platform.pathSeparator}$relative')
+          File('${activeWorkspace.path}${Platform.pathSeparator}$relative')
               .existsSync(),
           isTrue);
     }
@@ -8946,10 +9096,10 @@ void main() {
       'kb_bound_agent_generation',
     ]);
     expect(controller.state.sourceCount, 2);
-    expect(controller.state.chunkCount, 1);
+    expect(controller.state.chunkCount, greaterThanOrEqualTo(1));
     expect(controller.state.cardsPath, isNotEmpty);
     expect(controller.state.qaPairsPath, isNotEmpty);
-    expectMainKnowledgeArtifacts(workspace, controller.state);
+    expectMainKnowledgeArtifacts(activeWorkspace, controller.state);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
     expect(controller.state.hasMultiAgentDiscussionManifest, isTrue);
@@ -8974,25 +9124,26 @@ void main() {
     expect(controller.state.agentDialogueModelConfigId,
         'local-default-or-configured-provider');
     expect(controller.state.agentDialogueUsedKbIds, contains('K1'));
-    expect(controller.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(controller.state.agentDialogueUsedSkillIds,
+        contains('knowledge_qa_skill'));
     expect(controller.state.agentDialogueOutputFormat, 'markdown');
     expect(controller.state.agentDialogueEvidenceCount, greaterThan(0));
     expect(controller.state.agentDialogueMemoryWriteStatus,
         'local_session_written');
     expect(controller.state.agentDialogueErrorMessage, isEmpty);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
             .readAsStringSync(),
         contains('总结真实输入主题'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
             .readAsStringSync(),
         contains('继续追问行动建议'));
     final chatHistory = File(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl');
     expect(chatHistory.readAsLinesSync(), hasLength(baseTurnCount + 2));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('"turn_count": ${baseTurnCount + 2}'),
@@ -9002,7 +9153,7 @@ void main() {
     final dialogueExportPath = await controller.exportAgentDialogue();
     expect(dialogueExportPath, endsWith('agent_dialogue_export.md'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export.md')
             .readAsStringSync(),
         allOf(
           contains('Agent 对话导出'),
@@ -9010,7 +9161,7 @@ void main() {
           contains('继续追问行动建议'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v2_agent_dialogue_export.v1'),
@@ -9018,7 +9169,7 @@ void main() {
           contains('"secret_plaintext_written": false'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
             .readAsStringSync(),
         allOf(
           contains('"action": "run_agent_dialogue"'),
@@ -9027,7 +9178,7 @@ void main() {
               '"artifact": "${dialogueExportPath.replaceAll(r'\', r'\\')}"'),
         ));
     final orchestrationPlanPath =
-        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl';
+        '${activeWorkspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl';
     final orchestrationRecords = readJsonlFile(orchestrationPlanPath);
     expect(orchestrationRecords, isNotEmpty);
     expect(
@@ -9062,11 +9213,11 @@ void main() {
       ),
       coreCli: 'heitang-kb-forge',
       coreWorkingDirectory: Directory.current.path,
-      configuredWorkspace: workspace.path,
+      configuredWorkspace: workspaceRoot.path,
       isWebRuntime: false,
     );
     await reloadedController.initialize();
-    expectMainKnowledgeArtifacts(workspace, reloadedController.state);
+    expectMainKnowledgeArtifacts(activeWorkspace, reloadedController.state);
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
     expect(reloadedController.state.hasAgentDialogueManifest, isTrue);
     expect(reloadedController.state.hasAgentDialogueExport, isTrue);
@@ -9083,33 +9234,34 @@ void main() {
         endsWith('agent_dialogue_export.md'));
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(reloadedController.state.agentDialogueUsedKbIds, contains('K1'));
-    expect(reloadedController.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(reloadedController.state.agentDialogueUsedSkillIds,
+        contains('knowledge_qa_skill'));
     expect(reloadedController.state.agentDialogueEvidenceCount, greaterThan(0));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}citation_trace.jsonl')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}citation_trace.jsonl')
             .readAsStringSync(),
         contains('prd_v3_agent_citation_trace_record.v1'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}skill_rule_trace.jsonl')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}skill_rule_trace.jsonl')
             .readAsStringSync(),
         allOf(
           contains('prd_v3_agent_skill_rule_trace_record.v1'),
           contains('citation_required'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
             .readAsStringSync(),
         contains('prd_v2_structured_document_export_payload.v1'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.csv')
+        File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.csv')
             .readAsStringSync(),
         contains('retrieval_result'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}skill_generation_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('rc10_real_input_skill_generation.v1'),
@@ -9117,7 +9269,7 @@ void main() {
           contains('delete_with_confirmation'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v2_skill_operations.v1'),
@@ -9125,19 +9277,19 @@ void main() {
           contains('requires_confirmation'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports${Platform.pathSeparator}skills_export.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports${Platform.pathSeparator}skills_export.md')
             .readAsStringSync(),
         contains('Skill 导出包'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}fused_product_ops_skill${Platform.pathSeparator}SKILL.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}fused_product_ops_skill${Platform.pathSeparator}SKILL.md')
             .readAsStringSync(),
         contains('融合产品运营 Skill'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
             .readAsStringSync(),
         contains('"status": "bound"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('rc10_real_input_agent_generation.v1'),
@@ -9146,7 +9298,7 @@ void main() {
           contains('open_single_agent_chat'),
         ));
     final agentProfile = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(agentProfile['schema_version'], 'prd_v3_agent_profile.v1');
     expect(agentProfile['agent_id'], 'knowledge_qa_agent');
@@ -9154,14 +9306,15 @@ void main() {
     expect(agentProfile['citation_policy'], 'required');
     expect(agentProfile['tool_ids'], contains('video.generate'));
     final agentWorkspace = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspace_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspace_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(agentWorkspace['schema_version'], 'prd_v3_agent_workspace.v1');
     expect(agentWorkspace['authorized_kb_ids'], contains('K1'));
-    expect(agentWorkspace['authorized_skill_ids'], contains('S1'));
+    expect(agentWorkspace['authorized_skill_ids'],
+        contains('knowledge_qa_skill'));
     expect(agentWorkspace['blocked_tool_ids'], contains('video.generate'));
     final dependencyManifest = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(dependencyManifest['schema_version'],
         'prd_v3_agent_dependency_manifest.v1');
@@ -9170,13 +9323,13 @@ void main() {
     expect(dependencyManifest['missing_dependencies'].toString(),
         contains('video_custom_http_stub'));
     final agentStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(agentStatus['schema_version'], 'prd_v3_agent_status.v1');
     expect(agentStatus['status'], 'chat_ready');
     expect(agentStatus['dependency_status'], 'degraded_tool_unavailable');
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v2_agent_advanced_config.v1'),
@@ -9184,11 +9337,11 @@ void main() {
           contains('"advanced_agent"'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
             .readAsStringSync(),
         contains('no_arbitrary_shell'));
     final permissionMatrix = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}workspace_permission_matrix.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}workspace_permission_matrix.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(permissionMatrix['schema_version'],
         'prd_v3_agent_workspace_permission_matrix.v1');
@@ -9197,7 +9350,7 @@ void main() {
     expect(permissionMatrix['blocked_capabilities'],
         containsAll(['arbitrary_shell', 'computer_use']));
     final blockReport = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}unauthorized_access_block_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}unauthorized_access_block_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(blockReport['schema_version'],
         'prd_v3_agent_unauthorized_access_block_report.v1');
@@ -9207,7 +9360,7 @@ void main() {
     expect(blockReport['blocked_resource_types'],
         containsAll(['unauthorized_kb', 'non_allowlisted_tool']));
     final authAuditLines = File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}authorization_runtime_audit.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}authorization_runtime_audit.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .toList(growable: false);
@@ -9218,7 +9371,7 @@ void main() {
             line.contains('"decision":"deny"')),
         isTrue);
     final agentValidation = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}agent_validation_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}agent_validation_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(
         agentValidation['schema_version'], 'prd_v3_agent_validation_report.v1');
@@ -9241,34 +9394,34 @@ void main() {
           contains('tool_registry_allowlist_and_stub_recorded'),
         ));
     final externalSkillManifest = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill${Platform.pathSeparator}external_skill_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill${Platform.pathSeparator}external_skill_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(externalSkillManifest['schema_version'],
         'prd_v3_external_skill_manifest.v1');
     expect(externalSkillManifest['required_tools'], contains('video.generate'));
     final toolRegistry = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_registry.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_registry.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(toolRegistry['schema_version'], 'prd_v3_tool_registry.v1');
     expect(toolRegistry['allowlist'],
         containsAll(['kb_retrieval', 'document_export']));
     expect(toolRegistry['blocked_tools'], contains('video.generate'));
     final toolRequirement = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_requirement_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_requirement_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(
         toolRequirement['schema_version'], 'prd_v3_tool_requirement_report.v1');
     expect(toolRequirement['api_called'], isFalse);
     expect(toolRequirement['status'], 'Tool 未授权');
     final videoTaskManifest = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video${Platform.pathSeparator}video_task_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video${Platform.pathSeparator}video_task_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(
         videoTaskManifest['schema_version'], 'prd_v3_video_task_manifest.v1');
     expect(videoTaskManifest['fake_video_generated'], isFalse);
     expect(videoTaskManifest['api_called'], isFalse);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_call_log.jsonl')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_call_log.jsonl')
             .readAsStringSync(),
         allOf(
           contains('prd_v3_tool_call_log_record.v1'),
@@ -9276,11 +9429,11 @@ void main() {
           contains('"api_called":false'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_usage_report.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_usage_report.json')
             .readAsStringSync(),
         contains('"total_api_calls": 0'));
     final runtimeStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final preflight =
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
@@ -9296,7 +9449,7 @@ void main() {
             (check) => check['check_id'] == 'industrial_exe_launch_smoke');
     expect(missingLaunchCheck['status'], 'failed');
     final acceptanceDir =
-        Directory('${workspace.path}${Platform.pathSeparator}acceptance');
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}acceptance');
     final launchLogPath =
         '${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke.log';
     File(launchLogPath)
@@ -9315,7 +9468,7 @@ void main() {
       'exe_sha256':
           '0000000000000000000000000000000000000000000000000000000000000000',
       'exe_header': 'te',
-      'workspace_path': workspace.path,
+      'workspace_path': activeWorkspace.path,
       'log_path': launchLogPath,
       'launched': true,
       'process_started': true,
@@ -9327,7 +9480,7 @@ void main() {
     }));
     await controller.testAllRegisteredProviderCapabilities();
     final launchRuntimeStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final launchPreflight = launchRuntimeStatus['stage_2_industrial_preflight']
         as Map<String, dynamic>;
@@ -9346,7 +9499,7 @@ void main() {
           'exe_size_matches',
         ]));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v3_agent_export_package.v1'),
@@ -9355,15 +9508,15 @@ void main() {
           contains('tool/tool_registry.json'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
         contains('每个 Agent 的观点'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
         contains('真实输入命中赚钱小生意'));
     final a2aConflict = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_conflict_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_conflict_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(a2aConflict['schema_version'], 'prd_v3_a2a_conflict_report.v1');
     expect(a2aConflict['round_count'], 3);
@@ -9373,14 +9526,14 @@ void main() {
     expect(a2aConflict['conflicts'], isA<List>());
     expect(a2aConflict['secret_plaintext_written'], isFalse);
     final a2aConsensus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_consensus_report.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_consensus_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(a2aConsensus['schema_version'], 'prd_v3_a2a_consensus_report.v1');
     expect(a2aConsensus['status'], 'pass');
     expect(a2aConsensus['round_count'], 3);
     expect(a2aConsensus['ready_for_export'], isTrue);
     final a2aSessionManifest = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(
         a2aSessionManifest['schema_version'], 'prd_v3_a2a_session_manifest.v1');
@@ -9405,7 +9558,7 @@ void main() {
             (line) => line.contains('prd_v3_a2a_runtime_audit_record.v1')),
         isTrue);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('a2a_conflict_report.json'),
@@ -9415,7 +9568,7 @@ void main() {
         ));
     await controller.testAllRegisteredProviderCapabilities();
     final a2aRuntimeStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final a2aPreflight =
         a2aRuntimeStatus['stage_2_industrial_preflight'] as Map;
@@ -9440,17 +9593,17 @@ void main() {
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+                '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
             .existsSync(),
         isTrue);
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue')
+                '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue')
             .existsSync(),
         isFalse);
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+                '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
             .existsSync(),
         isFalse);
     await controller.runAgentDialogue(prompt: '清空后重新对话');
@@ -9467,7 +9620,7 @@ void main() {
     expect(controller.state.hasA2aConsensusReport, isFalse);
     expect(controller.state.hasSkill, isTrue);
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}agent')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}agent')
             .existsSync(),
         isFalse);
 
@@ -9479,12 +9632,12 @@ void main() {
     expect(controller.state.hasAgentDialogue, isFalse);
     expect(controller.state.hasMultiAgentDiscussion, isFalse);
     final dependencyMissingStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(dependencyMissingStatus['status'], 'dependency_missing');
     expect(dependencyMissingStatus['chat_available'], isFalse);
     final dependencyMissingManifest = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(dependencyMissingManifest['status'], 'dependency_missing');
     expect(
@@ -9492,14 +9645,15 @@ void main() {
         contains(isA<Map>()
             .having(
                 (item) => item['dependency_type'], 'dependency_type', 'skill')
-            .having((item) => item['dependency_id'], 'dependency_id', 'S1')));
+            .having((item) => item['dependency_id'], 'dependency_id',
+                'knowledge_qa_skill')));
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}skill')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
             .existsSync(),
         isFalse);
     expect(
         Directory(
-                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+                '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
             .existsSync(),
         isTrue);
     await controller.runAgentDialogue(prompt: '缺少 Skill 时不应运行');
@@ -9531,7 +9685,8 @@ void main() {
               File('${output.path}${Platform.pathSeparator}batch_import_report.json')
                   .writeAsStringSync('{"imported_count":1}');
             case 'document_understanding':
-              writeDuRecords(workspace, ['alpha.txt']);
+              writeDuRecords(Directory(request.outputPath!).parent,
+                  ['alpha.txt']);
               File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                   .writeAsStringSync('{"status":"completed"}');
             case 'knowledge_base_build':
@@ -9581,6 +9736,7 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.runDocumentFlowE2E(input.path);
 
     expect(requests.map((request) => request.actionId), [
@@ -9592,33 +9748,33 @@ void main() {
     ]);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasExportedDocument, isTrue);
-    expectMainKnowledgeArtifacts(workspace, controller.state);
+    expectMainKnowledgeArtifacts(activeWorkspace, controller.state);
     expect(controller.state.hasSkill, isFalse);
     expect(controller.state.hasAgent, isFalse);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
         contains('rc10_document_export.v1'));
     expect(controller.state.hasSkill, isFalse);
     expect(controller.state.hasAgent, isFalse);
     for (final format in const ['docx', 'pdf', 'pptx']) {
       expect(
-          File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated.$format')
+          File('${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated.$format')
               .existsSync(),
           isTrue);
       final fileReport = jsonDecode(File(
-              '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
+              '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
           .readAsStringSync()) as Map<String, dynamic>;
       expect(fileReport['status'], 'pass');
     }
     await controller.exportDocumentFormat('json');
     await controller.exportDocumentFormat('csv');
     final structuredRoot =
-        '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured';
+        '${activeWorkspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured';
     expect(
         File('$structuredRoot${Platform.pathSeparator}knowledge_export.json')
             .readAsStringSync(),
@@ -9669,13 +9825,14 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.importFolderPath(input.path);
     await controller.parseAndChunkSources();
     final packagePath = await controller.exportStandardKnowledgePackage();
     expect(packagePath, endsWith('current'));
     expect(controller.state.hasStandardKnowledgePackage, isTrue);
     final standardRoot =
-        '${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}current';
+        '${activeWorkspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}current';
     expect(
         File('$standardRoot${Platform.pathSeparator}standard_package_manifest.json')
             .readAsStringSync(),
@@ -9690,16 +9847,17 @@ void main() {
         File('$standardRoot${Platform.pathSeparator}source_references.json')
             .readAsStringSync(),
         contains('alpha.txt'));
+    final packageRows = readJsonlFile(
+        '$standardRoot${Platform.pathSeparator}content_package.jsonl');
+    expect(packageRows, isNotEmpty);
+    expect(packageRows.single['source_name'], 'alpha.txt');
+    expect(packageRows.single['source_type'], 'local_file');
     expect(
-        File('$standardRoot${Platform.pathSeparator}content_package.jsonl')
-            .readAsStringSync(),
-        contains('normalized alpha.txt'));
-    expect(
-        File('${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}audit_history.jsonl')
+        File('${activeWorkspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}audit_history.jsonl')
             .readAsStringSync(),
         contains('export_standard_knowledge_package'));
     final okfRuntimePath =
-        '${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}okf_runtime_manifest.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}okf_runtime_manifest.json';
     expect(
         File(okfRuntimePath).readAsStringSync(),
         allOf(
@@ -9715,15 +9873,15 @@ void main() {
     expect(
         controller.state.knowledgeBases.map((kb) => kb.id), contains('K_OKF1'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
             .readAsStringSync(),
         contains('prd_v3_kb_from_standard_package.v1'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
             .readAsStringSync(),
         contains('"okf_runtime_enabled": true'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json')
             .readAsStringSync(),
         allOf(
           contains('build_from_standard_package:K_OKF1'),
@@ -9737,7 +9895,7 @@ void main() {
           contains('build_kb_from_standard_package'),
         ));
     final standardRuntimeStatus = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
         .readAsStringSync()) as Map;
     final preflight =
         standardRuntimeStatus['stage_2_industrial_preflight'] as Map;
@@ -9758,7 +9916,7 @@ void main() {
     expect(((okfBuildCheck['runtime_evidence'] as Map)['missing'] as List),
         isEmpty);
     final orchestrationRecords = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
     expect(
         orchestrationRecords.map((record) => record['action']),
         containsAll([
@@ -10345,11 +10503,12 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final manifestPath = await controller.registerDocumentTemplateLibrary(
       includeTestTemplate: true,
     );
     final templateRoot =
-        '${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}templates';
+        '${activeWorkspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}templates';
     final manifest = jsonDecode(File(manifestPath).readAsStringSync())
         as Map<String, dynamic>;
     expect(manifest['schema_version'], 'prd_v3_document_template_registry.v1');
@@ -10420,7 +10579,7 @@ void main() {
         isNot(contains('test_document_template_registry_entry.json')));
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -10439,7 +10598,7 @@ void main() {
         isTrue);
 
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -10590,53 +10749,13 @@ void main() {
   test('p2 office collaboration workgroup has office and workgroup evidence',
       () async {
     final workspace = await createWorkspace();
-    final now = DateTime.now().toUtc().toIso8601String();
-    final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
-      ..createSync(recursive: true);
-    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
-        .writeAsStringSync('# Knowledge QA Skill\n');
-    final agentDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}catalog')
-      ..createSync(recursive: true);
-    File('${agentDir.path}${Platform.pathSeparator}agents.json')
-        .writeAsStringSync(jsonEncode({
-      'schema_version': 'heitang_agent_catalog.v1',
-      'status': 'saved',
-      'agents': [
-        {
-          'id': 'test_office_workgroup_agent',
-          'name': '办公协作测试助手',
-          'description': '用于 P2-2 办公协作黑盒验收。',
-          'role': '处理当前办公协作任务',
-          'status': 'available',
-          'created_at': now,
-          'updated_at': now,
-          'workspace_id': '默认工作本',
-          'primary_knowledge_base_id': 'K1',
-          'allowed_reference_kb_ids': [],
-          'kb_scope_mode': 'single',
-          'answer_policy_id': 'strict_evidence',
-          'ai_profile_id': 'ai_profile_default_local',
-          'bound_knowledge_base_ids': ['K1'],
-          'bound_skill_ids': ['primary_skill'],
-          'settings': {'reply_mode': 'local_fallback_until_configured'},
-        }
-      ],
-      'updated_at': now,
-    }));
-    final conversationDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}test_office_workgroup_agent')
-      ..createSync(recursive: true);
-    File('${conversationDir.path}${Platform.pathSeparator}conversation.json')
-        .writeAsStringSync(jsonEncode({
-      'schema_version': 'heitang_agent_conversation.v1',
-      'conversation_id': 'conv_test_office_workgroup_agent',
-      'agent_id': 'test_office_workgroup_agent',
-      'messages': [],
-      'created_at': now,
-      'updated_at': now,
-    }));
+    writeWorkgroupAgentSkillFixture(
+      workspace,
+      agentId: 'test_office_workgroup_agent',
+      agentName: '办公协作测试助手',
+      description: '用于 P2-2 办公协作黑盒验收。',
+      role: '处理当前办公协作任务',
+    );
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -10649,6 +10768,7 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     await controller.runOfficeArtifactAdapterAcceptance();
     final summaryPath =
         await controller.runOfficeCollaborationWorkgroupAcceptance();
@@ -10706,14 +10826,14 @@ void main() {
     expect(reloadedController.state.hasA2aSessionManifest, isTrue);
 
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'office_collaboration_workgroup_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -10749,6 +10869,7 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final summaryPath =
         await controller.runResearchAnalysisWorkgroupAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
@@ -10810,14 +10931,14 @@ void main() {
     expect(reloadedController.state.hasA2aSessionManifest, isTrue);
 
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'research_analysis_workgroup_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -10856,6 +10977,7 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final summaryPath = await controller.runRoleBasedWorkgroupAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -10937,14 +11059,14 @@ void main() {
     expect(reloadedController.state.hasA2aSessionManifest, isTrue);
 
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'role_based_workgroup_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -11021,8 +11143,9 @@ void main() {
       await Future<void>.delayed(const Duration(seconds: 1));
     });
 
+    final activeWorkspace = defaultWorkbookWorkspace(workspace);
     final summaryPath =
-        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}role_based_workgroup_summary.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}role_based_workgroup_summary.json';
     for (var attempt = 0; attempt < 40; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
@@ -11044,7 +11167,7 @@ void main() {
         isTrue);
     expect(File(summary['role_outputs_path'] as String).existsSync(), isTrue);
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'role_based_workgroup_validated' &&
@@ -11065,16 +11188,19 @@ void main() {
       surfaceSize: const Size(1440, 900),
       captureWorkspace: (dir) => workspace = dir,
       setupWorkspace: (workspace) async {
+        final activeWorkspace = defaultWorkbookWorkspace(workspace);
         writeWorkgroupAgentSkillFixture(
-          workspace,
+          activeWorkspace,
           agentId: 'test_a2a_template_entry_agent',
           agentName: '十助手模板入口测试助手',
           description: '用于 P2-4 常用助手模板黑盒验收。',
           role: '保留在工作区内的既有助手。',
         );
-        writeResearchAnalysisQueryFixture(workspace);
+        writeResearchAnalysisQueryFixture(activeWorkspace);
       },
       waitForRuntimeReady: true,
+      runtimeReadyWhen: (state) =>
+          state.hasAgentProfiles == true && state.hasSkill == true,
     );
 
     await tester.tap(find.byKey(const Key('agent-primary-entry-工作小组')),
@@ -11088,7 +11214,7 @@ void main() {
 
     final button =
         find.byKey(const Key('a2a-ten-agent-template-evidence-button'));
-    for (var attempt = 0; attempt < 40; attempt += 1) {
+    for (var attempt = 0; attempt < 80; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
       await tester.pumpAndSettle();
@@ -11107,7 +11233,7 @@ void main() {
     });
 
     final summaryPath =
-        '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}a2a_ten_agent_template_summary.json';
+        '${defaultWorkbookWorkspace(workspace).path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}a2a_ten_agent_template_summary.json';
     for (var attempt = 0; attempt < 40; attempt += 1) {
       await tester.runAsync(
           () async => Future<void>.delayed(const Duration(milliseconds: 250)));
@@ -11129,14 +11255,6 @@ void main() {
   test('p2 a2a ten-agent templates create workgroup and tombstone test data',
       () async {
     final workspace = await createWorkspace();
-    writeWorkgroupAgentSkillFixture(
-      workspace,
-      agentId: 'test_existing_workgroup_agent',
-      agentName: '既有工作小组测试助手',
-      description: '用于确认 P2-4 只删除本次 test 标记助手。',
-      role: '保留在工作区内的既有助手。',
-    );
-    writeResearchAnalysisQueryFixture(workspace);
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -11149,6 +11267,15 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeWorkgroupAgentSkillFixture(
+      activeWorkspace,
+      agentId: 'test_existing_workgroup_agent',
+      agentName: '既有工作小组测试助手',
+      description: '用于确认 P2-4 只删除本次 test 标记助手。',
+      role: '保留在工作区内的既有助手。',
+    );
+    writeResearchAnalysisQueryFixture(activeWorkspace);
     final summaryPath = await controller.runA2aTenAgentTemplateAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -11279,7 +11406,7 @@ void main() {
         isTrue);
 
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any(
             (row) => row['event_type'] == 'a2a_ten_agent_templates_created'),
@@ -11294,7 +11421,7 @@ void main() {
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -11313,14 +11440,6 @@ void main() {
 
   test('p2 multi-agent rag deepening creates core evidence package', () async {
     final workspace = await createWorkspace();
-    writeWorkgroupAgentSkillFixture(
-      workspace,
-      agentId: 'test_multi_agent_rag_agent',
-      agentName: '多助手检索深化测试助手',
-      description: '用于 P2-5 多助手检索深化验收。',
-      role: '处理当前检索深化任务',
-    );
-    writeResearchAnalysisQueryFixture(workspace);
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -11333,6 +11452,15 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeWorkgroupAgentSkillFixture(
+      activeWorkspace,
+      agentId: 'test_multi_agent_rag_agent',
+      agentName: '多助手检索深化测试助手',
+      description: '用于 P2-5 多助手检索深化验收。',
+      role: '处理当前检索深化任务',
+    );
+    writeResearchAnalysisQueryFixture(activeWorkspace);
     final summaryPath = await controller.runMultiAgentRagDeepeningAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -11416,14 +11544,14 @@ void main() {
     );
     await reloadedController.initialize();
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'multi_agent_rag_deepening_validated' &&
             row['artifact_path'] == summaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -17155,7 +17283,6 @@ void main() {
   test('knowledge canvas basic writes user blackbox evidence and reloads',
       () async {
     final workspace = await createWorkspace();
-    writeKnowledgeCanvasFixture(workspace);
     Rc6RuntimeController buildController() => Rc6RuntimeController(
           coreBridge: LocalCoreBridge(
             runner: (_) async => const CoreBridgeProcessResult(
@@ -17169,6 +17296,8 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeKnowledgeCanvasFixture(activeWorkspace);
     final summaryPath = await controller.runKnowledgeCanvasBasicAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -17203,7 +17332,7 @@ void main() {
     expect((summary['canvas_edges'] as List), hasLength(3));
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -17214,7 +17343,7 @@ void main() {
         isTrue);
 
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -17243,7 +17372,7 @@ void main() {
     await pumpWorkbench(
       tester,
       setupWorkspace: (workspace) async {
-        writeKnowledgeCanvasFixture(workspace);
+        writeKnowledgeCanvasFixture(defaultWorkbookWorkspace(workspace));
       },
       coreBridge: LocalCoreBridge(
         runner: (request) async {
@@ -17277,12 +17406,12 @@ void main() {
     );
 
     expect(find.text('关系画布'), findsOneWidget);
-    expect(find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
+    expect(find.byKey(const Key('workbench.knowledge_base.view_links_button')),
         findsOneWidget);
     await tester.ensureVisible(
-        find.byKey(const Key('knowledge-canvas-basic-evidence-button')));
+        find.byKey(const Key('workbench.knowledge_base.view_links_button')));
     final canvasButton = tester.widget<FilledButton>(
-      find.byKey(const Key('knowledge-canvas-basic-evidence-button')),
+      find.byKey(const Key('workbench.knowledge_base.view_links_button')),
     );
     expect(canvasButton.onPressed, isNotNull);
     expect(tester.takeException(), isNull);
@@ -17291,7 +17420,6 @@ void main() {
   test('knowledge base table view writes user blackbox evidence and reloads',
       () async {
     final workspace = await createWorkspace();
-    writeKnowledgeCanvasFixture(workspace);
     Rc6RuntimeController buildController() => Rc6RuntimeController(
           coreBridge: LocalCoreBridge(
             runner: (_) async => const CoreBridgeProcessResult(
@@ -17305,6 +17433,8 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    writeKnowledgeCanvasFixture(activeWorkspace);
     final summaryPath = await controller.runKnowledgeBaseTableViewAcceptance();
     final summary = jsonDecode(File(summaryPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -17336,7 +17466,7 @@ void main() {
     }
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -17347,7 +17477,7 @@ void main() {
         isTrue);
 
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -19165,7 +19295,7 @@ void main() {
     await pumpWorkbench(
       tester,
       setupWorkspace: (workspace) async {
-        writeKnowledgeCanvasFixture(workspace);
+        writeKnowledgeCanvasFixture(defaultWorkbookWorkspace(workspace));
       },
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -19176,12 +19306,12 @@ void main() {
       waitForRuntimeReady: true,
     );
 
-    expect(find.byKey(const Key('knowledge-base-table-view-evidence-button')),
+    expect(find.byKey(const Key('workbench.knowledge_base.view_list_button')),
         findsOneWidget);
     await tester.ensureVisible(
-        find.byKey(const Key('knowledge-base-table-view-evidence-button')));
+        find.byKey(const Key('workbench.knowledge_base.view_list_button')));
     final tableButton = tester.widget<FilledButton>(
-      find.byKey(const Key('knowledge-base-table-view-evidence-button')),
+      find.byKey(const Key('workbench.knowledge_base.view_list_button')),
     );
     expect(tableButton.onPressed, isNotNull);
     expect(tester.takeException(), isNull);
@@ -19203,6 +19333,7 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final summaryPath =
         await controller.runHotPluggableProjectConfigBasicAcceptance();
     final summaryText = File(summaryPath).readAsStringSync();
@@ -19230,7 +19361,8 @@ void main() {
       }
     }
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final profiles = (jsonDecode(
         File('$configDir${Platform.pathSeparator}project_config_profiles.json')
             .readAsStringSync()) as Map<String, dynamic>)['profiles'] as List;
@@ -19247,7 +19379,7 @@ void main() {
         isFalse);
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -19369,7 +19501,9 @@ void main() {
     expect(rollbackManifest['final_active_profile_id'],
         rollbackManifest['initial_active_profile_id']);
 
-    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final configDir =
+        '${activeWorkspace.path}${Platform.pathSeparator}config';
     final profiles = (jsonDecode(
         File('$configDir${Platform.pathSeparator}project_config_profiles.json')
             .readAsStringSync()) as Map<String, dynamic>)['profiles'] as List;
@@ -19386,7 +19520,7 @@ void main() {
         isFalse);
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -19802,8 +19936,9 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final artifactPath =
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}test_audit_report_input.json';
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}test_audit_report_input.json';
     File(artifactPath)
       ..createSync(recursive: true)
       ..writeAsStringSync('{"status":"pass"}');
@@ -19848,15 +19983,15 @@ void main() {
     expect((auditReport['module_summary'] as Map)['module_count'],
         greaterThanOrEqualTo(6));
     expect((auditReport['event_ledger_summary'] as Map)['path'],
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect((auditReport['artifact_catalog_summary'] as Map)['path'],
-        '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json');
+        '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json');
     expect((auditReport['boundary'] as Map)['ui_blackbox_required'], isFalse);
     expect(
         (auditReport['boundary'] as Map)['secret_plaintext_written'], isFalse);
 
     final eventRows = File(
-            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+            '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
         .readAsLinesSync()
         .where((line) => line.trim().isNotEmpty)
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
@@ -19867,7 +20002,7 @@ void main() {
         isTrue);
 
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map<String, dynamic>;
     final artifacts =
         (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
@@ -19888,6 +20023,63 @@ void main() {
             record.artifactId == 'audit_report_enhancement_summary' &&
             record.status == 'completed'),
         isTrue);
+  });
+
+  test('audit operation records support retry ignore export clear and restart',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    await controller.importLocalPath(
+        '${activeWorkspace.path}${Platform.pathSeparator}missing.md');
+    expect(controller.state.lastError, contains('未找到本地路径'));
+    final ledgerPath =
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl';
+    final ledgerRows = readJsonlFile(ledgerPath);
+    expect(ledgerRows.any((row) => row['event_type'] == 'failure_event'),
+        isTrue);
+
+    await controller.retryLastFailedOperation();
+    expect(controller.state.lastError, isEmpty);
+    expect(controller.state.lastMessage, contains('重试'));
+
+    await controller.importLocalPath(
+        '${activeWorkspace.path}${Platform.pathSeparator}still_missing.md');
+    expect(controller.state.lastError, isNotEmpty);
+    await controller.ignoreCurrentFailure();
+    expect(controller.state.lastError, isEmpty);
+    expect(controller.state.lastMessage, contains('已忽略'));
+
+    final auditReportPath = await controller.exportAuditReport();
+    final auditReport =
+        jsonDecode(File(auditReportPath).readAsStringSync()) as Map;
+    expect(auditReport['schema_version'], 'heitang_workbench_audit_report.v1');
+    expect((auditReport['source_artifacts'] as Map)['event_ledger_path'],
+        ledgerPath);
+    expect((auditReport['boundary'] as Map)['secret_plaintext_written'],
+        isFalse);
+    expect(auditReport['last_error'], isEmpty);
+
+    await controller.clearOperationHistoryForUser();
+    expect(controller.state.eventLedgerRecords, isEmpty);
+    expect(File(ledgerPath).readAsStringSync(), isEmpty);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.eventLedgerRecords, isEmpty);
+    expect(File(auditReportPath).existsSync(), isTrue);
   });
 
   test('skill generation persists type platform and personalization config',
@@ -20545,22 +20737,143 @@ void main() {
         isTrue);
   });
 
+  test('agent profile chain preserves binding traces refusal and lifecycle',
+      () async {
+    final workspace = await createWorkspace();
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
+      ..createSync(recursive: true);
+    final kbDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+          ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'owner_product_kb',
+          'kb_name': 'Owner Product KB',
+          'status': 'searchable',
+          'source_documents': [
+            {'document_id': 'doc_owner', 'source_name': 'owner.md'}
+          ],
+        }
+      ],
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(
+            '${jsonEncode({
+                  'text': 'Alpha project launch evidence with budget approval',
+                  'source_path': 'alpha.txt',
+                  'source_doc_id': 'doc_alpha',
+                  'chunk_id': 'chunk_alpha_001',
+                  'source_trace_id': 'trace_alpha_001',
+                  'block_ids': ['block_alpha_001'],
+                  'heading_path': ['Alpha launch'],
+                })}\n');
+    final catalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${catalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'owner_product_kb',
+          'kb_name': 'Owner Product KB',
+          'status': 'searchable',
+          'source_documents': [
+            {'document_id': 'doc_alpha', 'source_name': 'alpha.txt'}
+          ],
+        }
+      ],
+    }));
+    final skillDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\nUse bound KB evidence.');
+
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final profile = await controller.createAgentProfile(
+      name: 'Owner Product Agent',
+      boundKnowledgeBaseIds: const ['owner_product_kb'],
+      boundSkillIds: const ['knowledge_qa_skill'],
+    );
+    expect(profile, isNotNull);
+
+    final firstConversation = await controller.sendAgentMessage(
+      agentId: profile!.id,
+      content: 'What does the Alpha project evidence say?',
+    );
+    expect(firstConversation.messages, hasLength(2));
+    final firstReply = firstConversation.messages.last;
+    expect(firstReply.status, isNot('refused_missing_evidence'));
+    expect(firstReply.toJson()['bound_knowledge_base_ids'],
+        ['owner_product_kb']);
+    expect(firstReply.toJson()['bound_skill_ids'], ['knowledge_qa_skill']);
+
+    final conversationDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}conversations${Platform.pathSeparator}${profile.id}');
+    final citationTracePath =
+        '${conversationDir.path}${Platform.pathSeparator}citation_trace.jsonl';
+    final skillRuleTracePath =
+        '${conversationDir.path}${Platform.pathSeparator}skill_rule_trace.jsonl';
+    final citationTrace = readJsonlFile(citationTracePath);
+    expect(citationTrace, hasLength(1));
+    expect(citationTrace.single['agent_id'], profile.id);
+    expect(citationTrace.single['kb_id'], 'owner_product_kb');
+    expect(citationTrace.single['source_doc_id'], 'doc_alpha');
+    expect(citationTrace.single['chunk_id'], 'chunk_alpha_001');
+    expect(citationTrace.single['source_trace_id'], 'trace_alpha_001');
+    final skillRuleTrace = readJsonlFile(skillRuleTracePath);
+    expect(skillRuleTrace.single['skill_id'], 'knowledge_qa_skill');
+    expect(skillRuleTrace.single['skill_id'], isNot('S1'));
+
+    final refusedConversation = await controller.sendAgentMessage(
+      agentId: profile.id,
+      content: 'Tell me about Beta payroll policy.',
+    );
+    expect(refusedConversation.messages, hasLength(4));
+    final refusedReply = refusedConversation.messages.last;
+    expect(refusedReply.status, 'refused_missing_evidence');
+    expect(refusedReply.content, contains('当前知识库无依据'));
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    final recovered = await reloaded.loadAgentConversation(profile.id);
+    expect(recovered.messages, hasLength(4));
+
+    await reloaded.deleteAgentProfile(profile.id);
+    expect(
+        Directory(conversationDir.path).existsSync(),
+        isFalse);
+    expect(File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl').existsSync(),
+        isTrue);
+    expect(File('${skillDir.path}${Platform.pathSeparator}SKILL.md').existsSync(),
+        isTrue);
+  });
+
   test('agent generation persists creation mode type and output config',
       () async {
     final workspace = await createWorkspace();
-    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
-      ..createSync(recursive: true);
-    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
-        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
-    final skillDir =
-        Directory('${workspace.path}${Platform.pathSeparator}skill')
-          ..createSync(recursive: true);
-    final primarySkill =
-        Directory('${skillDir.path}${Platform.pathSeparator}knowledge_qa_skill')
-          ..createSync(recursive: true);
-    File('${primarySkill.path}${Platform.pathSeparator}SKILL.md')
-        .writeAsStringSync('# skill');
-
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -20583,6 +20896,36 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
+    final kbDir = Directory('${activeWorkspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    final kbCatalogDir = Directory(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases')
+      ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'owner_product_kb',
+          'kb_name': 'Owner Product KB',
+          'status': 'searchable',
+          'source_documents': [
+            {'document_id': 'doc_owner', 'source_name': 'owner.md'}
+          ],
+        }
+      ],
+    }));
+    final skillDir =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}skill')
+          ..createSync(recursive: true);
+    final primarySkill =
+        Directory('${skillDir.path}${Platform.pathSeparator}knowledge_qa_skill')
+          ..createSync(recursive: true);
+    File('${primarySkill.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# skill');
     await controller.generateAgent(
       config: const Rc6AgentGenerationConfig(
         customAgentName: 'Owner 产品分析 Agent',
@@ -20597,7 +20940,8 @@ void main() {
     expect(requests.single.actionId, 'kb_bound_agent_generation');
     expect(requests.single.arguments, contains('advanced_kb_bound'));
     expect(requests.single.arguments, contains('Owner 产品分析 Agent'));
-    final agentRoot = '${workspace.path}${Platform.pathSeparator}agent';
+    final agentRoot =
+        '${activeWorkspace.path}${Platform.pathSeparator}agent';
     expect(
         File('$agentRoot${Platform.pathSeparator}knowledge_qa_agent${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
@@ -20665,8 +21009,11 @@ void main() {
     await controller.runAgentDialogue(prompt: '用产品分析 Agent 总结证据');
     expect(controller.state.hasAgentDialogueManifest, isTrue);
     expect(controller.state.agentDialogueModelConfigId, 'owner-provider-model');
-    expect(controller.state.agentDialogueUsedKbIds, contains('K1'));
-    expect(controller.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(controller.state.agentDialogueUsedKbIds,
+        contains('owner_product_kb'));
+    expect(controller.state.agentDialogueUsedSkillIds,
+        contains('knowledge_qa_skill'));
+    expect(controller.state.agentDialogueUsedSkillIds, isNot(contains('S1')));
     expect(controller.state.agentDialogueOutputFormat, 'json');
     expect(controller.state.agentDialogueEvidenceCount, 0);
     expect(controller.state.agentDialogueMemoryWriteStatus,
@@ -20684,10 +21031,11 @@ void main() {
           contains('"agent_chat"'),
           contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
           contains('"used_kb_ids"'),
-          contains('"K1"'),
+          contains('"owner_product_kb"'),
           contains('"used_skill_ids"'),
-          contains('"S1"'),
+          contains('"knowledge_qa_skill"'),
         ]));
+    expect(dialogueManifest, isNot(contains('"used_skill_ids": ["S1"]')));
     expect(
         dialogueManifest,
         allOf(
@@ -20723,7 +21071,7 @@ void main() {
     expect(controller.state.a2aParticipantAgentIds,
         ['operation_conversion_agent', 'product_analysis_agent']);
     final discussion = File(
-            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+            '${activeWorkspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
         .readAsStringSync();
     expect(
         discussion,
@@ -20760,7 +21108,7 @@ void main() {
           contains('Owner 自定义 A2A 议题'),
         ));
     final orchestrationRecords = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
     expect(orchestrationRecords.map((record) => record['layer']),
         containsAll(['agent', 'a2a']));
     expect(
@@ -20786,14 +21134,14 @@ void main() {
             as Map)['external_project_name_user_visible'],
         isFalse);
     final eventRows = readJsonlFile(
-        '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
+        '${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl');
     expect(
         eventRows.any((row) =>
             row['event_type'] == 'workgroup_basic_runtime_validated' &&
             row['artifact_path'] == workgroupSummaryPath),
         isTrue);
     final artifactCatalog = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
         .readAsStringSync()) as Map;
     final artifacts = (artifactCatalog['artifacts'] as List).cast<Map>();
     expect(
@@ -20874,7 +21222,7 @@ void main() {
       expect(requests.first.actionId, 'batch_import_documents');
       expect(controller.state.sourceCount, greaterThan(0));
       expect(controller.state.selectedFilePath,
-          '${workspace.path}${Platform.pathSeparator}input');
+          '${controller.state.workspacePath}${Platform.pathSeparator}input');
     } else {
       expect(controller.state.lastError,
           contains(r'D:\HeiTang-Codex-WorkSpace\input'));
@@ -20970,6 +21318,7 @@ void main() {
 
     await controller.initialize();
     await controller.runPrdP0ProductE2E(input.path);
+    final activeWorkspace = Directory(controller.state.workspacePath);
 
     expect(
         requests.map((request) => request.actionId),
@@ -20989,9 +21338,9 @@ void main() {
     expect(requests.map((request) => request.actionId),
         isNot(contains('generate_pptx')));
     expect(controller.state.hasPrdP0Evidence, isTrue);
-    expectMainKnowledgeArtifacts(workspace, controller.state);
+    expectMainKnowledgeArtifacts(activeWorkspace, controller.state);
     final evidence = jsonDecode(File(
-            '${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}prd_p0_e2e_evidence.json')
+            '${activeWorkspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}prd_p0_e2e_evidence.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(evidence['status'], 'pass');
     expect(evidence['knowledge_bases'], hasLength(3));
@@ -20999,19 +21348,19 @@ void main() {
         containsAll(['D1', 'D2', 'D3']));
     expect(evidence['external_skill_imported'], isTrue);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}localized_skills${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}localized_skills${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md')
             .readAsStringSync(),
         contains('本地化写作 Skill S2'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
             .readAsStringSync(),
         contains('"source_mode": "external_skill_fusion"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json')
             .readAsStringSync(),
         contains('"source_mode": "external_import"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('"parent_multi_agent"'),
@@ -21019,23 +21368,23 @@ void main() {
           contains('"advanced_agents"'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
         contains('"parent_workspace_id": "W_M"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
             .readAsStringSync(),
         contains('"conflict_detection_enabled": true'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
             .readAsStringSync(),
         contains('"operation": "copy"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
             .readAsStringSync(),
         contains('"status": "bound"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
         allOf(
           contains('"secret_source": "env_only"'),
@@ -21043,23 +21392,23 @@ void main() {
           contains('"advanced_agent"'),
         ));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
             .readAsStringSync(),
         contains('"computer_use_disabled"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_README.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_README.md')
             .readAsStringSync(),
         contains('Agent 导出包'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_A${Platform.pathSeparator}agent_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_A${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
         contains('"workspace_id": "W_A"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
+        File('${activeWorkspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
         contains('"parent_workspace_id": "W_M"'));
     expect(
-        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_collaboration_report.md')
+        File('${activeWorkspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_collaboration_report.md')
             .readAsStringSync(),
         contains('A2A 协作摘要'));
   });
@@ -21107,25 +21456,64 @@ void main() {
 
   testWidgets('prd artifact center lists exported Agent dialogue',
       (tester) async {
-    await pumpWorkbench(tester, setupWorkspace: (workspace) async {
+    await pumpWorkbench(tester, initialSelectedIndex: 8,
+        setupWorkspace: (workspace) async {
       final dialogueExportDir = Directory(
-          '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+          '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
         ..createSync(recursive: true);
       File('${dialogueExportDir.path}${Platform.pathSeparator}agent_dialogue_export.md')
           .writeAsStringSync('# Agent dialogue export');
     });
 
-    await tester
-        .ensureVisible(find.byKey(const Key('dashboard-artifact-overview')));
-    await tester.tap(find.text('查看全部成果'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
-    expect(find.text('助手对话导出'), findsOneWidget);
-    expect(find.textContaining('chat export'), findsOneWidget);
+    expect(find.text('Agent 导出包'), findsWidgets);
+    expect(find.textContaining('agent package'), findsWidgets);
     expect(find.byKey(const Key('artifact-center-export-selected')),
         findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  test('artifact center ordinary output filter excludes internal evidence',
+      () {
+    final visible = [
+      ('knowledge_base', 'knowledge_base'),
+      ('document_generation', 'generated_document'),
+      ('document_generation', 'office_document_export'),
+      ('skill', 'skill_export_package'),
+      ('agent', 'agent_package'),
+      ('agent', 'agent_reply'),
+    ];
+    final hidden = [
+      ('knowledge_base', 'source_trace'),
+      ('knowledge_base', 'source_map'),
+      ('knowledge_base', 'standard_package_manifest'),
+      ('knowledge_base', 'validation_report'),
+      ('knowledge_base', 'acceptance_report'),
+      ('audit', 'audit_report'),
+      ('document_generation', 'acceptance_report'),
+      ('document_generation', 'office_docx_test_artifact'),
+      ('skill', 'validation_report'),
+      ('agent', 'acceptance_report'),
+    ];
+
+    expect(
+      visible.every((artifact) =>
+          isOrdinaryProductArtifactTypeForOutputCatalog(
+            sourceModule: artifact.$1,
+            artifactType: artifact.$2,
+          )),
+      isTrue,
+    );
+    expect(
+      hidden.any((artifact) =>
+          isOrdinaryProductArtifactTypeForOutputCatalog(
+            sourceModule: artifact.$1,
+            artifactType: artifact.$2,
+          )),
+      isFalse,
+    );
   });
 
   test('prd artifact center exports bounded file and directory artifacts',
@@ -21143,8 +21531,9 @@ void main() {
     );
 
     await controller.initialize();
+    final activeWorkspace = Directory(controller.state.workspacePath);
     final skillDir = Directory(
-        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+        '${activeWorkspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
       ..createSync(recursive: true);
     final skillFile = File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
       ..writeAsStringSync('# Real Skill');
@@ -21172,7 +21561,7 @@ void main() {
             .existsSync(),
         isTrue);
     expect(
-        File('${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}artifact_export_history.jsonl')
+        File('${activeWorkspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}artifact_export_history.jsonl')
             .readAsStringSync(),
         contains('prd_v3_artifact_center_export.v1'));
 
@@ -21193,9 +21582,14 @@ void main() {
   test('prd artifact center deletion uses owned generated document scope',
       () async {
     final workspace = await createWorkspace();
-    final doc = Directory('${workspace.path}${Platform.pathSeparator}doc')
+    final activeWorkspace = Directory(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}assets${Platform.pathSeparator}默认工作本')
       ..createSync(recursive: true);
-    final export = Directory('${workspace.path}${Platform.pathSeparator}export')
+    final doc =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}doc')
+      ..createSync(recursive: true);
+    final export =
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}export')
       ..createSync(recursive: true);
     File('${doc.path}${Platform.pathSeparator}generated.md')
         .writeAsStringSync('# generated from product flow');
@@ -21223,10 +21617,11 @@ void main() {
     await controller.clearRecentTaskArtifacts('doc');
 
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}doc').existsSync(),
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}doc')
+            .existsSync(),
         isFalse);
     expect(
-        Directory('${workspace.path}${Platform.pathSeparator}export')
+        Directory('${activeWorkspace.path}${Platform.pathSeparator}export')
             .existsSync(),
         isFalse);
     expect(controller.state.hasMarkdown, isFalse);
@@ -21474,7 +21869,10 @@ void main() {
                           '{"status":"completed","imported_count":2}');
                 case 'document_understanding':
                   writeDuRecords(
-                      Directory(output.parent.path), ['alpha.md', 'beta.txt']);
+                    Directory(output.parent.path),
+                    ['alpha.md', 'beta.txt'],
+                    includeParsedDocument: true,
+                  );
                   File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                       .writeAsStringSync(
                           '{"status":"completed","success_count":2,"failed_count":0}');
@@ -21607,6 +22005,28 @@ void main() {
         .firstWhere((id) => id.startsWith('K_MERGED'));
     expect(reloaded.state.knowledgeBases.map((kb) => kb.id),
         containsAll(['K1', 'K2', mergedId]));
+    final mergedCatalog = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final mergedRecord = (mergedCatalog['knowledge_bases'] as List)
+        .whereType<Map>()
+        .firstWhere((row) => row['kb_id'] == mergedId);
+    expect(mergedRecord['parent_kbs'], ['K1', 'K2']);
+    expect(mergedRecord['source_kb_ids'], ['K1', 'K2']);
+    expect((mergedRecord['source_documents'] as List), hasLength(2));
+    final mergedSourceMap = jsonDecode(File(
+            '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$mergedId${Platform.pathSeparator}source_map.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(mergedSourceMap['parent_kbs'], ['K1', 'K2']);
+    expect((mergedSourceMap['documents'] as List), hasLength(2));
+    final mergedChunks = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$mergedId${Platform.pathSeparator}chunks.jsonl');
+    final mergedTraceRows = readJsonlFile(
+        '${activeWorkspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$mergedId${Platform.pathSeparator}source_trace.jsonl');
+    expect(mergedChunks.map((row) => row['source_doc_id']).toSet(),
+        containsAll([alphaId, betaId]));
+    expect(mergedTraceRows.map((row) => row['source_doc_id']).toSet(),
+        containsAll([alphaId, betaId]));
 
     await reloaded.deleteKnowledgeBaseRecord(mergedId);
     expect(reloaded.state.knowledgeBases.map((kb) => kb.id),

@@ -32,13 +32,11 @@ void main() {
       MapEntry(Key('sidebar-knowledge-package-management'),
           Key('knowledge-package-list')),
       MapEntry(
-          Key('sidebar-retrieval-verification'), Key('retrieval-workflow')),
-      MapEntry(
           Key('sidebar-document-generation'), Key('document-generation-tasks')),
       MapEntry(
           Key('sidebar-skill-factory'), Key('skill-metadata-source-config')),
       MapEntry(
-          Key('sidebar-agent-factory-runtime'), Key('agent-workspace-setup')),
+          Key('sidebar-agent-factory-runtime'), Key('agent-im-dialogue-pane')),
       MapEntry(Key('sidebar-workspace'), Key('settings-workspace-overview')),
     ];
 
@@ -50,6 +48,16 @@ void main() {
         expect(find.byKey(const Key('import-intake-surface')), findsOneWidget,
             reason: '${entry.key}');
         await tester.tap(find.byKey(const Key('document-library-tab-1')),
+            warnIfMissed: false);
+        await tester.pumpAndSettle();
+      }
+      if (entry.key == const Key('sidebar-knowledge-package-management')) {
+        await tester.tap(find.byKey(const Key('page-tab-2')),
+            warnIfMissed: false);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget,
+            reason: '${entry.key}');
+        await tester.tap(find.byKey(const Key('page-tab-0')),
             warnIfMissed: false);
         await tester.pumpAndSettle();
       }
@@ -77,10 +85,10 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('设置'), findsWidgets);
+    expect(find.text('配置'), findsWidgets);
     expect(find.text('模型服务'), findsOneWidget);
     expect(find.text('记忆与存储'), findsOneWidget);
-    expect(find.text('导出工具'), findsOneWidget);
+    expect(find.text('导出'), findsOneWidget);
     expect(find.text('网络与安全'), findsOneWidget);
     expect(find.text('配置系统'), findsNothing);
     expect(find.text('桌面交付'), findsNothing);
@@ -141,11 +149,12 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
+    expect(find.byKey(const Key('agent-im-dialogue-pane')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('agent-primary-entry-助手配置')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('单个助手'), findsOneWidget);
+    expect(find.text('创建助手'), findsWidgets);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);

@@ -308,73 +308,77 @@ class _DashboardHeroCopy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          zh ? '把资料变成可用的知识资产' : 'Turn materials into usable knowledge assets',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                height: 1.08,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          zh
-              ? '整理资料、构建知识库、验证质量，最后生成文档、技能与助手。'
-              : 'Organize sources, build a knowledge base, verify quality, then generate documents, skills, and assistants.',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.24,
-              ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            for (final chip in metricChips) _DashboardMetricChip(data: chip),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 10,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 128),
-              child: IntrinsicWidth(
-                child: _PrimaryProductAction(
-                  label: action.title,
-                  icon: action.icon,
-                  fullWidth: false,
-                  onPressed: () => onPageChanged(_pageIndexById(action.pageId)),
+    return SingleChildScrollView(
+      primary: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            zh ? '把资料变成可用的知识资产' : 'Turn materials into usable knowledge assets',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontSize: zh ? 28 : 26,
+                  fontWeight: FontWeight.w600,
+                  height: 1.08,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            zh
+                ? '整理资料、构建知识库、验证质量，最后生成文档、技能与助手。'
+                : 'Organize sources, build a knowledge base, verify quality, then generate documents, skills, and assistants.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  height: 1.24,
+                ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final chip in metricChips) _DashboardMetricChip(data: chip),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 128),
+                child: IntrinsicWidth(
+                  child: _PrimaryProductAction(
+                    label: action.title,
+                    icon: action.icon,
+                    fullWidth: false,
+                    onPressed: () =>
+                        onPageChanged(_pageIndexById(action.pageId)),
+                  ),
                 ),
               ),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 118),
-              child: IntrinsicWidth(
-                child: _DisplayAction(
-                  label: zh ? '查看流程' : 'View flow',
-                  icon: Icons.route_outlined,
-                  fullWidth: false,
-                  onPressed: () =>
-                      onPageChanged(_pageIndexById('document-library')),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 118),
+                child: IntrinsicWidth(
+                  child: _DisplayAction(
+                    label: zh ? '查看流程' : 'View flow',
+                    icon: Icons.route_outlined,
+                    fullWidth: false,
+                    onPressed: () =>
+                        onPageChanged(_pageIndexById('document-library')),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

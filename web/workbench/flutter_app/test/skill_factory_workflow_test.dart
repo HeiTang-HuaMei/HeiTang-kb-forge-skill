@@ -96,14 +96,14 @@ void main() {
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
     expect(find.textContaining('release_candidate'), findsNothing);
     expect(find.textContaining('Core 证据快照'), findsNothing);
-    expect(find.text('技能生成'), findsWidgets);
+    expect(find.text('Skill'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.text('从知识库生成'), findsOneWidget);
-    expect(find.text('导入模板技能'), findsWidgets);
+    expect(find.text('导入 Skill'), findsWidgets);
     expect(find.text('版本操作'), findsOneWidget);
     expect(find.text('检查导出'), findsOneWidget);
-    await tester.tap(find.text('导入模板技能').first, warnIfMissed: false);
+    await tester.tap(find.text('导入 Skill').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);

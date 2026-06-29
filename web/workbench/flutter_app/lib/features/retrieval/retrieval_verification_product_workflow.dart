@@ -244,7 +244,7 @@ class _RetrievalVerificationViewState
                   detail: zh ? '命中引用来源数' : 'citation sources',
                   icon: Icons.pie_chart_outline),
               _MetricDatum(
-                  label: zh ? '矛盾项' : 'Contradictions',
+                  label: zh ? '发现的问题' : 'Issues found',
                   value: runtime.searchStatus == Rc6SearchStatus.success
                       ? correctionState.values
                           .where((value) =>
@@ -262,6 +262,13 @@ class _RetrievalVerificationViewState
             value: zh
                 ? '相关性 = 关键词命中 50% + 片段匹配 35% + 来源覆盖 15%'
                 : 'Relevance = keyword match 50% + chunk score 35% + source coverage 15%',
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '建议补充资料' : 'Suggested additions',
+            value: zh
+                ? '发现缺口后，从文档库补充来源再重新验证。'
+                : 'When gaps are found, add sources in the document library and verify again.',
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
@@ -609,8 +616,8 @@ class _RetrievalVerificationProductWorkflowState
           icon: Icons.manage_search_outlined,
           title: _zh ? '知识库验证' : 'Knowledge Base Verification',
           description: _zh
-              ? '用真实问题验证证据、引用和来源；外部核对未配置时保持需要设置。'
-              : 'Validate evidence, citations, and sources with real questions; external checking remains gated until configured.',
+              ? '选择要验证的知识库'
+              : 'Select a knowledge base to verify',
         ),
       ),
       SizedBox(

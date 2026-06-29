@@ -128,10 +128,10 @@ class _SkillBuilderProductWorkflowState
     }
 
     final tabs = _zh
-        ? ['从知识库生成', '导入模板技能', '版本操作', '检查导出']
+        ? ['从知识库生成', '导入 Skill', '版本操作', '检查导出']
         : [
             'Generate from KB',
-            'Import Template Skill',
+            'Import Skill',
             'Version Operations',
             'Validate & Export'
           ];
@@ -170,10 +170,10 @@ class _SkillBuilderProductWorkflowState
           _FigmaHighlightCard(
             keyName: 'skill-import-template-card',
             icon: Icons.merge_type_outlined,
-            title: _zh ? '导入外部 Skill 并专属化' : 'Import and localize a Skill',
+            title: _zh ? '导入 Skill 并本地化' : 'Import and localize a Skill',
             description: _zh
-                ? '外部 Skill 只作为模板技能导入，再结合当前知识库本土化。'
-                : 'External Skills are imported as templates, then localized with the current knowledge base.',
+                ? '导入已有 Skill，再结合当前知识库本地化。'
+                : 'Import an existing Skill, then localize it with the current knowledge base.',
             actions: [
               SizedBox(
                 width: 136,
@@ -257,10 +257,10 @@ class _SkillBuilderProductWorkflowState
                                   : '请先构建知识库'
                         ],
                         [
-                          '导入模板技能',
-                          'S0 + 当前知识库',
+                          '导入 Skill',
+                          '导入 Skill + 当前知识库',
                           runtime.hasSkill
-                              ? '已生成 S2'
+                              ? '已生成本地化 Skill'
                               : runtime.hasKnowledgeBase
                                   ? '可生成'
                                   : '请先构建知识库'
@@ -489,7 +489,7 @@ class _SkillBuilderProductWorkflowState
           final localization = _ProductPanel(
             keyName: 'skill-external-localization',
             icon: Icons.merge_type_outlined,
-            title: _zh ? '导入模板技能' : 'Import Template Skill',
+            title: _zh ? '导入 Skill' : 'Import Skill',
             subtitle: runtime.hasSkill
                 ? _displayNameForPath(runtime.skillPath)
                 : '${widget.workspace}/workbench_runs/skill/external_imported_skill',
@@ -501,13 +501,13 @@ class _SkillBuilderProductWorkflowState
                 rows: _zh
                     ? [
                         [
-                          '模板技能',
-                          '导入外部写作方法论模板',
+                          '导入 Skill',
+                          '导入已有写作 Skill',
                           runtime.hasSkillGenerationManifest ? '已导入' : '等待导入'
                         ],
                         [
                           '本地化技能',
-                          '模板 + 当前知识库融合',
+                          '导入 Skill + 当前知识库融合',
                           runtime.hasLocalizedSkillManifest ? '已验证' : '等待知识库'
                         ],
                         [

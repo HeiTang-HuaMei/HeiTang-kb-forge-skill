@@ -12,6 +12,31 @@ class AgentBindingTruth {
   final List<String> missingBindingReasons;
 }
 
+class AgentLegacyBindingTruth {
+  const AgentLegacyBindingTruth({
+    required this.kbIds,
+    required this.skillIds,
+    required this.legacyKbAliases,
+    required this.legacySkillAliases,
+  });
+
+  final List<String> kbIds;
+  final List<String> skillIds;
+  final Map<String, String> legacyKbAliases;
+  final Map<String, String> legacySkillAliases;
+
+  String kbAt(int index) {
+    if (kbIds.isEmpty) return 'current_kb';
+    if (index >= 0 && index < kbIds.length) return kbIds[index];
+    return kbIds.first;
+  }
+
+  String skillOrFallback(String preferred) {
+    if (skillIds.contains(preferred)) return preferred;
+    return skillIds.isEmpty ? preferred : skillIds.first;
+  }
+}
+
 class AgentBindingTruthService {
   const AgentBindingTruthService();
 
@@ -60,6 +85,30 @@ class AgentBindingTruthService {
     );
   }
 
+  AgentLegacyBindingTruth resolveLegacyPackageBinding({
+    required Iterable<String> sourceKbIds,
+    required Iterable<String> generatedSkillIds,
+    Map<String, String> legacySkillAliases = const <String, String>{},
+  }) {
+    final kbIds = _uniqueStrings(sourceKbIds);
+    final effectiveKbIds = kbIds.isEmpty ? const ['current_kb'] : kbIds;
+    final skillIds = _uniqueStrings(
+      _resolveAliases(generatedSkillIds, legacySkillAliases),
+    );
+    final effectiveSkillIds =
+        skillIds.isEmpty ? const ['knowledge_qa_skill'] : skillIds;
+    return AgentLegacyBindingTruth(
+      kbIds: effectiveKbIds,
+      skillIds: effectiveSkillIds,
+      legacyKbAliases: {
+        'K1': effectiveKbIds.first,
+        'K2': effectiveKbIds.length > 1 ? effectiveKbIds[1] : effectiveKbIds.first,
+        'K3': effectiveKbIds.length > 2 ? effectiveKbIds[2] : effectiveKbIds.first,
+      },
+      legacySkillAliases: legacySkillAliases,
+    );
+  }
+
   static Map<String, String> _stringMap(Object? value) {
     if (value is! Map) return const <String, String>{};
     final result = <String, String>{};
@@ -75,10 +124,14 @@ class AgentBindingTruthService {
 
   static List<String> _stringList(Object? value) {
     if (value is! List) return const <String>[];
+    return _uniqueStrings(value.map((item) => item.toString()));
+  }
+
+  static List<String> _uniqueStrings(Iterable<Object?> values) {
     final seen = <String>{};
     final result = <String>[];
-    for (final item in value) {
-      final text = item.toString().trim();
+    for (final value in values) {
+      final text = value?.toString().trim() ?? '';
       if (text.isNotEmpty && seen.add(text)) {
         result.add(text);
       }

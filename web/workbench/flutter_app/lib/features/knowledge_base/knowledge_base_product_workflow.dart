@@ -23,8 +23,14 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
         _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
     final hasSources = runtime.hasImportedFile || runtime.sourceCount > 0;
     final tabs = _zh
-        ? ['概览', '来源', '验证', '引用', '缺口']
-        : ['Overview', 'Sources', 'Verification', 'Citations', 'Gaps'];
+        ? ['概览', '来源', '验证问题', '依据来源', '建议补充']
+        : [
+            'Overview',
+            'Sources',
+            'Test Questions',
+            'Source Basis',
+            'Suggested Additions'
+          ];
     return _FigmaPageCanvas(children: [
       SizedBox(
         height: 78,
@@ -42,8 +48,8 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
                 child: Text(
                   hasSources
                       ? (_zh
-                          ? '已有资料可用，下一步生成或更新知识库；生成后可以验证引用质量。'
-                          : 'Materials are ready. Next, generate or update the knowledge base, then verify citation quality.')
+                          ? '已有资料可用，下一步生成或更新知识库；生成后可以用问题核对依据来源。'
+                          : 'Materials are ready. Next, generate or update the knowledge base, then test source-backed answers.')
                       : (_zh
                           ? '还没有资料。请先导入资料，再回来生成知识库。'
                           : 'No materials yet. Import materials first, then return to build a knowledge base.'),
@@ -674,7 +680,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
               ),
             _PrimaryProductAction(
               label: runtime.hasKnowledgeBase
-                  ? (zh ? '更新知识库' : 'Update Knowledge Base')
+                  ? (zh ? '用所选来源更新知识库' : 'Update with selected sources')
                   : (zh ? '生成知识库' : 'Generate Knowledge Base'),
               icon: Icons.build_outlined,
               automationKey: 'workbench.knowledge_base.generate_button',
@@ -689,7 +695,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             _PrimaryProductAction(
               label: zh ? '查看知识关系' : 'View Knowledge Links',
               icon: Icons.hub_outlined,
-              automationKey: 'knowledge-canvas-basic-evidence-button',
+              automationKey: 'workbench.knowledge_base.view_links_button',
               onPressed: runtime.running || rc6 == null
                   ? null
                   : () async {
@@ -699,7 +705,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             _PrimaryProductAction(
               label: zh ? '查看知识库列表' : 'View KB List',
               icon: Icons.table_rows_outlined,
-              automationKey: 'knowledge-base-table-view-evidence-button',
+              automationKey: 'workbench.knowledge_base.view_list_button',
               onPressed: runtime.running || rc6 == null
                   ? null
                   : () async {

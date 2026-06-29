@@ -375,7 +375,7 @@ class DocumentGenerationMarkdownService {
       ..writeln('- 文档类型：$generationTypeLabel')
       ..writeln('- 模板模式：$templateModeLabel')
       ..writeln('- 输出格式：$outputFormatLabel')
-      ..writeln('- 引用策略：$citationStrategyLabel')
+      ..writeln('- 来源显示方式：$citationStrategyLabel')
       ..writeln()
       ..writeln('## 模板效果');
     for (final effect in structure.templateEffects) {
@@ -630,7 +630,9 @@ class DocumentGenerationBindingService {
   }) {
     final querySelectedIds = _stringList(queryReport['selected_kb_ids']);
     final queryResultIds = _idsFromRows(
-      queryReport['selected'] ?? queryReport['results'] ?? queryReport['records'],
+      queryReport['selected'] ??
+          queryReport['results'] ??
+          queryReport['records'],
     );
     final catalogIds = knowledgeBaseRecords
         .map((record) => (record['kb_id'] ?? '').toString().trim())
@@ -650,7 +652,9 @@ class DocumentGenerationBindingService {
               (record['kb_name'] ?? record['kb_id'] ?? '').toString().trim(),
     };
     final resultNameById = _namesFromRows(
-      queryReport['selected'] ?? queryReport['results'] ?? queryReport['records'],
+      queryReport['selected'] ??
+          queryReport['results'] ??
+          queryReport['records'],
     );
     final sourceKbNames = selectedKbIds
         .map((id) => resultNameById[id] ?? catalogNameById[id] ?? id)
@@ -701,6 +705,7 @@ class DocumentGenerationBindingService {
     return List<String>.unmodifiable(result);
   }
 }
+
 class DocumentCitationTraceService {
   const DocumentCitationTraceService();
 

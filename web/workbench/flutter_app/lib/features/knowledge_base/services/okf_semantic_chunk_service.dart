@@ -28,9 +28,8 @@ class OkfSemanticChunkService {
     final sourceDocsByRelativePath = {
       for (final doc in sourceDocs) _normalize(doc['relative_path']): doc,
     };
-    final allowedRelativePaths = sourceDocsByRelativePath.keys
-        .where((key) => key.isNotEmpty)
-        .toSet();
+    final allowedRelativePaths =
+        sourceDocsByRelativePath.keys.where((key) => key.isNotEmpty).toSet();
     final resultChunks = <Map<String, dynamic>>[];
     final traceRows = <Map<String, dynamic>>[];
     var fallbackIndex = 0;
@@ -63,34 +62,25 @@ class OkfSemanticChunkService {
       if (parsedRelativePaths.contains(_normalize(relativePath))) {
         continue;
       }
-      final sourceDoc =
-          sourceDocsByRelativePath[_normalize(relativePath)] ??
+      final sourceDoc = sourceDocsByRelativePath[_normalize(relativePath)] ??
           (sourceDocs.length == 1 ? sourceDocs.single : <String, dynamic>{});
       final sourceDocId = _stringValue(
         sourceDoc['document_id'],
         _stringValue(
-          input['source_doc_id'],
-          _stringValue(input['document_id']),
-        ),
+            input['source_doc_id'], _stringValue(input['document_id'])),
       );
-      final text = _stringValue(
-        input['text'],
-        _stringValue(input['content'], _stringValue(input['summary'])),
-      );
+      final text = _stringValue(input['text'],
+          _stringValue(input['content'], _stringValue(input['summary'])));
       final blockIds = _blockIds(input, sourceDocId, entry.key);
       final sourceTraceId = _stringValue(
-        input['source_trace_id'],
-        'trace_${kbId}_${blockIds.first}',
-      );
+          input['source_trace_id'], 'trace_${kbId}_${blockIds.first}');
       final headingPath = _headingPath(input, relativePath);
       final chunkId = _stringValue(
         input['chunk_id'],
         'okf_${kbId}_chunk_${(resultChunks.length + 1).toString().padLeft(3, '0')}',
       );
-      final chunkHash = _stringValue(
-        input['chunk_hash'],
-        _stableHash(text).toString(),
-      );
+      final chunkHash =
+          _stringValue(input['chunk_hash'], _stableHash(text).toString());
       final pageOrSection = _stringValue(
         input['page_or_section'],
         headingPath.isEmpty ? relativePath : headingPath.join(' / '),
@@ -173,20 +163,14 @@ class OkfSemanticChunkService {
     if (missingSourceDocs.isNotEmpty) {
       for (final sourceDoc in missingSourceDocs) {
         fallbackIndex += 1;
-        final relativePath = _stringValue(
-          sourceDoc['relative_path'],
-          _stringValue(sourceDoc['source_name'], 'source_$fallbackIndex'),
-        );
+        final relativePath = _stringValue(sourceDoc['relative_path'],
+            _stringValue(sourceDoc['source_name'], 'source_$fallbackIndex'));
         final sourceDocId = _stringValue(
-          sourceDoc['document_id'],
-          'doc_${_stableHash(relativePath)}',
-        );
+            sourceDoc['document_id'], 'doc_${_stableHash(relativePath)}');
         final blockId = '${sourceDocId}_block_001';
         final sourceTraceId = 'trace_${kbId}_$blockId';
-        final text = _stringValue(
-          sourceDoc['summary'],
-          _stringValue(sourceDoc['source_name'], relativePath),
-        );
+        final text = _stringValue(sourceDoc['summary'],
+            _stringValue(sourceDoc['source_name'], relativePath));
         final sourcePath = _stringValue(sourceDoc['source_path'], relativePath);
         final pageOrSection = _stringValue(
           sourceDoc['page_or_section'],
@@ -280,28 +264,21 @@ class OkfSemanticChunkService {
     final chunks = <Map<String, dynamic>>[];
     final traceRows = <Map<String, dynamic>>[];
     for (final sourceDoc in sourceDocs) {
-      final relativePath = _stringValue(
-        sourceDoc['relative_path'],
-        _stringValue(sourceDoc['source_name'], 'source'),
-      );
+      final relativePath = _stringValue(sourceDoc['relative_path'],
+          _stringValue(sourceDoc['source_name'], 'source'));
       final sourceDocId = _stringValue(
-        sourceDoc['document_id'],
-        'doc_${_stableHash(relativePath)}',
-      );
+          sourceDoc['document_id'], 'doc_${_stableHash(relativePath)}');
       final record = normalizedByRelativePath[_normalize(relativePath)];
       final normalizedPath = _stringValue(record?['normalized_path']);
       final sourcePath = _stringValue(
-        sourceDoc['source_path'],
-        _stringValue(record?['source_path'], normalizedPath),
-      );
+          sourceDoc['source_path'], _stringValue(record?['source_path'], normalizedPath));
       final blocks = _parsedDocumentBlocks(record, sourceDocId, relativePath);
       if (blocks.isEmpty) {
         if (normalizedPath.isEmpty || !await File(normalizedPath).exists()) {
           continue;
         }
-        final parsedText = await File(
-          normalizedPath,
-        ).readAsString(encoding: utf8);
+        final parsedText =
+            await File(normalizedPath).readAsString(encoding: utf8);
         blocks.addAll(_semanticBlocks(parsedText, sourceDocId, relativePath));
         for (final block in blocks) {
           block['parsed_document_source'] = 'normalized_text';
@@ -312,7 +289,7 @@ class OkfSemanticChunkService {
       for (final block in blocks) {
         final blockIds = [_stringValue(block['block_id'])];
         final sourceTraceId = 'trace_${kbId}_${blockIds.first}';
-        final headingPath = block['heading_path'] as List<String>;
+        final headingPath = (block['heading_path'] as List<String>);
         final text = _stringValue(block['text']);
         final blockSourcePath = _stringValue(block['source_path'], sourcePath);
         final pageOrSection = _stringValue(
@@ -404,10 +381,8 @@ class OkfSemanticChunkService {
     if (rawBlocks is! List) return <Map<String, Object?>>[];
     final blocks = <Map<String, Object?>>[];
     for (final item in rawBlocks.whereType<Map>()) {
-      final text = _stringValue(
-        item['text'],
-        _stringValue(item['content'], _stringValue(item['summary'])),
-      );
+      final text = _stringValue(item['text'],
+          _stringValue(item['content'], _stringValue(item['summary'])));
       if (text.isEmpty) continue;
       final blockId = _stringValue(
         item['block_id'],
@@ -422,9 +397,7 @@ class OkfSemanticChunkService {
       blocks.add({
         'block_id': blockId,
         'block_type': _stringValue(item['block_type'], 'paragraph'),
-        'heading_path': headingPath.isEmpty
-            ? <String>[relativePath]
-            : headingPath,
+        'heading_path': headingPath.isEmpty ? <String>[relativePath] : headingPath,
         'text': text,
         'parsed_document_source': 'canonical_blocks',
         if (sourcePath.isNotEmpty) 'source_path': sourcePath,
@@ -436,6 +409,7 @@ class OkfSemanticChunkService {
     }
     return blocks;
   }
+
   List<Map<String, Object?>> _semanticBlocks(
     String text,
     String sourceDocId,
@@ -517,12 +491,11 @@ class OkfSemanticChunkService {
         .where((item) => item.isNotEmpty)
         .toList(growable: false);
   }
+
   Future<List<Map<String, dynamic>>> _readDocumentUnderstandingRecords(
-    Directory workspace,
-  ) async {
+      Directory workspace) async {
     final file = File(
-      _join(workspace.path, 'du', 'document_understanding_records.jsonl'),
-    );
+        _join(workspace.path, 'du', 'document_understanding_records.jsonl'));
     if (!await file.exists()) return const [];
     final rows = <Map<String, dynamic>>[];
     for (final line in await file.readAsLines(encoding: utf8)) {
@@ -545,9 +518,7 @@ class OkfSemanticChunkService {
     final direct = _stringValue(
       chunk['relative_path'],
       _stringValue(
-        chunk['source_document'],
-        _stringValue(chunk['source_name']),
-      ),
+          chunk['source_document'], _stringValue(chunk['source_name'])),
     );
     if (direct.isNotEmpty) return direct;
     final sourcePath = _normalize(chunk['source_path'] ?? chunk['source']);
@@ -597,7 +568,10 @@ class OkfSemanticChunkService {
     return relativePath.isEmpty ? const <String>[] : [relativePath];
   }
 
-  Future<void> _writeJsonl(File file, List<Map<String, dynamic>> rows) async {
+  Future<void> _writeJsonl(
+    File file,
+    List<Map<String, dynamic>> rows,
+  ) async {
     await file.parent.create(recursive: true);
     await file.writeAsString(
       rows.isEmpty ? '' : '${rows.map(jsonEncode).join('\n')}\n',
@@ -874,17 +848,14 @@ class OkfSemanticChunkService {
   }
 
   int _stableHash(String value) {
-    return value.codeUnits.fold<int>(
-      17,
-      (hash, unit) => (hash * 31 + unit) & 0x7fffffff,
-    );
+    return value.codeUnits
+        .fold<int>(17, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
   }
 
   String _join(String part1, String part2, [String? part3]) {
-    return [
-      part1,
-      part2,
-      if (part3 != null) part3,
-    ].where((part) => part.isNotEmpty).join(Platform.pathSeparator);
+    final joined = [part1, part2, if (part3 != null) part3]
+        .where((part) => part.isNotEmpty)
+        .join(Platform.pathSeparator);
+    return joined;
   }
 }

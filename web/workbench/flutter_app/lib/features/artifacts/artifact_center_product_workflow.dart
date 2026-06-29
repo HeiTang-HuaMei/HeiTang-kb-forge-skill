@@ -262,18 +262,6 @@ class _ArtifactCenterItem {
   final bool previewable;
 }
 
-String _artifactRecordCategory(Rc6ArtifactRecord artifact, bool zh) {
-  return switch (artifact.sourceModule) {
-    'agent' => zh ? '我的助手' : 'My Assistants',
-    'artifact_center' => zh ? '成果' : 'Outputs',
-    'document_generation' => zh ? '文档生成' : 'Document Generation',
-    'skill' => zh ? '技能生成' : 'Skill Builder',
-    'knowledge_base' => zh ? '知识库' : 'Knowledge Base',
-    'document_library' => zh ? '文档库' : 'Document Library',
-    _ => zh ? '成果' : 'Outputs',
-  };
-}
-
 List<_ArtifactCenterItem> _artifactCenterItems(
     Rc6RuntimeState runtime, bool zh) {
   _ArtifactCenterItem item(String zhCategory, String enCategory, String zhLabel,
@@ -289,9 +277,10 @@ List<_ArtifactCenterItem> _artifactCenterItems(
       );
   final catalogItems = runtime.artifactRecords
       .where((artifact) => artifact.isActive)
+      .where(_isOrdinaryProductArtifactRecord)
       .map(
         (artifact) => _ArtifactCenterItem(
-          category: _artifactRecordCategory(artifact, zh),
+          category: _ordinaryArtifactCategory(artifact, zh),
           label: artifact.title.trim().isEmpty
               ? (zh ? '成果' : 'Output')
               : artifact.title.trim(),
@@ -307,75 +296,121 @@ List<_ArtifactCenterItem> _artifactCenterItems(
       .toList(growable: false);
   return [
     ...catalogItems,
-    item('文档库', 'Document Library', '来源文档', 'Source documents', 'source',
-        runtime.sourceManifestPath, 'import'),
-    item('文档库', 'Document Library', '整理结果', 'Organized results', 'organized',
-        runtime.parseReportPath, 'parse'),
-    item('标准知识包', 'Standard Package', '标准知识包', 'Standard package', 'package',
-        runtime.standardKnowledgePackageManifestPath, 'standard-package'),
     item('知识库', 'Knowledge Base', '知识库', 'Knowledge Base', 'kb',
         runtime.kbManifestPath, 'kb'),
-    item('知识库', 'Knowledge Base', '索引与质量记录', 'Index and quality records',
-        'quality', runtime.qualityReportPath, 'kb'),
-    item('知识库', 'Knowledge Base', '验证结果', 'Verification result', 'retrieval',
-        runtime.queryResultPath, 'search'),
-    item(
-        '知识库',
-        'Knowledge Base',
-        '验证报告',
-        'Validation report',
-        'validation',
-        runtime.retrievalValidationMarkdownPath.isNotEmpty
-            ? runtime.retrievalValidationMarkdownPath
-            : runtime.retrievalValidationReportPath,
-        'search'),
-    item('文档生成', 'Document Generation', '生成文档', 'Generated document', 'doc',
+    item('文档', 'Document', '生成文档', 'Generated document', 'doc',
         runtime.generatedMarkdownPath, 'doc'),
-    item('文档生成', 'Document Generation', '读书笔记', 'Reading notes', 'notes',
-        runtime.readingNotesPath, 'doc'),
-    item('文档生成', 'Document Generation', '导出文档', 'Exported document', 'export',
+    item('文档', 'Document', '导出文档', 'Exported document', 'export',
         runtime.exportedDocumentPath, 'doc'),
-    item('技能生成', 'Skill Builder', '技能草稿', 'Skill draft', 'skill',
+    item('Skill', 'Skill', 'Skill 草稿', 'Skill draft', 'skill',
         runtime.primarySkillPath, 'skill'),
-    item('技能生成', 'Skill Builder', '技能验证报告', 'Skill validation report',
-        'validation', runtime.skillVerificationReportPath, 'skill'),
-    item('技能生成', 'Skill Builder', '技能导出包', 'Skill export package',
-        'skill export', runtime.skillExportPath, 'skill'),
-    item('我的助手', 'My Assistants', '助手', 'Assistant', 'assistant',
+    item('Skill', 'Skill', 'Skill 包', 'Skill bundle', 'skill export',
+        runtime.skillExportPath, 'skill'),
+    item('Agent 包', 'Agent Bundle', 'Agent 包', 'Agent bundle', 'assistant',
         runtime.primaryAgentManifestPath, 'agent'),
-    item('我的助手', 'My Assistants', '助手对话记录', 'Assistant dialogue', 'chat',
-        runtime.agentDialoguePath, 'agent'),
-    item('我的助手', 'My Assistants', '助手对话导出', 'Assistant dialogue export',
-        'chat export', runtime.agentDialogueExportPath, 'agent'),
+    item('Agent 包', 'Agent Bundle', 'Agent 导出包', 'Agent export bundle',
+        'agent package', runtime.agentPackageManifestPath, 'agent'),
     for (var index = 0; index < runtime.agentArtifacts.length; index++)
       item(
-        '我的助手',
-        'My Assistants',
+        'Agent 包',
+        'Agent Bundle',
         runtime.agentArtifacts[index].agentName.isEmpty
-            ? '助手回复成果'
+            ? 'Agent 回复成果'
             : '${runtime.agentArtifacts[index].agentName}回复成果',
         runtime.agentArtifacts[index].agentName.isEmpty
-            ? 'Assistant reply output'
+            ? 'Agent reply output'
             : '${runtime.agentArtifacts[index].agentName} reply output',
         'reply ${index + 1}',
         runtime.agentArtifacts[index].path,
         'agent_reply:${runtime.agentArtifacts[index].artifactId}',
       ),
-    item('我的助手', 'My Assistants', '工作小组纪要', 'Work group notes', 'discussion',
-        runtime.multiAgentDiscussionPath, 'agent'),
-    item('我的助手', 'My Assistants', '工作小组报告', 'Work group report',
-        'discussion report', runtime.a2aWorkspaceReportPath, 'agent'),
-    item('治理', 'Governance', '产品链路记录', 'Product-flow record', 'flow',
-        runtime.prdP0EvidencePath, 'doc'),
-    item('设置', 'Settings', '模型服务配置', 'Model service settings', 'model',
-        runtime.providerRuntimeSettingsPath, 'settings'),
-    item('设置', 'Settings', '存储配置', 'Storage settings', 'storage',
-        runtime.storageProviderSettingsPath, 'settings'),
-    item('设置', 'Settings', '操作记录汇总', 'Operation record summary', 'usage',
-        runtime.providerLifecycleAuditSummaryPath, 'settings'),
-    item('治理', 'Governance', '并行任务报告', 'Parallel task report', 'parallel',
-        runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),
-    item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
-        runtime.knowledgeBaseCatalogPath, 'kb'),
-  ];
+  ].where((artifact) {
+    final path = artifact.path.trim();
+    return path.isNotEmpty ||
+        const {
+          'kb',
+          'doc',
+          'export',
+          'skill',
+          'skill export',
+          'assistant',
+          'agent package',
+        }.contains(artifact.shortLabel);
+  }).toList(growable: false);
+}
+
+String _ordinaryArtifactCategory(Rc6ArtifactRecord artifact, bool zh) {
+  if (_isAgentArtifactRecord(artifact)) return zh ? 'Agent 包' : 'Agent Bundle';
+  if (_isSkillArtifactRecord(artifact)) return 'Skill';
+  if (_isDocumentArtifactRecord(artifact)) return zh ? '文档' : 'Document';
+  return zh ? '知识库' : 'Knowledge Base';
+}
+
+bool _isOrdinaryProductArtifactRecord(Rc6ArtifactRecord artifact) {
+  return _isKnowledgeArtifactRecord(artifact) ||
+      _isDocumentArtifactRecord(artifact) ||
+      _isSkillArtifactRecord(artifact) ||
+      _isAgentArtifactRecord(artifact);
+}
+
+bool _isKnowledgeArtifactRecord(Rc6ArtifactRecord artifact) {
+  return isOrdinaryProductArtifactTypeForOutputCatalog(
+    sourceModule: artifact.sourceModule,
+    artifactType: artifact.artifactType,
+  );
+}
+
+bool _isDocumentArtifactRecord(Rc6ArtifactRecord artifact) {
+  return isOrdinaryProductArtifactTypeForOutputCatalog(
+    sourceModule: artifact.sourceModule,
+    artifactType: artifact.artifactType,
+  );
+}
+
+bool _isSkillArtifactRecord(Rc6ArtifactRecord artifact) {
+  return isOrdinaryProductArtifactTypeForOutputCatalog(
+    sourceModule: artifact.sourceModule,
+    artifactType: artifact.artifactType,
+  );
+}
+
+bool _isAgentArtifactRecord(Rc6ArtifactRecord artifact) {
+  return isOrdinaryProductArtifactTypeForOutputCatalog(
+    sourceModule: artifact.sourceModule,
+    artifactType: artifact.artifactType,
+  );
+}
+
+bool isOrdinaryProductArtifactTypeForOutputCatalog({
+  required String sourceModule,
+  required String artifactType,
+}) {
+  final module = sourceModule.toLowerCase();
+  final type = artifactType.toLowerCase();
+  if (module == 'knowledge_base') {
+    return const {
+      'knowledge_base',
+      'knowledge_base_manifest',
+      'kb_manifest',
+      'kb',
+    }.contains(type);
+  }
+  if (module == 'document_generation') {
+    return type == 'generated_document' ||
+        type == 'office_document_export' ||
+        type == 'document_export' ||
+        type == 'export';
+  }
+  if (module == 'skill') {
+    return const {
+      'skill_export_package',
+      'skill_package',
+      'skill_manifest',
+      'skill',
+    }.contains(type);
+  }
+  return module == 'agent' &&
+      (type.contains('package') ||
+          type.contains('manifest') ||
+          type == 'agent_reply');
 }

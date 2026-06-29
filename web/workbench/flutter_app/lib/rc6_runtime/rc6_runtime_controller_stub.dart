@@ -174,6 +174,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> clearSettingsValidationArtifacts() async => initialize();
   Future<void> clearParallelTaskValidationArtifacts() async => initialize();
   Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
+  Future<void> clearOperationHistoryForUser() async => initialize();
+  Future<void> retryLastFailedOperation() async => initialize();
+  Future<void> ignoreCurrentFailure() async => initialize();
   Future<void> deleteArtifactRecord(String artifactId) async => initialize();
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
       initialize();
@@ -938,12 +941,14 @@ class Rc6SearchResult {
 
 class Rc6DocumentGenerationConfig {
   const Rc6DocumentGenerationConfig({
+    this.documentName = '',
     this.generationType = 'reading_notes',
     this.outputFormat = 'md',
     this.citationStrategy = 'source_filename',
     this.templateMode = 'built_in',
   });
 
+  final String documentName;
   final String generationType;
   final String outputFormat;
   final String citationStrategy;
@@ -1088,9 +1093,13 @@ class Rc6AgentMessage {
     required this.createdAt,
     required this.status,
     this.error = '',
+    this.metadata = const <String, dynamic>{},
   });
 
   factory Rc6AgentMessage.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : <String, dynamic>{};
     return Rc6AgentMessage(
       id: (json['id'] ?? '').toString(),
       role: (json['role'] ?? 'assistant').toString(),
@@ -1098,6 +1107,18 @@ class Rc6AgentMessage {
       createdAt: (json['created_at'] ?? '').toString(),
       status: (json['status'] ?? 'saved').toString(),
       error: (json['error'] ?? '').toString(),
+      metadata: {
+        ...metadata,
+        for (final key in const [
+          'bound_knowledge_base_ids',
+          'bound_skill_ids',
+          'answer_policy_id',
+          'provider_kind',
+          'citation_trace_path',
+          'skill_rule_trace_path',
+        ])
+          if (json.containsKey(key)) key: json[key],
+      },
     );
   }
 
@@ -1107,6 +1128,7 @@ class Rc6AgentMessage {
   final String createdAt;
   final String status;
   final String error;
+  final Map<String, dynamic> metadata;
 
   bool get isUser => role == 'user';
 
@@ -1117,6 +1139,8 @@ class Rc6AgentMessage {
         'created_at': createdAt,
         'status': status,
         'error': error,
+        'metadata': metadata,
+        ...metadata,
       };
 }
 
@@ -1360,6 +1384,7 @@ class Rc6SourceRecord {
     required this.tableCount,
     required this.linkCount,
     required this.structureStatus,
+    this.previewText = '',
   });
 
   final String documentId;
@@ -1373,6 +1398,7 @@ class Rc6SourceRecord {
   final int tableCount;
   final int linkCount;
   final String structureStatus;
+  final String previewText;
 }
 
 class Rc6RuntimeState {
@@ -1500,6 +1526,7 @@ class Rc6RuntimeState {
     required this.sourceCount,
     required this.sourceNames,
     required this.sourceRecords,
+    required this.knowledgeSourceRecords,
     required this.chunkCount,
     required this.searchQuery,
     required this.searchStatus,
@@ -1633,6 +1660,7 @@ class Rc6RuntimeState {
         sourceCount: 0,
         sourceNames: [],
         sourceRecords: [],
+        knowledgeSourceRecords: [],
         chunkCount: 0,
         searchQuery: '',
         searchStatus: Rc6SearchStatus.idle,
@@ -1765,6 +1793,7 @@ class Rc6RuntimeState {
   final int sourceCount;
   final List<String> sourceNames;
   final List<Rc6SourceRecord> sourceRecords;
+  final List<Rc6SourceRecord> knowledgeSourceRecords;
   final int chunkCount;
   final String searchQuery;
   final Rc6SearchStatus searchStatus;
@@ -1965,6 +1994,7 @@ class Rc6RuntimeState {
     int? sourceCount,
     List<String>? sourceNames,
     List<Rc6SourceRecord>? sourceRecords,
+    List<Rc6SourceRecord>? knowledgeSourceRecords,
     int? chunkCount,
     String? searchQuery,
     Rc6SearchStatus? searchStatus,
@@ -1972,6 +2002,7 @@ class Rc6RuntimeState {
     String? lastMessage,
     String? lastError,
     CoreBridgeResult? lastResult,
+    bool clearLastResult = false,
   }) {
     return Rc6RuntimeState(
       phase: phase ?? this.phase,
@@ -2165,13 +2196,15 @@ class Rc6RuntimeState {
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       sourceRecords: sourceRecords ?? this.sourceRecords,
+      knowledgeSourceRecords:
+          knowledgeSourceRecords ?? this.knowledgeSourceRecords,
       chunkCount: chunkCount ?? this.chunkCount,
       searchQuery: searchQuery ?? this.searchQuery,
       searchStatus: searchStatus ?? this.searchStatus,
       searchResults: searchResults ?? this.searchResults,
       lastMessage: lastMessage ?? this.lastMessage,
       lastError: lastError ?? this.lastError,
-      lastResult: lastResult ?? this.lastResult,
+      lastResult: clearLastResult ? null : lastResult ?? this.lastResult,
     );
   }
 }

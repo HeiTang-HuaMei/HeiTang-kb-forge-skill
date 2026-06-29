@@ -516,8 +516,8 @@ void main() {
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
     expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
-    expect(find.text('安全授权受保护'), findsOneWidget);
-    expect(find.text('首页'), findsWidgets);
+    expect(find.text('导入资料'), findsWidgets);
+    expect(find.text('任务工作台'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
     expect(find.text('通知'), findsNothing);
@@ -540,7 +540,7 @@ void main() {
     expect(find.text('页面'), findsNothing);
     expect(find.byType(DropdownButtonFormField<int>), findsNothing);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
-    expect(find.text('首页'), findsWidgets);
+    expect(find.byKey(const ValueKey('page-surface-0')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -556,7 +556,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HeiTang'), findsWidgets);
-    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Knowledge Workbench'), findsWidgets);
     expect(find.textContaining('Knowledge Workbench'), findsWidgets);
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
@@ -573,16 +573,13 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '工作区',
-      '文档库',
+      '导入资料',
       '知识库',
-      '测试知识库',
+      'Skill',
+      'Agent',
       '文档生成',
-      '技能生成',
-      '我的助手',
-      '成果中心',
-      '使用记录',
-      '设置',
+      '任务工作台',
+      '配置',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -595,12 +592,10 @@ void main() {
   testWidgets('renders artifact center as a governance product page',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1320));
-    await tester
-        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.text('成果中心').first);
-    await tester.tap(find.text('成果中心').first, warnIfMissed: false);
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+      contracts: sampleWorkbenchContracts,
+      initialSelectedIndex: 8,
+    ));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dense-page-workbench-artifact-center')),
@@ -608,11 +603,13 @@ void main() {
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
     expect(find.byKey(const Key('artifact-center-detail')), findsOneWidget);
     expect(find.text('成果清单'), findsOneWidget);
-    expect(find.text('技能草稿'), findsOneWidget);
-    expect(find.text('技能验证报告'), findsOneWidget);
-    expect(find.text('技能导出包'), findsOneWidget);
-    expect(find.text('助手'), findsWidgets);
-    expect(find.text('协作报告'), findsOneWidget);
+    expect(find.text('Skill 草稿'), findsOneWidget);
+    expect(find.text('Skill 包'), findsOneWidget);
+    expect(find.text('Agent 包'), findsWidgets);
+    expect(find.text('技能验证报告'), findsNothing);
+    expect(find.text('协作报告'), findsNothing);
+    expect(find.text('验证报告'), findsNothing);
+    expect(find.text('并行任务报告'), findsNothing);
     expect(find.textContaining('manifest'), findsNothing);
     expect(find.textContaining('jsonl'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
@@ -629,7 +626,7 @@ void main() {
         workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('首页').first);
+    await tester.tap(find.text('任务工作台').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
@@ -652,15 +649,15 @@ void main() {
         workflowV2Evidence: sampleP1WorkflowV2Evidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('首页').first);
+    await tester.tap(find.text('任务工作台').first);
     await tester.pumpAndSettle();
 
     expect(find.text('知识供应链进度'), findsOneWidget);
     expect(find.text('配置状态'), findsWidgets);
-    expect(find.text('技能'), findsOneWidget);
-    expect(find.text('助手'), findsOneWidget);
+    expect(find.text('技能'), findsWidgets);
+    expect(find.text('助手'), findsWidgets);
     expect(find.text('助手对话'), findsOneWidget);
-    expect(find.text('多个助手讨论'), findsOneWidget);
+    expect(find.text('工作小组'), findsWidgets);
     expect(find.textContaining('agent_manifest.json'), findsNothing);
     expect(find.textContaining('agent_dialogue.md'), findsNothing);
     expect(find.textContaining('multi_agent_discussion.md'), findsNothing);
@@ -703,7 +700,7 @@ void main() {
     expect(find.textContaining('local_ready=false'), findsNothing);
     expect(find.text('运行 Core 操作'), findsNothing);
 
-    await tester.tap(find.text('使用记录').first);
+    await tester.tap(find.text('任务工作台').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsNothing);
     expect(
@@ -899,15 +896,15 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('技能生成'), findsWidgets);
+    expect(find.text('Skill'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.text('从知识库生成'), findsOneWidget);
-    expect(find.text('导入模板技能'), findsWidgets);
+    expect(find.text('导入 Skill'), findsWidgets);
     expect(find.text('版本操作'), findsOneWidget);
     expect(find.text('检查导出'), findsOneWidget);
     expect(find.text('从知识库生成技能'), findsWidgets);
-    await tester.tap(find.text('导入模板技能').first, warnIfMissed: false);
+    await tester.tap(find.text('导入 Skill').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
@@ -948,15 +945,17 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('My Assistants'), findsWidgets);
-    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
+    expect(find.text('Agent'), findsWidgets);
+    expect(find.byKey(const Key('agent-im-dialogue-pane')), findsOneWidget);
+    await tester.tap(
+        find.byKey(const Key('agent-primary-entry-Assistant Config')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('Create Assistant'), findsOneWidget);
     expect(find.text('Simple build'), findsWidgets);
     expect(find.text('Advanced build'), findsOneWidget);
-    expect(find.text('Create assistant and open chat'), findsWidgets);
+    expect(find.text('Create assistant'), findsWidgets);
     expect(find.text('Copy assistant path'), findsNothing);
     expect(find.text('Waiting for real assistant'), findsNothing);
     expect(find.text('Waiting for previewable assistant'), findsNothing);
@@ -965,26 +964,11 @@ void main() {
     expect(find.text('Generate skill'), findsNothing);
     expect(find.text('Run real retrieval'), findsNothing);
     expect(find.text('Execution Overview'), findsNothing);
-    expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
+    expect(find.byKey(const Key('agent-minimal-chat')), findsNothing);
     expect(find.text('Waiting for dialogue artifact'), findsNothing);
     expect(find.text('Waiting for chat history'), findsNothing);
-    expect(find.text('Waiting for previewable dialogue'), findsOneWidget);
     expect(find.text('Waiting for previewable history'), findsNothing);
-
-    final discussionTab = find.byKey(const Key('page-tab-2'));
-    await tester.ensureVisible(discussionTab);
-    await tester.tap(discussionTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
-        findsOneWidget);
-    expect(find.text('Start assistant discussion'), findsOneWidget);
-    expect(find.text('Waiting for previewable notes'), findsOneWidget);
-    final auditTab = find.byKey(const Key('page-tab-3'));
-    await tester.ensureVisible(auditTab);
-    await tester.tap(auditTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
-    expect(find.byKey(const Key('agent-audit-recovery')), findsOneWidget);
+    expect(find.byKey(const Key('agent-config-workbench-pane')), findsOneWidget);
     expect(find.text('Failure and Recovery'), findsNothing);
     expect(find.text('Exception Records'), findsOneWidget);
     expect(find.textContaining('Campaign'), findsNothing);
@@ -1086,7 +1070,7 @@ void main() {
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('provider_required'), findsNothing);
 
-    await tester.tap(find.text('使用记录').first);
+    await tester.tap(find.text('任务工作台').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('secret_required'), findsNothing);

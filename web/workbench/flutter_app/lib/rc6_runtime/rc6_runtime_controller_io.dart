@@ -8,11 +8,18 @@ import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
 import '../features/document_generation/services/document_generation_binding_service.dart';
+import '../features/agent/repositories/agent_artifact_catalog_repository.dart';
+import '../features/agent/repositories/agent_profile_conversation_repository.dart';
 import '../features/agent/services/agent_binding_truth_service.dart';
+import '../features/artifacts/repositories/artifact_catalog_repository.dart';
+import '../features/audit/repositories/event_ledger_repository.dart';
 import '../features/knowledge_base/services/okf_semantic_chunk_service.dart';
+import '../features/settings/repositories/settings_config_repository.dart';
+import '../features/settings/repositories/project_config_profile_repository.dart';
 import '../features/skill/repositories/skill_delete_evidence_repository.dart';
 import '../features/skill/services/skill_binding_truth_service.dart';
 import '../features/skill/services/skill_source_trace_service.dart';
+import '../features/workbook/repositories/workbook_manifest_repository.dart';
 import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
@@ -31,6 +38,21 @@ class Rc6RuntimeController extends ChangeNotifier {
   final bool isWebRuntime;
 
   Rc6RuntimeState state = Rc6RuntimeState.initial();
+  final AgentArtifactCatalogRepository _agentArtifactCatalogRepository =
+      const AgentArtifactCatalogRepository();
+  final AgentProfileConversationRepository
+      _agentProfileConversationRepository =
+      const AgentProfileConversationRepository();
+  final ArtifactCatalogRepository _artifactCatalogRepository =
+      const ArtifactCatalogRepository();
+  final EventLedgerRepository _eventLedgerRepository =
+      const EventLedgerRepository();
+  final SettingsConfigRepository _settingsConfigRepository =
+      const SettingsConfigRepository();
+  final ProjectConfigProfileRepository _projectConfigProfileRepository =
+      const ProjectConfigProfileRepository();
+  final WorkbookManifestRepository _workbookManifestRepository =
+      const WorkbookManifestRepository();
 
   bool get prefersAgentConsoleInitialPage =>
       _envEnabled('HEITANG_AGENT_CONSOLE_E2E');
@@ -66,8 +88,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadUserActionAssets(workspace);
     notifyListeners();
-    await _ensureProjectConfigProfiles(workspace);
-    await _ensureRuntimeConfigAssets(workspace);
+    await _ensureProjectConfigProfiles(workbookWorkspace);
+    await _ensureRuntimeConfigAssets(workbookWorkspace);
     await _loadExistingArtifacts();
     notifyListeners();
     if (_autoRunOkfMinimalCoreOnLaunch()) {
@@ -282,6 +304,36 @@ class Rc6RuntimeController extends ChangeNotifier {
         'next_current_workbook': currentName,
         'remaining_workbook_count': workbookNames.length,
       },
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearOperationHistoryForUser() async {
+    final workspace = _currentWorkbookWorkspace();
+    if (workspace == null) return;
+    await _eventLedgerRepository.clear(workspace);
+    state = state.copyWith(
+      eventLedgerRecords: const [],
+      lastMessage: '操作记录已清理。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> retryLastFailedOperation() async {
+    state = state.copyWith(
+      lastMessage: state.lastError.trim().isEmpty
+          ? '暂无失败记录需要重试。'
+          : '已记录重试请求，请回到对应页面重新执行。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> ignoreCurrentFailure() async {
+    state = state.copyWith(
+      lastMessage: '已忽略当前失败提示。',
+      lastError: '',
     );
     notifyListeners();
   }
@@ -2783,12 +2835,13 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> loadStorageProviderSettings() async {
-    final workspace = _workspaceDir;
+    final workspace = _currentWorkbookWorkspace();
     if (workspace == null || !await workspace.exists()) {
       return _defaultStorageProviderSettings('');
     }
-    final saved =
-        await _readJsonObject(_storageProviderSettingsPath(workspace));
+    final saved = await _settingsConfigRepository.readJson(
+      _storageProviderSettingsPath(workspace),
+    );
     return _mergeStorageProviderSettings(
       _defaultStorageProviderSettings(workspace.path),
       saved,
@@ -19598,7 +19651,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (isWebRuntime || kIsWeb) {
       return const [];
     }
-    final workspace = _workspaceDir;
+    final workspace = _currentWorkbookWorkspace() ?? _workspaceDir;
     if (workspace == null || !await workspace.exists()) {
       return const [];
     }
@@ -20521,12 +20574,13 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> loadProviderRuntimeSettings() async {
-    final workspace = _workspaceDir;
+    final workspace = _currentWorkbookWorkspace();
     if (workspace == null || !await workspace.exists()) {
       return _defaultProviderRuntimeSettings('');
     }
-    final saved =
-        await _readJsonObject(_providerRuntimeSettingsPath(workspace));
+    final saved = await _settingsConfigRepository.readJson(
+      _providerRuntimeSettingsPath(workspace),
+    );
     return _mergeProviderRuntimeSettings(
       _defaultProviderRuntimeSettings(workspace.path),
       saved,
@@ -20554,8 +20608,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final configDir = Directory(_join(workspace.path, 'config'));
-    await configDir.create(recursive: true);
     final path = _providerRuntimeSettingsPath(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
     final saved = await loadProviderRuntimeSettings();
@@ -20609,10 +20661,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'secret_plaintext_written': false,
     };
-    await File(path).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
-    );
+    await _settingsConfigRepository.writeJson(path, payload);
     await _writeProviderValidationReport(
       workspace,
       settings: payload,
@@ -20705,14 +20754,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final providerPath = _providerRuntimeSettingsPath(workspace);
     if (!await File(providerPath).exists()) {
       final defaults = _defaultProviderRuntimeSettings(workspace.path);
-      await File(providerPath).writeAsString(
-        const JsonEncoder.withIndent('  ').convert({
-          ...defaults,
-          'saved_at': DateTime.now().toUtc().toIso8601String(),
-          'provider_crud_status': 'default_persisted',
-        }),
-        encoding: utf8,
-      );
+      await _settingsConfigRepository.writeJson(providerPath, {
+        ...defaults,
+        'saved_at': DateTime.now().toUtc().toIso8601String(),
+        'provider_crud_status': 'default_persisted',
+      });
       await _writeProviderValidationReport(
         workspace,
         settings: defaults,
@@ -20723,22 +20769,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exporterPath = _exporterSettingsPath(workspace);
     if (!await File(exporterPath).exists()) {
       final defaults = _defaultExporterSettings(workspace.path);
-      await File(exporterPath).writeAsString(
-        const JsonEncoder.withIndent('  ').convert({
-          ...defaults,
-          'saved_at': DateTime.now().toUtc().toIso8601String(),
-        }),
-        encoding: utf8,
-      );
+      await _settingsConfigRepository.writeJson(exporterPath, {
+        ...defaults,
+        'saved_at': DateTime.now().toUtc().toIso8601String(),
+      });
       await _writeExporterValidationReport(workspace, settings: defaults);
     }
 
     final workspaceRoot = _requireWorkspaceRoot();
-    if (!await File(
-            _join(workspaceRoot.path, 'workbooks', 'workbook_manifest.json'))
-        .exists()) {
+    if (!await _workbookManifestRepository.exists(workspaceRoot)) {
       await _writeWorkbookManifest(
         workspaceRoot,
+        currentName: state.currentWorkbookName,
+        addName: state.currentWorkbookName,
+      );
+    }
+    if (!await _workbookManifestRepository.exists(workspace)) {
+      await _writeWorkbookManifest(
+        workspace,
         currentName: state.currentWorkbookName,
         addName: state.currentWorkbookName,
       );
@@ -20802,10 +20850,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_plaintext_written': false,
     };
     final path = _providerRuntimeSettingsPath(workspace);
-    await File(path).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
-    );
+    await _settingsConfigRepository.writeJson(path, payload);
     await _writeModelGatewayProviderArtifacts(
       workspace,
       gateway: gateway,
@@ -20875,9 +20920,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'model_gateway': updatedGateway,
       'secret_plaintext_written': false,
     };
-    await File(_providerRuntimeSettingsPath(workspace)).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(updatedSettings),
-      encoding: utf8,
+    await _settingsConfigRepository.writeJson(
+      _providerRuntimeSettingsPath(workspace),
+      updatedSettings,
     );
     final profiles = await _readProjectConfigProfiles(workspace);
     final active = _activeProfile(profiles);
@@ -20928,11 +20973,13 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> loadExporterSettings() async {
-    final workspace = _workspaceDir;
+    final workspace = _currentWorkbookWorkspace();
     if (workspace == null || !await workspace.exists()) {
       return _defaultExporterSettings('');
     }
-    final saved = await _readJsonObject(_exporterSettingsPath(workspace));
+    final saved = await _settingsConfigRepository.readJson(
+      _exporterSettingsPath(workspace),
+    );
     return _mergeExporterSettings(
       _defaultExporterSettings(workspace.path),
       saved,
@@ -20949,8 +20996,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '';
     }
     final workspace = _requireWorkspace();
-    final configDir = Directory(_join(workspace.path, 'config'));
-    await configDir.create(recursive: true);
     final path = _exporterSettingsPath(workspace);
     final root = exportRoot.trim().isEmpty
         ? _join(workspace.path, 'export')
@@ -20992,10 +21037,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
       },
     };
-    await File(path).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
-    );
+    await _settingsConfigRepository.writeJson(path, payload);
     await _writeExporterValidationReport(workspace, settings: payload);
     await _writeProjectConfigRuntimeStatus(
       workspace,
@@ -27583,10 +27625,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final validationPath = _joinNested(workspace.path,
         'doc/templates/document_template_registry_validation_report.json');
     final validation = await _readJsonObject(validationPath);
-    final eventRows = await _readJsonl(File(_eventLedgerPath(workspace)));
-    final artifactCatalog =
-        await _readJsonObject(_artifactCatalogPath(workspace));
-    final artifactRows = _listOfMaps(artifactCatalog['artifacts']);
+    final eventRows = await _eventLedgerRepository.readRows(workspace);
+    final artifactRows = await _artifactCatalogRepository.readRows(workspace);
     final checks = {
       'manifest_exists': await File(manifestPath).exists(),
       'manifest_schema': _stringValue(reloadedManifest['schema_version'], '') ==
@@ -27796,10 +27836,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final testArtifactExistsBeforeDelete = await testArtifact.exists();
     await deleteTestOfficeDocxAdapterArtifact();
     final testArtifactExistsAfterDelete = await testArtifact.exists();
-    final eventRows = await _readJsonl(File(_eventLedgerPath(workspace)));
-    final artifactCatalog =
-        await _readJsonObject(_artifactCatalogPath(workspace));
-    final artifactRows = _listOfMaps(artifactCatalog['artifacts']);
+    final eventRows = await _eventLedgerRepository.readRows(workspace);
+    final artifactRows = await _artifactCatalogRepository.readRows(workspace);
     final checks = <String, bool>{
       'source_markdown_exists': await File(sourceMarkdownPath).exists(),
       'docx_output_exists': await docxOutput.exists(),
@@ -28798,13 +28836,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     final eventRows = _eventLedgerRowsForAudit(workspace);
     final artifactRows = _artifactCatalogRowsForAudit(workspace);
     final moduleSummary = _auditModuleSummary(records);
+    final workspaceRoot = _requireWorkspaceRoot();
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final rootEventLedgerPath = _eventLedgerPath(workspaceRoot);
+    final rootArtifactCatalogPath = _artifactCatalogPath(workspaceRoot);
+    final mirrorPaths = _isActiveWorkbookWorkspace(workspace);
     final eventSummary = {
       ..._auditEventLedgerSummary(eventRows),
-      'path': _eventLedgerPath(workspace),
+      'path': eventLedgerPath,
+      'active_workbook_path': eventLedgerPath,
+      if (mirrorPaths) 'root_mirror_path': rootEventLedgerPath,
     };
     final artifactSummary = {
       ..._auditArtifactCatalogSummary(artifactRows),
-      'path': _artifactCatalogPath(workspace),
+      'path': artifactCatalogPath,
+      'active_workbook_path': artifactCatalogPath,
+      if (mirrorPaths) 'root_mirror_path': rootArtifactCatalogPath,
     };
     final auditBoundary = {
       'secret_plaintext_written': false,
@@ -28844,8 +28892,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'event_ledger_summary': eventSummary,
       'artifact_catalog_summary': artifactSummary,
       'source_artifacts': {
-        'event_ledger_path': _eventLedgerPath(workspace),
-        'artifact_catalog_path': _artifactCatalogPath(workspace),
+        'event_ledger_path': eventLedgerPath,
+        'artifact_catalog_path': artifactCatalogPath,
+        'active_workbook_event_ledger_path': eventLedgerPath,
+        'active_workbook_artifact_catalog_path': artifactCatalogPath,
+        if (mirrorPaths) 'root_event_ledger_path': rootEventLedgerPath,
+        if (mirrorPaths) 'root_artifact_catalog_path': rootArtifactCatalogPath,
         'audit_report_path': reportPath,
       },
       'restart_recovery': {
@@ -28891,6 +28943,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final sourceArtifacts = _mapValue(report['source_artifacts']);
     final restartRecovery = _mapValue(report['restart_recovery']);
     final boundary = _mapValue(report['boundary']);
+    final workspaceRoot = _requireWorkspaceRoot();
+    final expectedEventLedgerPath = _eventLedgerPath(workspace);
+    final expectedArtifactCatalogPath = _artifactCatalogPath(workspace);
+    final expectedRootEventLedgerPath = _eventLedgerPath(workspaceRoot);
+    final expectedRootArtifactCatalogPath = _artifactCatalogPath(workspaceRoot);
+    final mirrorExpected = _isActiveWorkbookWorkspace(workspace);
     final checks = <String, bool>{
       'audit_report_written':
           reportPath.trim().isNotEmpty && await File(reportPath).exists(),
@@ -28902,15 +28960,24 @@ class Rc6RuntimeController extends ChangeNotifier {
           (_asInt(moduleSummary['module_count']) ?? 0) >= 6 &&
               (_asInt(moduleSummary['not_run_count']) ?? -1) >= 0,
       'event_ledger_summary_present':
-          eventSummary['path'] == _eventLedgerPath(workspace) &&
+          eventSummary['path'] == expectedEventLedgerPath &&
               (_asInt(eventSummary['record_count']) ?? -1) >= 0,
       'artifact_catalog_summary_present':
-          artifactSummary['path'] == _artifactCatalogPath(workspace) &&
+          artifactSummary['path'] == expectedArtifactCatalogPath &&
               (_asInt(artifactSummary['record_count']) ?? -1) >= 0,
       'source_artifacts_traceable':
-          sourceArtifacts['event_ledger_path'] == _eventLedgerPath(workspace) &&
+          sourceArtifacts['event_ledger_path'] == expectedEventLedgerPath &&
               sourceArtifacts['artifact_catalog_path'] ==
+                  expectedArtifactCatalogPath &&
+              sourceArtifacts['active_workbook_event_ledger_path'] ==
+                  _eventLedgerPath(workspace) &&
+              sourceArtifacts['active_workbook_artifact_catalog_path'] ==
                   _artifactCatalogPath(workspace) &&
+              (!mirrorExpected ||
+                  (sourceArtifacts['root_event_ledger_path'] ==
+                          expectedRootEventLedgerPath &&
+                      sourceArtifacts['root_artifact_catalog_path'] ==
+                          expectedRootArtifactCatalogPath)) &&
               sourceArtifacts['audit_report_path'] == reportPath,
       'restart_recovery_recorded':
           restartRecovery.containsKey('event_ledger_reloaded') &&
@@ -28949,8 +29016,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'black_box_status': 'not_required',
       'workspace': workspace.path,
       'audit_report_path': reportPath,
-      'event_ledger_path': _eventLedgerPath(workspace),
-      'artifact_catalog_path': _artifactCatalogPath(workspace),
+      'event_ledger_path': expectedEventLedgerPath,
+      'artifact_catalog_path': expectedArtifactCatalogPath,
       'checks': checks,
       'failed_checks': failedChecks,
       'white_box_evidence': {
@@ -30307,8 +30374,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '尚未生成可预览产物。';
     }
     final workspace = _requireWorkspace().absolute.path;
+    final workspaceRoot = _requireWorkspaceRoot().absolute.path;
     final file = File(trimmed).absolute;
-    if (!_isInsideDirectory(file.path, workspace)) {
+    if (!_isInsideDirectory(file.path, workspace) &&
+        !_isInsideDirectory(file.path, workspaceRoot)) {
       return '无法预览：产物路径不在当前工作区内。';
     }
     final extension = _extension(file.path).toLowerCase();
@@ -31087,16 +31156,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('未找到要删除的助手回复成果。');
       return;
     }
-    final catalogPath = _agentArtifactCatalogPath(workspace);
-    final catalog = await _readJsonObject(catalogPath);
-    final artifacts = _listOfMaps(catalog['artifacts']).toList(growable: true);
-    final index = artifacts.indexWhere(
-        (artifact) => (artifact['artifact_id'] ?? '').toString() == targetId);
-    if (index < 0) {
+    final deleted = await _agentArtifactCatalogRepository.deleteById(
+      workspace: workspace,
+      artifactId: targetId,
+      updatedAt: DateTime.now().toUtc().toIso8601String(),
+    );
+    if (deleted == null) {
       _fail('未找到要删除的助手回复成果。');
       return;
     }
-    final removed = artifacts.removeAt(index);
+    final catalogPath = deleted.catalogPath;
+    final removed = deleted.removed;
     final path = (removed['path'] ?? '').toString();
     if (path.isNotEmpty && _isInsideDirectory(path, workspace.absolute.path)) {
       await _clearWorkspacePath(path);
@@ -31105,18 +31175,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       artifactId: targetId,
       status: 'deleted',
       metadata: {'path': path, 'deleted_by': 'delete_agent_reply_artifact'},
-    );
-    await File(catalogPath).parent.create(recursive: true);
-    await File(catalogPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert({
-        'schema_version': 'heitang_agent_artifact_catalog.v1',
-        'status': artifacts.isEmpty
-            ? 'no_agent_reply_artifacts'
-            : 'local_fallback_artifacts_recorded',
-        'artifacts': artifacts,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }),
-      encoding: utf8,
     );
     await _appendAgentActivityRecord(
       action: 'delete_agent_reply_artifact',
@@ -32107,7 +32165,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
     await _writeAgentProfiles(workspace, keptProfiles);
     for (final profile in tombstoned) {
-      await _clearWorkspacePath(_agentConversationDir(workspace, profile.id));
+      await _agentProfileConversationRepository.deleteConversationDirectory(
+        workspace,
+        profile.id,
+      );
     }
     final tombstoneRows = [
       for (final profile in tombstoned)
@@ -33954,8 +34015,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail(_stringValue(agentStatus['last_error_zh'], 'Agent 依赖缺失，不能继续对话。'));
       return;
     }
-    final outDir = Directory(_join(workspace.path, 'agent', 'dialogue'));
-    await outDir.create(recursive: true);
     final queryReport = await _readLatestQueryReport(workspace);
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
@@ -33963,9 +34022,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     final selected = queryRows is List
         ? queryRows.whereType<Map>().take(4).toList()
         : const <Map>[];
-    final dialoguePath = _join(outDir.path, 'agent_dialogue.md');
-    final historyPath = _join(outDir.path, 'chat_history.jsonl');
-    final previousTurns = await _readJsonl(File(historyPath));
+    final dialoguePath =
+        AgentProfileConversationRepository.topLevelDialoguePath(workspace);
+    final historyPath =
+        AgentProfileConversationRepository.topLevelDialogueHistoryPath(
+            workspace);
+    final previousTurns =
+        await _agentProfileConversationRepository.readTopLevelDialogueTurns(
+      workspace,
+    );
     final agentConfig = await _readJsonObject(_joinNested(
         workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'));
     final skillBindingManifest = await _readJsonObject(
@@ -34054,12 +34119,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         'secret_plaintext_access': false,
       },
     };
-    await File(historyPath).writeAsString(
-      '${const JsonEncoder().convert(turn)}\n',
-      encoding: utf8,
-      mode: FileMode.append,
+    final dialogueHistory =
+        await _agentProfileConversationRepository.appendTopLevelDialogueTurn(
+      workspace: workspace,
+      turn: turn,
     );
-    final turns = [...previousTurns, turn];
+    final turns = dialogueHistory.turns;
     final buffer = StringBuffer()
       ..writeln('# Agent 最小对话')
       ..writeln()
@@ -34105,7 +34170,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('- 不开放 arbitrary shell。')
       ..writeln('- 不展示明文 secret。');
     await File(dialoguePath).writeAsString(buffer.toString(), encoding: utf8);
-    final citationTracePath = _join(outDir.path, 'citation_trace.jsonl');
+    final dialogueDir = File(dialoguePath).parent.path;
+    final citationTracePath = _join(dialogueDir, 'citation_trace.jsonl');
     final citationLines = evidence
         .map((item) => jsonEncode({
               'schema_version': 'prd_v3_agent_citation_trace_record.v1',
@@ -34130,7 +34196,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
       mode: FileMode.append,
     );
-    final skillRuleTracePath = _join(outDir.path, 'skill_rule_trace.jsonl');
+    final skillRuleTracePath = _join(dialogueDir, 'skill_rule_trace.jsonl');
     await File(skillRuleTracePath).writeAsString(
       '${jsonEncode({
             'schema_version': 'prd_v3_agent_skill_rule_trace_record.v1',
@@ -34150,7 +34216,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
       mode: FileMode.append,
     );
-    final manifestPath = _join(outDir.path, 'agent_dialogue_manifest.json');
+    final manifestPath =
+        AgentProfileConversationRepository.topLevelDialogueManifestPath(
+            workspace);
     await File(manifestPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'rc10_agent_dialogue.v1',
@@ -34427,8 +34495,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       workspace,
       profiles.where((profile) => profile.id != agentId).toList(),
     );
-    final conversationDir = _agentConversationDir(workspace, agentId);
-    await _clearWorkspacePath(conversationDir);
+    await _agentProfileConversationRepository.deleteConversationDirectory(
+      workspace,
+      agentId,
+    );
     await _appendAgentActivityRecord(
       action: 'delete_agent',
       agentId: agentId,
@@ -34474,12 +34544,22 @@ class Rc6RuntimeController extends ChangeNotifier {
       content: prompt,
       createdAt: now,
       status: 'saved',
+      metadata: {
+        'bound_knowledge_base_ids': profile.boundKnowledgeBaseIds,
+        'bound_skill_ids': profile.boundSkillIds,
+      },
     );
     final reply = await _buildAgentReply(
       profile: profile,
       prompt: prompt,
       hasKnowledgeBase: state.hasKnowledgeBase,
       hasSkill: state.hasSkill,
+    );
+    final traceResult = await _writeAgentProfileDialogueTraces(
+      workspace: workspace,
+      profile: profile,
+      prompt: prompt,
+      replyStatus: reply.status,
     );
     final assistantMessage = Rc6AgentMessage(
       id: _newAgentMessageId('assistant', previous.messages.length + 1),
@@ -34488,6 +34568,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       createdAt: now,
       status: reply.status,
       error: reply.error,
+      metadata: {
+        'answer_policy_id': profile.answerPolicyId,
+        'provider_kind': reply.providerKind,
+        'bound_knowledge_base_ids': profile.boundKnowledgeBaseIds,
+        'bound_skill_ids': profile.boundSkillIds,
+        'citation_trace_path': traceResult.citationTracePath,
+        'skill_rule_trace_path': traceResult.skillRuleTracePath,
+      },
     );
     final conversation = Rc6AgentConversation(
       conversationId: previous.conversationId.isEmpty
@@ -34515,6 +34603,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'provider_kind': reply.providerKind,
         'knowledge_base_bound': profile.boundKnowledgeBaseIds.isNotEmpty,
         'skill_bound': profile.boundSkillIds.isNotEmpty,
+        'bound_knowledge_base_ids': profile.boundKnowledgeBaseIds,
+        'bound_skill_ids': profile.boundSkillIds,
+        'citation_trace_path': traceResult.citationTracePath,
+        'skill_rule_trace_path': traceResult.skillRuleTracePath,
         if (reply.error.isNotEmpty) 'error': reply.error,
       },
     );
@@ -34550,10 +34642,6 @@ class Rc6RuntimeController extends ChangeNotifier {
         .where((item) => item.id == agentId)
         .cast<Rc6AgentProfile?>()
         .firstOrNull;
-    final artifactDir = Directory(_join(workspace.path, 'agent', 'artifacts'));
-    await artifactDir.create(recursive: true);
-    final safeId = _safeId(message.id);
-    final artifactPath = _join(artifactDir.path, '$agentId-$safeId.md');
     final now = DateTime.now().toUtc().toIso8601String();
     final isRealModelReply = message.status == 'llm_completed';
     final savedStatus =
@@ -34563,8 +34651,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         : 'local_fallback_artifacts_recorded';
     final statusLine =
         isRealModelReply ? '- 状态：真实模型回复已保存。' : '- 状态：当前为本地占位回复，不代表真实模型已完成运行。';
-    await File(artifactPath).writeAsString(
-      [
+    final saveResult = await _agentArtifactCatalogRepository.saveReplyArtifact(
+      workspace: workspace,
+      agentId: agentId,
+      agentName: profile?.name ?? '',
+      messageId: message.id,
+      savedStatus: savedStatus,
+      catalogStatus: catalogStatus,
+      updatedAt: now,
+      markdownLines: [
         '# ${profile?.name ?? '助手'}回复',
         '',
         '- 助手：${profile?.name ?? agentId}',
@@ -34574,32 +34669,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         '',
         message.content,
         '',
-      ].join('\n'),
-      encoding: utf8,
+      ],
     );
-    final catalogPath = _agentArtifactCatalogPath(workspace);
-    final catalog = await _readJsonObject(catalogPath);
-    final artifacts = _listOfMaps(catalog['artifacts']).toList(growable: true);
-    final artifactId = 'agent_reply_${artifacts.length + 1}';
-    artifacts.add({
-      'artifact_id': artifactId,
-      'agent_id': agentId,
-      'agent_name': profile?.name ?? '',
-      'message_id': message.id,
-      'path': artifactPath,
-      'status': savedStatus,
-      'created_at': now,
-    });
-    await File(catalogPath).parent.create(recursive: true);
-    await File(catalogPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert({
-        'schema_version': 'heitang_agent_artifact_catalog.v1',
-        'status': catalogStatus,
-        'artifacts': artifacts,
-        'updated_at': now,
-      }),
-      encoding: utf8,
-    );
+    final artifactId = saveResult.artifactId;
+    final artifactPath = saveResult.artifactPath;
     await _upsertArtifactRecord(
       artifactId: artifactId,
       artifactType: 'agent_reply',
@@ -34648,14 +34721,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('对话产物不完整，请重新运行单 Agent 对话。');
       return '';
     }
-    final exportDir =
-        Directory(_join(workspace.path, 'agent', 'dialogue_export'));
-    await exportDir.create(recursive: true);
-    final outputPath = _join(exportDir.path, 'agent_dialogue_export.md');
-    final manifestPath =
-        _join(exportDir.path, 'agent_dialogue_export_manifest.json');
-    final historyLines = await history.readAsLines(encoding: utf8);
-    final dialogueText = await dialogue.readAsString(encoding: utf8);
     final dialogueManifest = await _readJsonObject(_joinNested(
         workspace.path, 'agent/dialogue/agent_dialogue_manifest.json'));
     final usedKbIds = _listOfStrings(dialogueManifest['used_kb_ids']);
@@ -34668,32 +34733,26 @@ class Rc6RuntimeController extends ChangeNotifier {
         'local-default-or-configured-provider');
     final modelRouteEvidence =
         _mapValue(dialogueManifest['model_route_evidence']);
-    await File(outputPath).writeAsString(
-      [
+    final exportResult =
+        await _agentProfileConversationRepository.exportDialogue(
+      workspace: workspace,
+      dialoguePath: dialogue.path,
+      historyPath: history.path,
+      exportIntroBuilder: (turnCount) => [
         '# Agent 对话导出',
         '',
         '## 导出说明',
         '- 来源对话：${dialogue.path}',
         '- 会话历史：${history.path}',
-        '- 导出轮数：${historyLines.length}',
+        '- 导出轮数：$turnCount',
         '- 绑定知识库：${usedKbIds.isEmpty ? '未绑定' : '已绑定 ${usedKbIds.length} 个知识库'}',
         '- 绑定 Skill：${usedSkillIds.isEmpty ? '未绑定' : '已绑定 ${usedSkillIds.length} 个 Skill'}',
         '- 模型配置：$modelConfigId',
         '- 高风险能力：未开放 Computer Use / arbitrary shell',
-        '',
-        dialogueText,
-      ].join('\n'),
-      encoding: utf8,
-    );
-    await File(manifestPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert({
+      ],
+      manifestPayload: {
         'schema_version': 'prd_v2_agent_dialogue_export.v1',
         'status': 'pass',
-        'workspace': workspace.path,
-        'source_dialogue': dialogue.path,
-        'source_history': history.path,
-        'output': outputPath,
-        'turn_count': historyLines.length,
         'used_kb_ids': usedKbIds,
         'used_skill_ids': usedSkillIds,
         'binding_truth_status': bindingTruthStatus,
@@ -34702,9 +34761,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_route_evidence': modelRouteEvidence,
         'audit_included': true,
         'secret_plaintext_written': false,
-      }),
-      encoding: utf8,
+      },
     );
+    final outputPath = exportResult.outputPath;
+    final manifestPath = exportResult.manifestPath;
+    final turnCount = exportResult.turnCount;
     await _appendAgentRunHistoryRecord(
       action: 'export_agent_dialogue',
       artifact: outputPath,
@@ -34712,7 +34773,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       details: {
         'manifest_path': manifestPath,
         'source_history': history.path,
-        'turn_count': historyLines.length,
+        'turn_count': turnCount,
         'used_kb_ids': usedKbIds,
         'used_skill_ids': usedSkillIds,
         'binding_truth_status': bindingTruthStatus,
@@ -34728,7 +34789,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       resources: {
         'manifest_path': manifestPath,
         'source_history': history.path,
-        'turn_count': historyLines.length,
+        'turn_count': turnCount,
       },
     );
     state = state.copyWith(
@@ -34913,6 +34974,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<void> runRealInputFolderE2E(String folderPath,
       {String query = '赚钱 小生意'}) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    await _ensureRuntimeConfigAssets(_requireWorkspace());
     await importFolderPath(folderPath);
     if (state.lastResult?.passed != true) return;
     await parseAndChunkSources();
@@ -35440,8 +35505,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'agent/dialogue_export/agent_dialogue_export.md');
     final agentActivityLogPath =
         _joinNested(workspace.path, 'agent/activity/agent_activity.jsonl');
-    final agentArtifactCatalogPath =
-        _joinNested(workspace.path, 'agent/artifacts/artifact_catalog.json');
+    final agentArtifactCatalogPath = _agentArtifactCatalogPath(workspace);
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final multiAgentManifestPath = _join(
@@ -35488,7 +35552,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     final queryPath =
         await File(multiQueryPath).exists() ? multiQueryPath : singleQueryPath;
     final queryReport = await _readJsonObject(queryPath);
-    final kbCatalog = await _readJsonObject(kbCatalogPath);
+    final kbCatalog = await _loadKnowledgeCatalog(workspace);
+    final kbCatalogReadPath =
+        _stringValue(kbCatalog['catalog_path'], kbCatalogPath);
     final workbookManifest = await _readWorkbookManifest(workspaceRoot);
 
     final sourceNames = _sourceNamesFromManifest(sourceManifest);
@@ -35844,7 +35910,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? taskRecoveryReportPath
           : '',
       knowledgeBaseCatalogPath:
-          await File(kbCatalogPath).exists() ? kbCatalogPath : '',
+          await File(kbCatalogReadPath).exists() ? kbCatalogReadPath : '',
       workbookManifestPath: refreshedWorkbookManifestPath.isNotEmpty
           ? refreshedWorkbookManifestPath
           : await File(workbookManifestPath).exists()
@@ -36037,21 +36103,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<(String, List<String>)> _readWorkbookManifest(
       Directory workspace) async {
-    final path = _join(workspace.path, 'workbooks', 'workbook_manifest.json');
-    final manifest = await _readJsonObject(path);
-    final current = (manifest['current_workbook'] ?? '默认工作本').toString().trim();
-    final rows = manifest['workbooks'];
-    final names = rows is List
-        ? rows
-            .whereType<Map>()
-            .map((row) => (row['name'] ?? '').toString().trim())
-            .where((name) => name.isNotEmpty)
-            .toList(growable: true)
-        : <String>[];
-    if (names.isEmpty) names.add(current.isEmpty ? '默认工作本' : current);
-    final effectiveCurrent = current.isEmpty ? names.first : current;
-    if (!names.contains(effectiveCurrent)) names.insert(0, effectiveCurrent);
-    return (effectiveCurrent, List<String>.unmodifiable(names));
+    return _workbookManifestRepository.readCurrentAndNames(workspace);
   }
 
   Future<String> _writeWorkbookManifest(
@@ -36059,16 +36111,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     required String currentName,
     required String addName,
   }) async {
-    final manifestDir = Directory(_join(workspace.path, 'workbooks'));
-    await manifestDir.create(recursive: true);
-    final manifestPath = _join(manifestDir.path, 'workbook_manifest.json');
-    final existing = await _readJsonObject(manifestPath);
-    final rows = existing['workbooks'] is List
-        ? (existing['workbooks'] as List)
-            .whereType<Map>()
-            .map((row) => Map<String, dynamic>.from(row))
-            .toList(growable: true)
-        : <Map<String, dynamic>>[];
     final now = DateTime.now().toUtc().toIso8601String();
     final normalizedAdd = addName.trim().isEmpty ? '默认工作本' : addName.trim();
     final assetWorkspace =
@@ -36077,122 +36119,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     final assetSourceCount = _asInt(assetIndex['source_document_count']) ?? 0;
     final assetKnowledgeBaseCount =
         _listOfStrings(assetIndex['knowledge_base_ids']).length;
-    if (rows.isEmpty) {
-      rows.add({
-        'workbook_id': 'WB_${_stableHash(normalizedAdd)}',
-        'name': normalizedAdd,
-        'status': normalizedAdd == currentName ? 'active' : 'available',
-        'created_at': now,
-        'last_opened_at': now,
-        'document_count': assetSourceCount,
-        'knowledge_base_count': assetKnowledgeBaseCount,
-        'asset_index': assetIndex,
-      });
-    }
-    var found = false;
-    for (final row in rows) {
-      if ((row['name'] ?? '').toString() == normalizedAdd) {
-        row['status'] = 'active';
-        row['last_opened_at'] = now;
-        row['document_count'] = assetSourceCount;
-        row['knowledge_base_count'] = assetKnowledgeBaseCount;
-        row['asset_index'] = assetIndex;
-        found = true;
-      } else {
-        row['status'] = 'available';
-      }
-    }
-    if (!found) {
-      rows.add({
-        'workbook_id': 'WB_${_stableHash(normalizedAdd)}',
-        'name': normalizedAdd,
-        'status': 'active',
-        'created_at': now,
-        'last_opened_at': now,
-        'document_count': assetSourceCount,
-        'knowledge_base_count': assetKnowledgeBaseCount,
-        'asset_index': assetIndex,
-      });
-    }
-    final payload = {
-      'schema_version': 'prd_v2_workbook_manifest.v1',
-      'workspace_path': workspace.path,
-      'current_workbook':
-          currentName.trim().isEmpty ? normalizedAdd : currentName.trim(),
-      'workbooks': rows,
-    };
-    await File(manifestPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
+    return _workbookManifestRepository.upsertWorkbook(
+      workspace: workspace,
+      currentName: currentName,
+      addName: normalizedAdd,
+      assetIndex: assetIndex,
+      documentCount: assetSourceCount,
+      knowledgeBaseCount: assetKnowledgeBaseCount,
+      stableHash: _stableHash,
+      updatedAt: now,
     );
-    return manifestPath;
   }
 
   Future<(String, String, List<String>)?> _deleteWorkbookFromManifest(
     Directory workspace,
     String name,
   ) async {
-    final manifestPath =
-        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
-    final manifestFile = File(manifestPath);
-    if (!await manifestFile.exists()) {
-      return null;
-    }
-    final existing = await _readJsonObject(manifestPath);
-    final rows = existing['workbooks'] is List
-        ? (existing['workbooks'] as List)
-            .whereType<Map>()
-            .map((row) => Map<String, dynamic>.from(row))
-            .where((row) => (row['name'] ?? '').toString().trim().isNotEmpty)
-            .toList(growable: true)
-        : <Map<String, dynamic>>[];
-    final target = name.trim();
-    final index = rows
-        .indexWhere((row) => (row['name'] ?? '').toString().trim() == target);
-    if (index < 0 || rows.length <= 1) {
-      return null;
-    }
-    rows.removeAt(index);
-    final previousCurrent =
-        (existing['current_workbook'] ?? state.currentWorkbookName)
-            .toString()
-            .trim();
-    final deletedCurrent = previousCurrent == target;
-    final defaultIndex = rows
-        .indexWhere((row) => (row['name'] ?? '').toString().trim() == '默认工作本');
-    final nextCurrent = deletedCurrent
-        ? (defaultIndex >= 0
-            ? (rows[defaultIndex]['name'] ?? '').toString().trim()
-            : (rows.first['name'] ?? '').toString().trim())
-        : previousCurrent;
-    final effectiveCurrent = nextCurrent.isEmpty
-        ? (rows.first['name'] ?? '默认工作本').toString()
-        : nextCurrent;
-    final now = DateTime.now().toUtc().toIso8601String();
-    for (final row in rows) {
-      final rowName = (row['name'] ?? '').toString().trim();
-      row['status'] = rowName == effectiveCurrent ? 'active' : 'available';
-      if (rowName == effectiveCurrent) {
-        row['last_opened_at'] = now;
-      }
-    }
-    final payload = {
-      ...existing,
-      'schema_version': 'prd_v2_workbook_manifest.v1',
-      'workspace_path': workspace.path,
-      'current_workbook': effectiveCurrent,
-      'workbooks': rows,
-    };
-    await manifestFile.writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
-    );
-    return (
-      manifestPath,
-      effectiveCurrent,
-      List<String>.unmodifiable(rows
-          .map((row) => (row['name'] ?? '').toString().trim())
-          .where((rowName) => rowName.isNotEmpty))
+    return _workbookManifestRepository.deleteWorkbook(
+      workspace: workspace,
+      name: name,
+      fallbackCurrentName: state.currentWorkbookName,
+      updatedAt: DateTime.now().toUtc().toIso8601String(),
     );
   }
 
@@ -36224,44 +36171,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     int sourceCount,
     Map<String, dynamic> kbCatalog,
   ) async {
-    final manifestPath =
-        _join(workspaceRoot.path, 'workbooks', 'workbook_manifest.json');
-    final manifestFile = File(manifestPath);
-    if (!await manifestFile.exists()) {
-      return '';
-    }
-    final existing = await _readJsonObject(manifestPath);
-    final rows = existing['workbooks'] is List
-        ? (existing['workbooks'] as List)
-            .whereType<Map>()
-            .map((row) => Map<String, dynamic>.from(row))
-            .toList(growable: true)
-        : <Map<String, dynamic>>[];
-    if (rows.isEmpty) {
-      return manifestPath;
-    }
-    final effectiveCurrent = currentName.trim().isEmpty
-        ? (existing['current_workbook'] ?? '默认工作本').toString().trim()
-        : currentName.trim();
-    final index = rows.indexWhere(
-        (row) => (row['name'] ?? '').toString().trim() == effectiveCurrent);
-    if (index < 0) {
-      return manifestPath;
-    }
-    rows[index]['asset_index'] = await _workbookAssetIndex(assetWorkspace);
-    rows[index]['document_count'] = sourceCount;
-    rows[index]['knowledge_base_count'] = _catalogRecords(kbCatalog).length;
-    rows[index]['updated_at'] = DateTime.now().toUtc().toIso8601String();
-    final payload = {
-      ...existing,
-      'current_workbook': effectiveCurrent,
-      'workbooks': rows,
-    };
-    await manifestFile.writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
+    return _workbookManifestRepository.updateAssetIndex(
+      workspace: workspaceRoot,
+      currentName: currentName,
+      assetIndex: await _workbookAssetIndex(assetWorkspace),
+      documentCount: sourceCount,
+      knowledgeBaseCount: _catalogRecords(kbCatalog).length,
+      updatedAt: DateTime.now().toUtc().toIso8601String(),
     );
-    return manifestPath;
   }
 
   Future<Map<String, Object?>> _workbookAssetIndex(Directory workspace) async {
@@ -36458,6 +36375,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final catalog = await _loadKnowledgeCatalog(workspace);
     final records = _catalogRecords(catalog);
+    final catalogPath = _stringValue(catalog['catalog_path'], '');
+    final catalogRoot = catalogPath.isEmpty
+        ? workspace
+        : Directory(catalogPath).parent.parent;
     final requested = kbIds.where((id) => id.trim().isNotEmpty).toSet();
     final selectedRecords = records
         .where((record) =>
@@ -36468,7 +36389,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     for (final record in selectedRecords) {
       final id = (record['kb_id'] ?? '').toString();
       if (id.isEmpty) continue;
-      final dir = Directory(_join(workspace.path, 'knowledge_bases', id));
+      final manifestPath = _stringValue(record['manifest_path'], '');
+      final manifestFile =
+          manifestPath.isEmpty ? null : File(manifestPath);
+      final dir = manifestFile != null && await manifestFile.exists()
+          ? manifestFile.parent
+          : Directory(_join(catalogRoot.path, 'knowledge_bases', id));
       if (await File(_join(dir.path, 'manifest.json')).exists()) {
         result.add(_SearchableKnowledgeBase(
           id: id,
@@ -37053,6 +36979,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'current_version': currentVersion,
       'versions': previousVersions,
       'source_documents': docs,
+      'parent_kbs': sourceKbIds,
       'source_kb_ids': sourceKbIds,
       'chunk_count': _countJsonl(chunkPath),
       'vector_store': 'local_file_index',
@@ -37097,6 +37024,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         const JsonEncoder.withIndent('  ').convert({
           'kb_id': kbId,
           'documents': docs,
+          'parent_kbs': sourceKbIds,
           'source_kb_ids': sourceKbIds,
         }),
         encoding: utf8);
@@ -37381,9 +37309,39 @@ class Rc6RuntimeController extends ChangeNotifier {
     record['versions'] = versions;
   }
 
-  Future<Map<String, dynamic>> _loadKnowledgeCatalog(Directory workspace) {
-    return _readJsonObject(
-        _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'));
+  String _knowledgeCatalogPath(Directory workspace) =>
+      _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
+
+  Future<String> _knowledgeCatalogReadPath(Directory workspace) async {
+    final currentPath = _knowledgeCatalogPath(workspace);
+    if (await File(currentPath).exists()) {
+      return currentPath;
+    }
+    final workspaceRoot = _workspaceDir;
+    if (workspaceRoot == null || workspaceRoot.path == workspace.path) {
+      return currentPath;
+    }
+    final legacyRootPath = _knowledgeCatalogPath(workspaceRoot);
+    if (await File(legacyRootPath).exists()) {
+      return legacyRootPath;
+    }
+    return currentPath;
+  }
+
+  Future<Map<String, dynamic>> _loadKnowledgeCatalog(
+      Directory workspace) async {
+    final catalogPath = await _knowledgeCatalogReadPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    if (catalog.isEmpty) {
+      return catalog;
+    }
+    return {
+      ...catalog,
+      'catalog_path': catalogPath,
+      'catalog_scope': catalogPath == _knowledgeCatalogPath(workspace)
+          ? 'current_workbook'
+          : 'legacy_workspace_root',
+    };
   }
 
   Future<SkillBindingTruth> _skillBindingTruth(Directory workspace) async {
@@ -39981,6 +39939,41 @@ class Rc6RuntimeController extends ChangeNotifier {
       ['agent_chat', 'agent_reasoning', 'agent_tool_planning'],
     );
     final industrialScope = await _currentIndustrialScopeMetadata(workspace);
+    final skillBindingTruth = await _skillBindingTruth(workspace);
+    final agentPackageBinding =
+        const AgentBindingTruthService().resolveLegacyPackageBinding(
+      sourceKbIds: skillBindingTruth.sourceKbIds,
+      generatedSkillIds: skillBindingTruth.generatedSkillIds,
+      legacySkillAliases: skillBindingTruth.legacyAliases,
+    );
+    List<String> resolvePackageKbIds(Object? value) {
+      final raw = value is List ? value : const <Object?>[];
+      final seen = <String>{};
+      final result = <String>[];
+      for (final item in raw) {
+        final id = item.toString().trim();
+        final resolved = agentPackageBinding.legacyKbAliases[id] ?? id;
+        if (resolved.isNotEmpty && seen.add(resolved)) {
+          result.add(resolved);
+        }
+      }
+      return result.isEmpty ? agentPackageBinding.kbIds : result;
+    }
+
+    List<String> resolvePackageSkillIds(Object? value) {
+      final raw = value is List ? value : const <Object?>[];
+      final seen = <String>{};
+      final result = <String>[];
+      for (final item in raw) {
+        final id = item.toString().trim();
+        final resolved = agentPackageBinding.legacySkillAliases[id] ?? id;
+        if (resolved.isNotEmpty && seen.add(resolved)) {
+          result.add(resolved);
+        }
+      }
+      return result.isEmpty ? agentPackageBinding.skillIds : result;
+    }
+
     const specs = [
       {
         'id': 'reading_summary_agent',
@@ -40035,10 +40028,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       final name =
           selectedPrimary ? config.agentName : spec['name']!.toString();
       final goal = selectedPrimary ? config.roleGoal : spec['goal']!.toString();
-      final kbIds =
-          (spec['kb_ids'] as List).map((item) => item.toString()).toList();
-      final skillIds =
-          (spec['skill_ids'] as List).map((item) => item.toString()).toList();
+      final kbIds = resolvePackageKbIds(spec['kb_ids']);
+      final skillIds = resolvePackageSkillIds(spec['skill_ids']);
       final creationMode = selectedPrimary
           ? config.creationMode
           : spec['build_mode']!.toString();
@@ -40067,6 +40058,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             : 'local-default-or-configured-provider',
         'model_route_binding': agentGenerationRoute,
         'kb_ids': kbIds,
+        'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+        'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+        'legacy_compatibility_only': true,
         'scope_metadata_schema_version':
             industrialScope['scope_metadata_schema_version'],
         'scope_metadata_reserved': true,
@@ -40156,6 +40150,17 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final workspaceRoot = Directory(_join(agentRoot.path, 'workspaces'));
     await workspaceRoot.create(recursive: true);
+    final primaryKbId = agentPackageBinding.kbAt(0);
+    final secondaryKbId = agentPackageBinding.kbAt(1);
+    final tertiaryKbId = agentPackageBinding.kbAt(2);
+    final primarySkillId =
+        agentPackageBinding.skillOrFallback('knowledge_qa_skill');
+    final localizedSkillId =
+        agentPackageBinding.skillOrFallback('localized_writing_skill');
+    final operationSkillId =
+        agentPackageBinding.skillOrFallback('operation_conversion_skill');
+    final productSkillId =
+        agentPackageBinding.skillOrFallback('product_analysis_skill');
     final singleWorkspace = Directory(_join(workspaceRoot.path, 'W_A'));
     await _writePrdAgentWorkspace(
       dir: singleWorkspace,
@@ -40163,8 +40168,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentId: 'A',
       agentName: '知识问答 Agent A',
       parentWorkspaceId: '',
-      kbIds: const ['K1'],
-      skillIds: const ['S1'],
+      kbIds: [primaryKbId],
+      skillIds: [primarySkillId],
       model: 'local-default-or-configured-provider',
       modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
@@ -40177,7 +40182,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         '请基于当前知识库总结核心要点。',
         '',
         '## Agent A',
-        '回答仅使用 W_A 绑定的 K1 + S1，引用来源来自当前工作区知识库。',
+        '回答仅使用 W_A 绑定的 $primaryKbId + $primarySkillId，引用来源来自当前工作区知识库。',
       ].join('\n'),
       encoding: utf8,
     );
@@ -40203,8 +40208,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentId: 'B',
       agentName: '运营 Agent B',
       parentWorkspaceId: 'W_M',
-      kbIds: const ['K2'],
-      skillIds: const ['S2', 'operation_conversion_skill'],
+      kbIds: [secondaryKbId],
+      skillIds: [localizedSkillId, operationSkillId],
       model: 'local-default-or-configured-provider',
       modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
@@ -40215,8 +40220,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentId: 'C',
       agentName: '产品分析 Agent C',
       parentWorkspaceId: 'W_M',
-      kbIds: const ['K3'],
-      skillIds: const ['product_analysis_skill'],
+      kbIds: [tertiaryKbId],
+      skillIds: [productSkillId],
       model: 'local-default-or-configured-provider',
       modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
@@ -40292,6 +40297,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     await exportRoot.create(recursive: true);
     final auditRoot = Directory(_join(agentRoot.path, 'audit'));
     await auditRoot.create(recursive: true);
+    final skillBindingTruth = await _skillBindingTruth(workspace);
+    final agentPackageBinding =
+        const AgentBindingTruthService().resolveLegacyPackageBinding(
+      sourceKbIds: skillBindingTruth.sourceKbIds,
+      generatedSkillIds: skillBindingTruth.generatedSkillIds,
+      legacySkillAliases: skillBindingTruth.legacyAliases,
+    );
+    final primaryKbId = agentPackageBinding.kbAt(0);
+    final secondaryKbId = agentPackageBinding.kbAt(1);
+    final tertiaryKbId = agentPackageBinding.kbAt(2);
+    final primarySkillId =
+        agentPackageBinding.skillOrFallback('knowledge_qa_skill');
+    final localizedSkillId =
+        agentPackageBinding.skillOrFallback('localized_writing_skill');
+    final operationSkillId =
+        agentPackageBinding.skillOrFallback('operation_conversion_skill');
+    final productSkillId =
+        agentPackageBinding.skillOrFallback('product_analysis_skill');
     final advancedConfig = {
       'schema_version': 'prd_v2_agent_advanced_config.v1',
       'status': 'configured',
@@ -40347,16 +40370,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'blocked_tool_ids': ['computer_use', 'arbitrary_shell'],
       },
       'permissions': {
-        'allowed_kb_ids': ['K1', 'K2', 'K3'],
-        'allowed_skill_ids': [
-          'S1',
-          'S2',
-          'reading_summary_skill',
-          'quality_check_skill',
-          'operation_conversion_skill',
-          'product_analysis_skill',
-          'fused_product_ops_skill',
-        ],
+        'allowed_kb_ids': agentPackageBinding.kbIds,
+        'allowed_skill_ids': agentPackageBinding.skillIds,
+        'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+        'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+        'legacy_compatibility_only': true,
         'secret_plaintext_access': false,
         'unbound_workspace_access': false,
       },
@@ -40376,8 +40394,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           'workspace_id': 'W_A',
           'workspace_type': 'single_agent',
           'agent_ids': ['knowledge_qa_agent'],
-          'allowed_kb_ids': ['K1'],
-          'allowed_skill_ids': ['S1'],
+          'allowed_kb_ids': [primaryKbId],
+          'allowed_skill_ids': [primarySkillId],
+          'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+          'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+          'legacy_compatibility_only': true,
           'can_read_parent_workspace': false,
           'can_write_parent_workspace': false,
           'secret_plaintext_access': false,
@@ -40392,15 +40413,11 @@ class Rc6RuntimeController extends ChangeNotifier {
             'operation_conversion_agent',
             'product_analysis_agent',
           ],
-          'allowed_kb_ids': ['K1', 'K2', 'K3'],
-          'allowed_skill_ids': [
-            'S1',
-            'S2',
-            'reading_summary_skill',
-            'quality_check_skill',
-            'operation_conversion_skill',
-            'product_analysis_skill',
-          ],
+          'allowed_kb_ids': agentPackageBinding.kbIds,
+          'allowed_skill_ids': agentPackageBinding.skillIds,
+          'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+          'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+          'legacy_compatibility_only': true,
           'can_read_child_workspaces': true,
           'can_write_child_workspaces': false,
           'secret_plaintext_access': false,
@@ -40409,8 +40426,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           'workspace_id': 'W_B',
           'workspace_type': 'child_agent',
           'agent_ids': ['operation_conversion_agent'],
-          'allowed_kb_ids': ['K2'],
-          'allowed_skill_ids': ['S2', 'operation_conversion_skill'],
+          'allowed_kb_ids': [secondaryKbId],
+          'allowed_skill_ids': [localizedSkillId, operationSkillId],
+          'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+          'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+          'legacy_compatibility_only': true,
           'can_read_sibling_workspace': false,
           'can_write_sibling_workspace': false,
           'secret_plaintext_access': false,
@@ -40419,8 +40439,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           'workspace_id': 'W_C',
           'workspace_type': 'child_agent',
           'agent_ids': ['product_analysis_agent'],
-          'allowed_kb_ids': ['K3'],
-          'allowed_skill_ids': ['product_analysis_skill'],
+          'allowed_kb_ids': [tertiaryKbId],
+          'allowed_skill_ids': [productSkillId],
+          'legacy_kb_aliases': agentPackageBinding.legacyKbAliases,
+          'legacy_skill_aliases': agentPackageBinding.legacySkillAliases,
+          'legacy_compatibility_only': true,
           'can_read_sibling_workspace': false,
           'can_write_sibling_workspace': false,
           'secret_plaintext_access': false,
@@ -40468,6 +40491,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       auditRoot: auditRoot,
       exportRoot: exportRoot,
       config: config,
+      bindingTruth: agentPackageBinding,
       advancedConfigPath: advancedPath,
       workspacePermissionMatrixPath: workspacePermissionMatrixPath,
       permissionAuditPath: permissionAuditPath,
@@ -40699,6 +40723,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     required Directory auditRoot,
     required Directory exportRoot,
     required Rc6AgentGenerationConfig config,
+    required AgentLegacyBindingTruth bindingTruth,
     required String advancedConfigPath,
     required String workspacePermissionMatrixPath,
     required String permissionAuditPath,
@@ -40738,6 +40763,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     final videoCostReportPath = _join(artifactsRoot.path, 'cost_report.json');
     final videoPromptPath = _join(artifactsRoot.path, 'prompt.txt');
     final remoteUrlPath = _join(artifactsRoot.path, 'remote_url.txt');
+    final primaryKbId = bindingTruth.kbAt(0);
+    final primarySkillId = bindingTruth.skillOrFallback('knowledge_qa_skill');
+    final agentSkillIds = [primarySkillId, 'video_generation_skill'];
     final agentManifest = {
       'schema_version': 'prd_v3_agent_profile.v1',
       'agent_id': 'knowledge_qa_agent',
@@ -40748,8 +40776,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'creation_mode': config.creationMode,
       'status': 'chat_ready',
       'model_config_id': config.modelConfigId,
-      'kb_ids': ['K1'],
-      'skill_ids': ['S1', 'video_generation_skill'],
+      'kb_ids': [primaryKbId],
+      'skill_ids': agentSkillIds,
+      'legacy_kb_aliases': bindingTruth.legacyKbAliases,
+      'legacy_skill_aliases': bindingTruth.legacySkillAliases,
+      'legacy_compatibility_only': true,
       'tool_ids': ['kb_retrieval', 'document_export', 'video.generate'],
       'memory_policy_id': 'memory_local_session_with_optional_redis_vector',
       'tool_policy_id': 'tool_policy_allowlist_v1',
@@ -40770,8 +40801,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'workspace_id': 'W_A',
         'workspace_type': 'single_agent',
         'owner_agent_id': 'knowledge_qa_agent',
-        'authorized_kb_ids': ['K1'],
-        'authorized_skill_ids': ['S1', 'video_generation_skill'],
+        'authorized_kb_ids': [primaryKbId],
+        'authorized_skill_ids': agentSkillIds,
+        'legacy_kb_aliases': bindingTruth.legacyKbAliases,
+        'legacy_skill_aliases': bindingTruth.legacySkillAliases,
+        'legacy_compatibility_only': true,
         'authorized_tool_ids': ['kb_retrieval', 'document_export'],
         'blocked_tool_ids': [
           'video.generate',
@@ -41012,15 +41046,18 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'prd_v3_agent_dependency_manifest.v1',
         'agent_id': 'knowledge_qa_agent',
-        'required_kb_ids': ['K1'],
-        'required_skill_ids': ['S1', 'video_generation_skill'],
+        'required_kb_ids': [primaryKbId],
+        'required_skill_ids': agentSkillIds,
+        'legacy_kb_aliases': bindingTruth.legacyKbAliases,
+        'legacy_skill_aliases': bindingTruth.legacySkillAliases,
+        'legacy_compatibility_only': true,
         'required_tool_ids': [
           'kb_retrieval',
           'document_export',
           'video.generate'
         ],
-        'available_kb_ids': ['K1'],
-        'available_skill_ids': ['S1', 'video_generation_skill'],
+        'available_kb_ids': [primaryKbId],
+        'available_skill_ids': agentSkillIds,
         'available_tool_ids': ['kb_retrieval', 'document_export'],
         'missing_dependencies': [
           {
@@ -41111,6 +41148,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final statusPath = _join(agentRoot.path, 'status.json');
     final auditLogPath = _join(agentRoot.path, 'audit_log.jsonl');
     final dependencyManifest = await _readJsonObject(dependencyManifestPath);
+    final missingSkillId =
+        _listOfStrings(dependencyManifest['required_skill_ids']).firstWhere(
+      (id) => id.trim().isNotEmpty && !RegExp(r'^S\d+$').hasMatch(id.trim()),
+      orElse: () => 'knowledge_qa_skill',
+    );
     final updatedDependency = {
       ...dependencyManifest,
       'schema_version': _stringValue(dependencyManifest['schema_version'],
@@ -41121,7 +41163,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         ..._listOfMaps(dependencyManifest['missing_dependencies']),
         {
           'dependency_type': 'skill',
-          'dependency_id': 'S1',
+          'dependency_id': missingSkillId,
           'status': '配置缺失',
           'error_message_zh': 'Agent 绑定的 Skill 已删除，请重新生成或重新绑定 Skill。',
         },
@@ -41288,47 +41330,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, Object?> details = const {},
   }) async {
     final workspace = _requireWorkspace();
-    final auditRoot = Directory(_join(workspace.path, 'agent', 'audit'));
-    await auditRoot.create(recursive: true);
-    final historyPath = _join(auditRoot.path, 'run_history.json');
-    final current = await _readJsonObject(historyPath);
-    final records = _listOfMaps(current['records']).toList(growable: true);
-    records.add({
-      'run_id':
-          'agent_${action}_${(records.length + 1).toString().padLeft(3, '0')}',
-      'action': action,
-      'artifact': artifact,
-      'status': status,
-      'created_at': DateTime.now().toUtc().toIso8601String(),
-      'details': details,
-    });
-    final modelRouteEvidenceRecorded = records.any((record) {
-      final recordDetails = _mapValue(record['details']);
-      return recordDetails.containsKey('model_route_evidence') ||
-          recordDetails.containsKey('model_route_binding');
-    });
-    final payload = {
-      ...current,
-      'schema_version': _stringValue(
-          current['schema_version'], 'prd_v2_agent_run_history.v1'),
-      'status': 'pass',
-      'model_route_evidence_recorded': modelRouteEvidenceRecorded,
-      'records': records,
-    };
-    await File(historyPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
+    await _agentProfileConversationRepository.appendRunHistoryRecord(
+      workspace: workspace,
+      action: action,
+      artifact: artifact,
+      status: status,
+      details: details,
+      createdAt: DateTime.now().toUtc().toIso8601String(),
     );
   }
 
   Future<List<Rc6AgentProfile>> _readAgentProfiles(Directory workspace) async {
-    final payload = await _readJsonObject(_agentCatalogPath(workspace));
-    final rows = payload['agents'];
-    if (rows is! List) {
-      return const <Rc6AgentProfile>[];
-    }
+    final rows =
+        await _agentProfileConversationRepository.readProfileRows(workspace);
     return rows
-        .whereType<Map>()
         .map((row) => Rc6AgentProfile.fromJson(Map<String, dynamic>.from(row)))
         .where((profile) => profile.id.isNotEmpty && profile.name.isNotEmpty)
         .toList(growable: false);
@@ -41339,12 +41354,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     List<Rc6AgentProfile> profiles,
   ) async {
     final now = DateTime.now().toUtc().toIso8601String();
-    await _writeJsonFile(_agentCatalogPath(workspace), {
-      'schema_version': 'heitang_agent_catalog.v1',
-      'status': 'saved',
-      'agents': profiles.map((profile) => profile.toJson()).toList(),
-      'updated_at': now,
-    });
+    await _agentProfileConversationRepository.writeProfileRows(
+      workspace: workspace,
+      rows: profiles.map((profile) => profile.toJson()).toList(),
+      updatedAt: now,
+    );
   }
 
   Map<String, Object?> _agentProfileScopeDefaults({
@@ -41448,10 +41462,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     Directory workspace,
     String agentId,
   ) async {
-    final payload = await _readJsonObject(_agentConversationPath(
+    final payload = await _agentProfileConversationRepository.readConversation(
       workspace,
       agentId,
-    ));
+    );
     if (payload.isEmpty) {
       return Rc6AgentConversation.empty(agentId);
     }
@@ -41466,10 +41480,117 @@ class Rc6RuntimeController extends ChangeNotifier {
     Directory workspace,
     Rc6AgentConversation conversation,
   ) async {
-    await _writeJsonFile(
-      _agentConversationPath(workspace, conversation.agentId),
-      conversation.toJson(),
+    await _agentProfileConversationRepository.writeConversation(
+      workspace: workspace,
+      agentId: conversation.agentId,
+      payload: conversation.toJson(),
     );
+  }
+
+  Future<_AgentProfileDialogueTraceResult> _writeAgentProfileDialogueTraces({
+    required Directory workspace,
+    required Rc6AgentProfile profile,
+    required String prompt,
+    required String replyStatus,
+  }) async {
+    var citationTracePath =
+        AgentProfileConversationRepository.citationTracePath(
+      workspace,
+      profile.id,
+    );
+    var skillRuleTracePath =
+        AgentProfileConversationRepository.skillRuleTracePath(
+      workspace,
+      profile.id,
+    );
+    final evidence = await _agentProfileEvidenceChunk(
+      workspace: workspace,
+      profile: profile,
+      prompt: prompt,
+    );
+    if (evidence.isNotEmpty && replyStatus != 'refused_missing_evidence') {
+      citationTracePath =
+          await _agentProfileConversationRepository.appendCitationTraceRow(
+        workspace: workspace,
+        agentId: profile.id,
+        record: {
+          'schema_version': 'prd_v3_agent_profile_citation_trace.v1',
+          'agent_id': profile.id,
+          'kb_id': _stringValue(
+            evidence['kb_id'],
+            profile.boundKnowledgeBaseIds.isNotEmpty
+                ? profile.boundKnowledgeBaseIds.first
+                : '',
+          ),
+          'source_doc_id': _stringValue(evidence['source_doc_id'], ''),
+          'chunk_id': _stringValue(evidence['chunk_id'], ''),
+          'source_trace_id': _stringValue(evidence['source_trace_id'], ''),
+          'source_path': _stringValue(evidence['source_path'], ''),
+          'prompt': prompt,
+          'answer_status': replyStatus,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+    } else {
+      citationTracePath =
+          await _agentProfileConversationRepository.ensureCitationTraceFile(
+        workspace: workspace,
+        agentId: profile.id,
+      );
+    }
+    if (profile.boundSkillIds.isNotEmpty) {
+      skillRuleTracePath =
+          await _agentProfileConversationRepository.appendSkillRuleTraceRow(
+        workspace: workspace,
+        agentId: profile.id,
+        record: {
+          'schema_version': 'prd_v3_agent_profile_skill_rule_trace.v1',
+          'agent_id': profile.id,
+          'skill_id': profile.boundSkillIds.first,
+          'bound_skill_ids': profile.boundSkillIds,
+          'prompt': prompt,
+          'answer_status': replyStatus,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+    } else {
+      skillRuleTracePath =
+          await _agentProfileConversationRepository.ensureSkillRuleTraceFile(
+        workspace: workspace,
+        agentId: profile.id,
+      );
+    }
+    return _AgentProfileDialogueTraceResult(
+      citationTracePath: citationTracePath,
+      skillRuleTracePath: skillRuleTracePath,
+    );
+  }
+
+  Future<Map<String, dynamic>> _agentProfileEvidenceChunk({
+    required Directory workspace,
+    required Rc6AgentProfile profile,
+    required String prompt,
+  }) async {
+    if (profile.boundKnowledgeBaseIds.isEmpty) return const {};
+    final chunks = await _readJsonl(File(_join(workspace.path, 'kb', 'chunks.jsonl')));
+    if (chunks.isEmpty) return const {};
+    final promptTokens = prompt
+        .toLowerCase()
+        .split(RegExp(r'[^a-z0-9\u4e00-\u9fa5]+'))
+        .where((token) => token.length >= 3)
+        .toSet();
+    for (final chunk in chunks) {
+      final text = _stringValue(chunk['text'] ?? chunk['summary'], '').toLowerCase();
+      final matchesPrompt = promptTokens.isEmpty ||
+          promptTokens.any((token) => text.contains(token));
+      if (matchesPrompt) {
+        return {
+          ...chunk,
+          'kb_id': profile.boundKnowledgeBaseIds.first,
+        };
+      }
+    }
+    return const {};
   }
 
   Future<List<Rc6AgentConversation>> _readAgentConversations(
@@ -41485,13 +41606,9 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<List<Rc6AgentArtifact>> _readAgentArtifacts(
       Directory workspace) async {
-    final payload = await _readJsonObject(_agentArtifactCatalogPath(workspace));
-    final rows = payload['artifacts'];
-    if (rows is! List) {
-      return const <Rc6AgentArtifact>[];
-    }
+    final rows = await _agentArtifactCatalogRepository.readRows(workspace);
     final artifacts = <Rc6AgentArtifact>[];
-    for (final row in rows.whereType<Map>()) {
+    for (final row in rows) {
       final artifact =
           Rc6AgentArtifact.fromJson(Map<String, dynamic>.from(row));
       if (artifact.path.isEmpty || !await File(artifact.path).exists()) {
@@ -41505,7 +41622,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<List<Rc6EventLedgerRecord>> _readEventLedgerRecords(
       Directory workspace) async {
-    final rows = await _readJsonl(File(_eventLedgerPath(workspace)));
+    final rows = await _eventLedgerRepository.readRows(workspace);
     final records = rows
         .map((row) => Rc6EventLedgerRecord.fromJson(row))
         .where((record) => record.eventId.isNotEmpty)
@@ -41517,13 +41634,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<List<Rc6ArtifactRecord>> _readArtifactRecords(
       Directory workspace) async {
     await _reconcileArtifactCatalog(workspace);
-    final payload = await _readJsonObject(_artifactCatalogPath(workspace));
-    final rows = payload['artifacts'];
-    if (rows is! List) {
-      return const <Rc6ArtifactRecord>[];
-    }
+    final rows = await _artifactCatalogRepository.readRows(workspace);
     final records = rows
-        .whereType<Map>()
         .map(
             (row) => Rc6ArtifactRecord.fromJson(Map<String, dynamic>.from(row)))
         .where((record) => record.artifactId.isNotEmpty)
@@ -41534,42 +41646,13 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<void> _reconcileArtifactCatalog(Directory workspace) async {
     final catalogPath = _artifactCatalogPath(workspace);
-    final catalog = await _readJsonObject(catalogPath);
-    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
-    if (records.isEmpty) return;
-    var changed = false;
     final now = DateTime.now().toUtc().toIso8601String();
-    for (var index = 0; index < records.length; index++) {
-      final status = (records[index]['status'] ?? '').toString();
-      final path = (records[index]['file_path'] ?? '').toString().trim();
-      if (status == 'deleted' || path.isEmpty) continue;
-      final exists =
-          await File(path).exists() || await Directory(path).exists();
-      if (exists) continue;
-      records[index] = {
-        ...records[index],
-        'updated_at': now,
-        'status': 'deleted',
-        'metadata': {
-          ..._mapValue(records[index]['metadata']),
-          'deleted_by': 'artifact_catalog_reconcile',
-          'missing_path': path,
-        },
-      };
-      changed = true;
-    }
-    if (!changed) return;
-    await _writeJsonFile(catalogPath, {
-      'schema_version': 'heitang_artifact_catalog.v1',
-      'workspace_id': state.currentWorkbookName,
-      'status': records.any((row) =>
-              (row['status'] ?? '').toString() != 'deleted' &&
-              (row['file_path'] ?? '').toString().isNotEmpty)
-          ? 'active'
-          : 'empty',
-      'artifacts': records,
-      'updated_at': now,
-    });
+    final records = await _artifactCatalogRepository.reconcileMissingPaths(
+      workspace: workspace,
+      workspaceId: state.currentWorkbookName,
+      updatedAt: now,
+    );
+    if (records.isEmpty) return;
     await _appendEventLedgerRecord(
       eventType: 'delete_artifact',
       module: 'artifact_center',
@@ -41637,13 +41720,58 @@ class Rc6RuntimeController extends ChangeNotifier {
       'error_message': errorMessage,
       'metadata': mergedMetadata,
     };
-    final path = _eventLedgerPath(workspace);
-    await File(path).parent.create(recursive: true);
-    await File(path).writeAsString(
-      '${jsonEncode(record)}\n',
-      mode: FileMode.append,
-      encoding: utf8,
-    );
+    await _eventLedgerRepository.appendRecord(workspace, record);
+    await _appendRootCompatibilityEventLedgerRecord(workspace, record);
+  }
+
+  void _appendFailureEventLedgerRecordSync(String message) {
+    final workspace = _workspaceDir == null ? null : _requireWorkspace();
+    if (workspace == null) {
+      return;
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    final record = {
+      'schema_version': 'heitang_event_ledger.v1',
+      'event_id': 'evt_${DateTime.now().microsecondsSinceEpoch}',
+      'event_type': 'failure_event',
+      'module': 'runtime',
+      'action': 'runtime_gate',
+      'target_id': '',
+      'target_name': '',
+      'workspace_id': state.currentWorkbookName,
+      'project_id': '',
+      'assistant_id': '',
+      'task_id': '',
+      'user_id': '',
+      'primary_knowledge_base_id': '',
+      'used_knowledge_base_ids': const <String>[],
+      'knowledge_base_version_ids': const <String>[],
+      'kb_scope_mode': 'current_workbook',
+      'permission_scope': 'local_user_workspace',
+      'domain_scope': 'general',
+      'jurisdiction_scope': 'local',
+      'time_scope': 'current',
+      'answer_status': 'not_applicable',
+      'evidence_status': 'not_applicable',
+      'risk_level': 'normal',
+      'memory_layer_type': 'runtime',
+      'evidence_graph_refs': const <String>[],
+      'citation_status': 'not_applicable',
+      'gap_analysis': 'not_applicable',
+      'retrieval_eval_status': 'not_applicable',
+      'created_artifact_ids': const <String>[],
+      'status': 'failed',
+      'created_at': now,
+      'source': 'runtime_fail',
+      'artifact_path': '',
+      'error_message': message,
+      'metadata': {
+        'sync_failure_record': true,
+        'recoverable_by_user_action': true,
+      },
+    };
+    _eventLedgerRepository.appendRecordSync(workspace, record);
+    _appendRootCompatibilityEventLedgerRecordSync(workspace, record);
   }
 
   Future<void> _upsertArtifactRecord({
@@ -41657,19 +41785,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, Object?> metadata = const {},
   }) async {
     final workspace = _requireWorkspace();
-    final catalogPath = _artifactCatalogPath(workspace);
-    final catalog = await _readJsonObject(catalogPath);
-    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
     final now = DateTime.now().toUtc().toIso8601String();
     final scope = await _currentIndustrialScopeMetadata(workspace);
     final mergedMetadata = {
       ...scope,
       ...metadata,
     };
-    final index = records.indexWhere(
-        (row) => (row['artifact_id'] ?? '').toString() == artifactId);
-    final previous =
-        index >= 0 ? Map<String, dynamic>.from(records[index]) : null;
+    final previous = (await _artifactCatalogRepository.readRows(workspace))
+        .where((row) => (row['artifact_id'] ?? '').toString() == artifactId)
+        .firstOrNull;
     final record = {
       'artifact_id': artifactId,
       'artifact_type': artifactType,
@@ -41705,22 +41829,69 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': status,
       'metadata': mergedMetadata,
     };
-    if (index >= 0) {
-      records[index] = record;
-    } else {
-      records.add(record);
-    }
-    await _writeJsonFile(catalogPath, {
-      'schema_version': 'heitang_artifact_catalog.v1',
-      'workspace_id': state.currentWorkbookName,
-      'status': records.any((row) =>
-              (row['status'] ?? '').toString() != 'deleted' &&
-              (row['file_path'] ?? '').toString().isNotEmpty)
-          ? 'active'
-          : 'empty',
-      'artifacts': records,
-      'updated_at': now,
+    final records = await _artifactCatalogRepository.upsertRecord(
+      workspace: workspace,
+      workspaceId: state.currentWorkbookName,
+      record: record,
+      updatedAt: now,
+    );
+    await _writeRootCompatibilityArtifactCatalog(workspace, records, now);
+  }
+
+  bool _isActiveWorkbookWorkspace(Directory workspace) {
+    final root = _workspaceDir;
+    if (root == null) return false;
+    return _isInsideDirectory(workspace.absolute.path, root.absolute.path) &&
+        workspace.absolute.path != root.absolute.path;
+  }
+
+  Future<void> _appendRootCompatibilityEventLedgerRecord(
+    Directory workspace,
+    Map<String, Object?> record,
+  ) async {
+    final root = _workspaceDir;
+    if (root == null || !_isActiveWorkbookWorkspace(workspace)) return;
+    await _eventLedgerRepository.appendRecord(root, {
+      ...record,
+      'metadata': {
+        ..._mapValue(record['metadata']),
+        'compatibility_mirror': true,
+        'active_workbook_path': workspace.path,
+      },
     });
+  }
+
+  void _appendRootCompatibilityEventLedgerRecordSync(
+    Directory workspace,
+    Map<String, Object?> record,
+  ) {
+    final root = _workspaceDir;
+    if (root == null || !_isActiveWorkbookWorkspace(workspace)) return;
+    _eventLedgerRepository.appendRecordSync(root, {
+      ...record,
+      'metadata': {
+        ..._mapValue(record['metadata']),
+        'compatibility_mirror': true,
+        'active_workbook_path': workspace.path,
+      },
+    });
+  }
+
+  Future<void> _writeRootCompatibilityArtifactCatalog(
+    Directory workspace,
+    List<Map<String, dynamic>> records,
+    String updatedAt,
+  ) async {
+    final root = _workspaceDir;
+    if (root == null || !_isActiveWorkbookWorkspace(workspace)) return;
+    await _artifactCatalogRepository.writeCatalog(
+      workspace: root,
+      workspaceId: state.currentWorkbookName,
+      records: records,
+      updatedAt: updatedAt,
+      compatibilityMirror: true,
+      activeWorkbookPath: workspace.path,
+    );
   }
 
   Future<Map<String, Object?>> _currentIndustrialScopeMetadata(
@@ -41816,46 +41987,41 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, Object?> metadata = const {},
   }) async {
     final workspace = _requireWorkspace();
-    final catalogPath = _artifactCatalogPath(workspace);
-    final catalog = await _readJsonObject(catalogPath);
-    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
     final now = DateTime.now().toUtc().toIso8601String();
     final scope = await _currentIndustrialScopeMetadata(workspace);
     final mergedMetadata = {
       ...scope,
       ...metadata,
     };
-    final index = records.indexWhere(
-        (row) => (row['artifact_id'] ?? '').toString() == artifactId);
-    if (index >= 0) {
-      records[index] = {
-        ...records[index],
-        'project_id': records[index]['project_id'] ?? scope['project_id'],
-        'assistant_id': records[index]['assistant_id'] ?? scope['assistant_id'],
-        'task_id': records[index]['task_id'] ?? scope['task_id'],
-        'user_id': records[index]['user_id'] ?? scope['user_id'],
-        'primary_knowledge_base_id': records[index]
-                ['primary_knowledge_base_id'] ??
+    await _artifactCatalogRepository.markDeleted(
+      workspace: workspace,
+      workspaceId: state.currentWorkbookName,
+      artifactId: artifactId,
+      status: status,
+      updatedAt: now,
+      updateExisting: (row) => {
+        ...row,
+        'project_id': row['project_id'] ?? scope['project_id'],
+        'assistant_id': row['assistant_id'] ?? scope['assistant_id'],
+        'task_id': row['task_id'] ?? scope['task_id'],
+        'user_id': row['user_id'] ?? scope['user_id'],
+        'primary_knowledge_base_id': row['primary_knowledge_base_id'] ??
             scope['primary_knowledge_base_id'],
-        'used_knowledge_base_ids': records[index]['used_knowledge_base_ids'] ??
+        'used_knowledge_base_ids': row['used_knowledge_base_ids'] ??
             scope['used_knowledge_base_ids'],
-        'knowledge_base_version_ids': records[index]
-                ['knowledge_base_version_ids'] ??
+        'knowledge_base_version_ids': row['knowledge_base_version_ids'] ??
             scope['knowledge_base_version_ids'],
-        'answer_status':
-            records[index]['answer_status'] ?? scope['answer_status'],
-        'evidence_status':
-            records[index]['evidence_status'] ?? scope['evidence_status'],
-        'risk_level': records[index]['risk_level'] ?? scope['risk_level'],
+        'answer_status': row['answer_status'] ?? scope['answer_status'],
+        'evidence_status': row['evidence_status'] ?? scope['evidence_status'],
+        'risk_level': row['risk_level'] ?? scope['risk_level'],
         'updated_at': now,
         'status': status,
         'metadata': {
-          ..._mapValue(records[index]['metadata']),
+          ..._mapValue(row['metadata']),
           ...mergedMetadata,
         },
-      };
-    } else {
-      records.add({
+      },
+      missingRecord: {
         'artifact_id': artifactId,
         'artifact_type': 'unknown',
         'title': artifactId,
@@ -41881,19 +42047,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'updated_at': now,
         'status': status,
         'metadata': mergedMetadata,
-      });
-    }
-    await _writeJsonFile(catalogPath, {
-      'schema_version': 'heitang_artifact_catalog.v1',
-      'workspace_id': state.currentWorkbookName,
-      'status': records.any((row) =>
-              (row['status'] ?? '').toString() != 'deleted' &&
-              (row['file_path'] ?? '').toString().isNotEmpty)
-          ? 'active'
-          : 'empty',
-      'artifacts': records,
-      'updated_at': now,
-    });
+      },
+    );
   }
 
   Future<void> _appendAgentActivityRecord({
@@ -41904,20 +42059,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, Object?> details = const {},
   }) async {
     final workspace = _requireWorkspace();
-    final path = _agentActivityLogPath(workspace);
-    await File(path).parent.create(recursive: true);
-    await File(path).writeAsString(
-      '${jsonEncode({
-            'schema_version': 'heitang_agent_activity.v1',
-            'action': action,
-            'agent_id': agentId,
-            'status': status,
-            'artifact': artifact,
-            'details': details,
-            'created_at': DateTime.now().toUtc().toIso8601String(),
-          })}\n',
-      mode: FileMode.append,
-      encoding: utf8,
+    await _agentProfileConversationRepository.appendActivityRecord(
+      workspace: workspace,
+      record: {
+        'schema_version': 'heitang_agent_activity.v1',
+        'action': action,
+        'agent_id': agentId,
+        'status': status,
+        'artifact': artifact,
+        'details': details,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      },
     );
     await _appendAgentRunHistoryRecord(
       action: action,
@@ -41948,6 +42100,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     required bool hasKnowledgeBase,
     required bool hasSkill,
   }) async {
+    if (profile.boundKnowledgeBaseIds.isNotEmpty) {
+      final evidence = await _agentProfileEvidenceChunk(
+        workspace: _requireWorkspace(),
+        profile: profile,
+        prompt: prompt,
+      );
+      if (evidence.isEmpty) {
+        return _AgentReplyResult.localFallback(
+          '当前知识库无依据回答这个问题。请补充资料、切换知识库，或明确允许使用通用知识。',
+          error: 'missing_bound_kb_evidence',
+          status: 'refused_missing_evidence',
+        );
+      }
+    }
     final apiKey = Platform.environment['OPENAI_API_KEY']?.trim() ??
         Platform.environment['HEITANG_LLM_API_KEY']?.trim() ??
         '';
@@ -42162,26 +42328,22 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   static String _agentCatalogPath(Directory workspace) =>
-      _joinNested(workspace.path, 'agent/catalog/agents.json');
+      AgentProfileConversationRepository.catalogPath(workspace);
 
   static String _agentConversationPath(Directory workspace, String agentId) =>
-      _joinNested(workspace.path,
-          'agent/conversations/${_safeId(agentId)}/conversation.json');
-
-  static String _agentConversationDir(Directory workspace, String agentId) =>
-      _joinNested(workspace.path, 'agent/conversations/${_safeId(agentId)}');
+      AgentProfileConversationRepository.conversationPath(workspace, agentId);
 
   static String _agentActivityLogPath(Directory workspace) =>
-      _joinNested(workspace.path, 'agent/activity/agent_activity.jsonl');
+      AgentProfileConversationRepository.activityLogPath(workspace);
 
   static String _agentArtifactCatalogPath(Directory workspace) =>
-      _joinNested(workspace.path, 'agent/artifacts/artifact_catalog.json');
+      AgentArtifactCatalogRepository.catalogPath(workspace);
 
   static String _eventLedgerPath(Directory workspace) =>
-      _joinNested(workspace.path, 'audit/event_ledger.jsonl');
+      EventLedgerRepository.eventLedgerPath(workspace);
 
   static String _artifactCatalogPath(Directory workspace) =>
-      _joinNested(workspace.path, 'artifacts/catalog.json');
+      ArtifactCatalogRepository.catalogPath(workspace);
 
   static String _moduleForAction(String action) => switch (action) {
         'batch_import_documents' => 'document_library',
@@ -43730,8 +43892,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     required String qdrantDetail,
   }) async {
     final workspace = _requireWorkspace();
-    final configDir = Directory(_join(workspace.path, 'config'));
-    await configDir.create(recursive: true);
     final path = _storageProviderSettingsPath(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
     final redisSecretRef = _secretReference(
@@ -43792,10 +43952,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'csv': {'status': 'connected', 'extension': 'csv'},
       },
     };
-    await File(path).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
-    );
+    await _settingsConfigRepository.writeJson(path, payload);
     return path;
   }
 
@@ -48637,19 +48794,19 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   static String _storageProviderSettingsPath(Directory workspace) {
-    return _join(workspace.path, 'config', 'storage_provider_settings.json');
+    return SettingsConfigRepository.storageProviderSettingsPath(workspace);
   }
 
   static String _providerRuntimeSettingsPath(Directory workspace) {
-    return _join(workspace.path, 'config', 'provider_runtime_settings.json');
+    return SettingsConfigRepository.providerRuntimeSettingsPath(workspace);
   }
 
   static String _exporterSettingsPath(Directory workspace) {
-    return _join(workspace.path, 'config', 'exporter_settings.json');
+    return SettingsConfigRepository.exporterSettingsPath(workspace);
   }
 
   static String _projectConfigProfilesPath(Directory workspace) {
-    return _join(workspace.path, 'config', 'project_config_profiles.json');
+    return ProjectConfigProfileRepository.profilesPath(workspace);
   }
 
   static String _projectConfigRuntimeStatusPath(Directory workspace) {
@@ -48839,38 +48996,25 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<List<ProjectConfigProfile>> _readProjectConfigProfiles(
       Directory workspace) async {
-    final path = _projectConfigProfilesPath(workspace);
-    final file = File(path);
-    if (!await file.exists()) {
+    final result =
+        await _projectConfigProfileRepository.readProfiles(workspace);
+    if (result.status == 'missing') {
       return _recreateDefaultProjectConfigProfile(
         workspace,
         action: 'create_default',
         summary: '默认本地 Profile 已创建。',
       );
     }
-    late final Map<String, dynamic> payload;
-    try {
-      payload = await _readJsonObject(path);
-    } on FormatException {
-      final backupPath =
-          '$path.corrupt.${DateTime.now().toUtc().microsecondsSinceEpoch}.bak';
-      await file.rename(backupPath);
+    if (result.status == 'corrupt') {
       return _recreateDefaultProjectConfigProfile(
         workspace,
         action: 'fallback_corrupt_profile',
         summary: '配置档损坏，已备份并回退到默认本地 Profile。',
       );
     }
-    final rawProfiles = payload['profiles'];
-    final profiles = rawProfiles is List
-        ? rawProfiles
-            .whereType<Map>()
-            .map((item) =>
-                ProjectConfigProfile.fromJson(Map<String, dynamic>.from(item)))
-            .toList(growable: false)
-        : <ProjectConfigProfile>[];
+    final profiles = result.profiles;
     if (profiles.isEmpty) {
-      await file.delete();
+      await File(_projectConfigProfilesPath(workspace)).delete();
       return _readProjectConfigProfiles(workspace);
     }
     if (profiles.where((profile) => profile.isActive).isEmpty) {
@@ -48914,8 +49058,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     Directory workspace,
     List<ProjectConfigProfile> profiles,
   ) async {
-    final configDir = Directory(_join(workspace.path, 'config'));
-    await configDir.create(recursive: true);
     final activeCount = profiles.where((profile) => profile.isActive).length;
     final normalized = activeCount == 1
         ? profiles
@@ -48925,17 +49067,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             .map((entry) => entry.value.copyWith(isActive: entry.key == 0))
             .toList(growable: false);
     final activeProfile = _activeProfile(normalized);
-    final payload = {
-      'schema_version': 'prd_v3_project_config_profiles.v1',
-      'workspace_id': workspace.path,
-      'active_profile_id': activeProfile.profileId,
-      'profile_count': normalized.length,
-      'profiles': normalized.map((profile) => profile.toJson()).toList(),
-      'secret_plaintext_written': false,
-    };
-    await File(_projectConfigProfilesPath(workspace)).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(payload),
-      encoding: utf8,
+    await _projectConfigProfileRepository.writeProfiles(
+      workspace: workspace,
+      profiles: normalized,
+      activeProfile: activeProfile,
     );
   }
 
@@ -55338,16 +55473,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   void _fail(String message) {
-    if (_workspaceDir != null) {
-      unawaited(_appendEventLedgerRecord(
-        eventType: 'failure_event',
-        module: 'runtime',
-        action: 'runtime_gate',
-        status: 'failed',
-        errorMessage: message,
-        source: 'runtime_fail',
-      ).catchError((_) {}));
-    }
+    _appendFailureEventLedgerRecordSync(message);
     state = state.copyWith(
       running: false,
       phase: Rc6RuntimePhase.failed,
@@ -55766,31 +55892,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     return rows;
   }
 
-  static List<Map<String, dynamic>> _readJsonlSync(String path) {
-    final file = File(path);
-    if (!file.existsSync()) {
-      return const [];
-    }
-    final rows = <Map<String, dynamic>>[];
-    for (final line in file.readAsLinesSync(encoding: utf8)) {
-      if (line.trim().isEmpty) continue;
-      final decoded = jsonDecode(line);
-      if (decoded is Map) {
-        rows.add(Map<String, dynamic>.from(decoded));
-      }
-    }
-    return rows;
-  }
-
   static List<Map<String, dynamic>> _eventLedgerRowsForAudit(
       Directory workspace) {
-    return _readJsonlSync(_eventLedgerPath(workspace));
+    return EventLedgerRepository.readRowsSync(workspace);
   }
 
   static List<Map<String, dynamic>> _artifactCatalogRowsForAudit(
       Directory workspace) {
-    final catalog = _readJsonObjectSync(_artifactCatalogPath(workspace));
-    return _listOfMaps(catalog['artifacts']);
+    return ArtifactCatalogRepository.readRowsSync(workspace);
   }
 
   static Map<String, dynamic> _auditModuleSummary(
@@ -56236,27 +56345,33 @@ enum Rc6SearchStatus { idle, loading, success, empty, error }
 
 class Rc6DocumentGenerationConfig {
   const Rc6DocumentGenerationConfig({
+    this.documentName = '',
     this.generationType = 'reading_notes',
     this.outputFormat = 'md',
     this.citationStrategy = 'source_filename',
     this.templateMode = 'built_in',
   });
 
+  final String documentName;
   final String generationType;
   final String outputFormat;
   final String citationStrategy;
   final String templateMode;
 
-  String get title => switch (generationType) {
-        'summary' => '真实输入资料摘要',
-        'study_cards' => '真实输入学习卡片',
-        'structured_report' => '真实输入结构化报告',
-        'ppt_outline' => '真实输入 PPT 大纲',
-        'operation_plan' => '真实输入运营方案',
-        'product_analysis' => '真实输入产品分析',
-        'qa_script' => '真实输入问答稿',
-        _ => '真实输入文件夹读书笔记',
-      };
+  String get title {
+    final trimmed = documentName.trim();
+    if (trimmed.isNotEmpty) return trimmed;
+    return switch (generationType) {
+      'summary' => '真实输入资料摘要',
+      'study_cards' => '真实输入学习卡片',
+      'structured_report' => '真实输入结构化报告',
+      'ppt_outline' => '真实输入 PPT 大纲',
+      'operation_plan' => '真实输入运营方案',
+      'product_analysis' => '真实输入产品分析',
+      'qa_script' => '真实输入问答稿',
+      _ => '真实输入文件夹读书笔记',
+    };
+  }
 
   String get generationTypeLabel => switch (generationType) {
         'summary' => '摘要',
@@ -56282,6 +56397,7 @@ class Rc6DocumentGenerationConfig {
       };
 
   Map<String, String> toJson() => {
+        'document_name': documentName,
         'generation_type': generationType,
         'generation_type_label': generationTypeLabel,
         'output_format': outputFormat,
@@ -56576,9 +56692,13 @@ class Rc6AgentMessage {
     required this.createdAt,
     required this.status,
     this.error = '',
+    this.metadata = const <String, dynamic>{},
   });
 
   factory Rc6AgentMessage.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : <String, dynamic>{};
     return Rc6AgentMessage(
       id: _modelString(json['id'], ''),
       role: _modelString(json['role'], 'assistant'),
@@ -56586,6 +56706,18 @@ class Rc6AgentMessage {
       createdAt: _modelString(json['created_at'], ''),
       status: _modelString(json['status'], 'saved'),
       error: _modelString(json['error'], ''),
+      metadata: {
+        ...metadata,
+        for (final key in const [
+          'bound_knowledge_base_ids',
+          'bound_skill_ids',
+          'answer_policy_id',
+          'provider_kind',
+          'citation_trace_path',
+          'skill_rule_trace_path',
+        ])
+          if (json.containsKey(key)) key: json[key],
+      },
     );
   }
 
@@ -56595,6 +56727,7 @@ class Rc6AgentMessage {
   final String createdAt;
   final String status;
   final String error;
+  final Map<String, dynamic> metadata;
 
   bool get isUser => role == 'user';
 
@@ -56605,6 +56738,8 @@ class Rc6AgentMessage {
         'created_at': createdAt,
         'status': status,
         'error': error,
+        'metadata': metadata,
+        ...metadata,
       };
 
   static String _modelString(Object? value, String fallback) {
@@ -56856,11 +56991,14 @@ class _AgentReplyResult {
     required this.error,
   });
 
-  factory _AgentReplyResult.localFallback(String content,
-      {required String error}) {
+  factory _AgentReplyResult.localFallback(
+    String content, {
+    required String error,
+    String status = 'local_fallback',
+  }) {
     return _AgentReplyResult(
       content: content,
-      status: 'local_fallback',
+      status: status,
       providerKind: 'local_fallback',
       error: error,
     );
@@ -56870,6 +57008,16 @@ class _AgentReplyResult {
   final String status;
   final String providerKind;
   final String error;
+}
+
+class _AgentProfileDialogueTraceResult {
+  const _AgentProfileDialogueTraceResult({
+    required this.citationTracePath,
+    required this.skillRuleTracePath,
+  });
+
+  final String citationTracePath;
+  final String skillRuleTracePath;
 }
 
 class Rc6StorageTestResult {
@@ -56941,6 +57089,7 @@ class Rc6SourceRecord {
     required this.tableCount,
     required this.linkCount,
     required this.structureStatus,
+    this.previewText = '',
   });
 
   factory Rc6SourceRecord.fromJson(Map<String, dynamic> json) {
@@ -56958,6 +57107,12 @@ class Rc6SourceRecord {
       tableCount: _asInt(json['table_count']) ?? 0,
       linkCount: _asInt(json['link_count']) ?? 0,
       structureStatus: (json['structure_status'] ?? 'not_scanned').toString(),
+      previewText: (json['preview_text'] ??
+              json['preview'] ??
+              json['summary'] ??
+              json['text_preview'] ??
+              '')
+          .toString(),
     );
   }
 
@@ -56979,6 +57134,7 @@ class Rc6SourceRecord {
   final int tableCount;
   final int linkCount;
   final String structureStatus;
+  final String previewText;
 }
 
 class _QdrantResponse {
@@ -57453,6 +57609,7 @@ class Rc6RuntimeState {
   bool get hasEventLedgerRecords => eventLedgerRecords.isNotEmpty;
   bool get hasArtifactCatalog => artifactCatalogPath.isNotEmpty;
   bool get hasArtifactRecords => artifactRecords.any((item) => item.isActive);
+  List<Rc6SourceRecord> get knowledgeSourceRecords => sourceRecords;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
