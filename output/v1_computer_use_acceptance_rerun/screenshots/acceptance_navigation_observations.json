@@ -1,0 +1,104 @@
+{
+  "screenshotDir": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots",
+  "launchExe": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\desktop\\tauri\\src-tauri\\target\\release\\heitang-kb-forge-desktop.exe",
+  "screenshots": {
+    "home": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\01_home_task_workbench.png",
+    "import": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\02_nav_import.png",
+    "knowledge": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\03_nav_knowledge.png",
+    "skill": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\04_nav_skill.png",
+    "agent": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\05_nav_agent.png",
+    "document_generation": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\06_nav_document_generation.png",
+    "task_workbench": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\07_nav_task_workbench.png",
+    "settings": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\08_nav_settings.png"
+  },
+  "observations": [
+    {
+      "id": "home",
+      "title": "HeiTang KB Forge Desktop",
+      "text": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 任务工作台 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 任务工作台 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 任务工作台 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "import",
+      "label": "导入资料",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 导入资料 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 导入资料 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 导入资料 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": "知识库",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 知识库 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 知识库 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 知识库 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "skill",
+      "label": "Skill",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 Skill - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 Skill - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 Skill - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "agent",
+      "label": "Agent",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 Agent - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 Agent - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 Agent - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "document_generation",
+      "label": "文档生成",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 文档生成 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 文档生成 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 文档生成 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "task_workbench",
+      "label": "任务工作台",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 任务工作台 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 任务工作台 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 任务工作台 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    },
+    {
+      "id": "settings",
+      "label": "配置",
+      "relevant": [
+        "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+        "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+        "\t\t\t\t3 窗格 配置 - HeiTang Knowledge Workbench",
+        "\t\t\t\t\t6 区域 配置 - HeiTang Knowledge Workbench - Web 内容",
+        "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 配置 - HeiTang Knowledge Workbench ID: RootWebArea"
+      ]
+    }
+  ]
+}

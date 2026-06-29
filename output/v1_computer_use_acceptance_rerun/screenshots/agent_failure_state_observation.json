@@ -1,0 +1,10 @@
+{
+  "screenshot": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\output\\v1_computer_use_acceptance_rerun\\screenshots\\09_agent_config_or_missing_model_state.png",
+  "relevant": [
+    "Window: \"HeiTang KB Forge Desktop\", App: heitang-kb-forge-desktop.exe.",
+    "\t0 窗口 HeiTang KB Forge Desktop Secondary Actions: Raise",
+    "\t\t\t\t3 窗格 Agent - HeiTang Knowledge Workbench",
+    "\t\t\t\t\t6 区域 Agent - HeiTang Knowledge Workbench - Web 内容",
+    "\t\t\t\t\t\t\t\t\t\t\t\t15 文档 Agent - HeiTang Knowledge Workbench ID: RootWebArea"
+  ]
+}
