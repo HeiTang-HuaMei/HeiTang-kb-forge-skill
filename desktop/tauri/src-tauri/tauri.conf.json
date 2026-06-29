@@ -4,10 +4,8 @@
   "version": "1.2.3",
   "identifier": "com.heitang.kbforge",
   "build": {
-    "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist"
+    "frontendDist": "../../../web/workbench/flutter_app/build/web"
   },
   "app": {
     "windows": [
