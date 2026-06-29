@@ -33,6 +33,10 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
+  bool _modelServiceConfigured(Rc6RuntimeState runtime) {
+    return runtime.hasProviderCapabilityUserCatalog;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -114,9 +118,9 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
         _AgentConsoleMessage(
           author: _zh ? '系统' : 'System',
           body: _zh
-              ? '当前还没有助手。请先创建助手，保存后可以重新进入、编辑、删除，并开始本地占位对话。'
-              : 'No assistant exists yet. Create one first; it can then be reopened, edited, deleted, and used for local fallback chat.',
-          meta: _zh ? '空状态' : 'Empty state',
+              ? '当前还没有助手。请先创建助手；请先配置模型服务。本地模式可先查看说明，保存后可以重新进入、编辑、删除，并基于绑定知识库开始对话。'
+              : 'No assistant exists yet. Create one first and configure the model service. Local mode can show guidance; the assistant can then be reopened, edited, deleted, and used with the bound knowledge base.',
+          meta: _zh ? '等待创建' : 'Waiting creation',
           isUser: false,
           steps: _zh
               ? const ['创建助手', '保存配置', '发送消息']
@@ -130,8 +134,8 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
         _AgentConsoleMessage(
           author: agent.name,
           body: _zh
-              ? '助手已保存。当前没有对话历史，发送消息后会写入本地会话并在重新进入后保留。'
-              : 'Assistant saved. No chat history yet; messages are persisted locally and remain after reopening.',
+              ? '助手已保存。当前没有对话历史，发送消息后会写入本地会话并在重新进入后保留。真实模型回复需要先在配置页完成模型服务配置和测试。'
+              : 'Assistant saved. No chat history yet; messages are persisted locally and remain after reopening. Real model replies require model service setup and testing in settings first.',
           meta: _zh ? '等待输入' : 'Waiting input',
           isUser: false,
           status: _zh ? '本地模式' : 'Local mode',
@@ -145,7 +149,9 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
               author: message.isUser ? (_zh ? '你' : 'You') : agent.name,
               body: _agentMessageBody(message),
               meta: message.status == 'local_fallback'
-                  ? (_zh ? '当前为本地占位回复' : 'Local fallback reply')
+                  ? (_zh
+                      ? '连接未完成，已保存本地回复'
+                      : 'Connection not ready; reply saved locally')
                   : message.createdAt,
               isUser: message.isUser,
               status: _agentMessageStatus(message),
@@ -162,6 +168,7 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
         .where((line) =>
             !line.contains('FormatException') &&
             !line.contains('<!doctype') &&
+            !line.trim().startsWith('```') &&
             line.trim() != '^')
         .map((line) => line.startsWith('原因：')
             ? (_zh
@@ -174,7 +181,7 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
 
   String? _agentMessageStatus(Rc6AgentMessage message) {
     if (message.status == 'local_fallback') {
-      return _zh ? '本地占位回复' : 'Local fallback';
+      return _zh ? '已保存，待模型配置' : 'Saved, needs model setup';
     }
     if (message.error.isNotEmpty) {
       return _zh ? '发送失败，请检查连接配置' : 'Send failed; check connection settings';
@@ -347,9 +354,13 @@ class _AgentProductWorkflowState extends State<_AgentProductWorkflow> {
                     ? (_zh ? '可以开始对话' : 'Ready to chat')
                     : (_zh ? '先创建助手' : 'Create an assistant first'),
                 detail: runtime.hasAgentProfiles
-                    ? (_zh
-                        ? '主路径：选择助手、输入问题、保存对话成果。'
-                        : 'Main path: choose an assistant, ask a question, and save the output.')
+                    ? (_modelServiceConfigured(runtime)
+                        ? (_zh
+                            ? '可以选择助手并保存对话成果；如需真实模型回复，请先在配置页测试模型服务。'
+                            : 'You can choose an assistant and save chat outputs; test the model service in settings before real model replies.')
+                        : (_zh
+                            ? '请先配置模型服务；本地模式可先查看说明并保存任务记录。'
+                            : 'Configure the model service first; local mode can show guidance and save task notes.'))
                     : (_zh
                         ? '默认从创建助手开始；知识库和 Skill 可作为上下文绑定。'
                         : 'Start by creating an assistant; the knowledge base and Skill can be bound as context.'),
@@ -998,6 +1009,7 @@ class _AgentConversationListPanel extends StatelessWidget {
                   ),
                 ),
                 IconButton(
+                  key: const Key('agent-new-assistant-button'),
                   tooltip: zh ? '新建助手' : 'New assistant',
                   onPressed: onCreateAgent,
                   icon: const Icon(Icons.add, size: 18),
@@ -1159,9 +1171,12 @@ class _AgentImDialoguePane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final modelGate = runtime.hasAgentProfiles
-        ? (zh ? '本地模式可运行' : 'Local mode runnable')
-        : (zh ? '需要设置' : 'Needs setup');
+    final modelReady = runtime.hasProviderCapabilityUserCatalog;
+    final modelGate = !runtime.hasAgentProfiles
+        ? (zh ? '需要创建助手' : 'Create assistant first')
+        : modelReady
+            ? (zh ? '模型服务已配置' : 'Model service configured')
+            : (zh ? '请先配置模型服务' : 'Configure model service first');
     final brightness = Theme.of(context).brightness;
     return Container(
       key: const Key('agent-im-dialogue-pane'),
@@ -1442,6 +1457,16 @@ class _AgentDialogueInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canSend = !runtime.running && runtime.hasAgentProfiles;
+    final modelReady = runtime.hasProviderCapabilityUserCatalog;
+    final helperText = !runtime.hasAgentProfiles
+        ? (zh
+            ? '需要先创建助手；当前需要先完成模型配置。'
+            : 'Create an assistant first; model setup is still needed.')
+        : !modelReady
+            ? (zh
+                ? '请先配置模型服务；本地模式可先查看说明并保存任务记录。'
+                : 'Configure the model service first; local mode can show guidance and save task notes.')
+            : null;
     final brightness = Theme.of(context).brightness;
     return Container(
       key: const Key('agent-dialogue-input-bar'),
@@ -1468,13 +1493,7 @@ class _AgentDialogueInputBar extends StatelessWidget {
               enabled: !runtime.running,
               decoration: InputDecoration(
                 labelText: zh ? '输入你的问题' : 'Ask a question',
-                helperText: compact
-                    ? null
-                    : (canSend
-                        ? null
-                        : (zh
-                            ? '需要先创建助手；未配置连接时会保存本地占位回复。'
-                            : 'Create an assistant first; unconfigured connections save a local fallback reply.')),
+                helperText: compact ? null : helperText,
                 border: const OutlineInputBorder(),
                 isDense: true,
               ),
@@ -1687,6 +1706,7 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final profile = widget.selectedAgent.profile;
+    final modelReady = runtime.hasProviderCapabilityUserCatalog;
     final skillOptions = <String>[
       if (runtime.hasSkill) 'primary_skill',
       if (runtime.hasLocalizedSkillManifest) 'localized_skill',
@@ -1863,23 +1883,35 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
           const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
-                ? const ['后端项', '绑定值', '状态']
-                : const ['Backend item', 'Binding', 'Status'],
+                ? const ['配置项', '当前状态', '说明']
+                : const ['Item', 'Current state', 'Note'],
             rows: [
               [
-                zh ? '配置档' : 'Config profile',
-                profile.settings['active_profile_id'] ?? '-',
-                zh ? '与助手配置分离保存' : 'Saved separately'
+                zh ? '助手资料' : 'Assistant profile',
+                profile.name.isEmpty
+                    ? (zh ? '未配置' : 'Not configured')
+                    : (zh ? '已保存' : 'Saved'),
+                zh
+                    ? '名称、角色和任务说明会随助手保存'
+                    : 'Name, role, and task instructions are saved with the assistant'
               ],
               [
-                zh ? '模型配置' : 'Model config',
-                profile.settings['model_config_id'] ?? '-',
-                zh ? '只保存引用' : 'Reference only'
+                zh ? 'AI 连接' : 'AI connection',
+                modelReady
+                    ? (zh ? '已配置，待测试' : 'Configured, needs test')
+                    : (zh ? '未配置' : 'Not configured'),
+                modelReady
+                    ? (zh
+                        ? '请在配置页测试模型服务；此处不显示内部编号'
+                        : 'Test the model service in settings; internal IDs stay hidden')
+                    : (zh
+                        ? '请先配置模型服务；本地模式可先查看说明'
+                        : 'Configure the model service first; local mode can show guidance')
               ],
               [
-                zh ? '模型网关' : 'Model gateway',
-                profile.settings['model_gateway_config_id'] ?? '-',
-                zh ? '只保存引用' : 'Reference only'
+                zh ? '知识边界' : 'Knowledge boundary',
+                zh ? '仅基于绑定知识库' : 'Bound KB only',
+                zh ? '知识库外问题会提示无依据' : 'Out-of-KB questions report no basis'
               ],
             ],
           ),
@@ -1908,7 +1940,7 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
           const SizedBox(height: 8),
           _PrimaryProductAction(
             automationKey: 'agent-backend-separation-evidence-button',
-            label: zh ? '生成后端分离证据' : 'Generate backend separation evidence',
+            label: zh ? '检查连接边界' : 'Check connection boundary',
             icon: Icons.hub_outlined,
             onPressed:
                 canEdit ? () => _runBackendSeparationEvidence(rc6) : null,
@@ -2883,8 +2915,6 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   String outputFormat = 'markdown';
   final TextEditingController _agentNameController =
       TextEditingController(text: '知识问答助手');
-  final TextEditingController _modelConfigController =
-      TextEditingController(text: 'local-default-or-configured-provider');
   final TextEditingController _roleGoalController =
       TextEditingController(text: '只基于绑定知识库和技能回答，输出必须带引用。');
 
@@ -2895,9 +2925,7 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
         customAgentName: _agentNameController.text,
         creationMode: creationMode,
         agentType: agentType,
-        modelConfigId: _modelConfigController.text.trim().isEmpty
-            ? 'local-default-or-configured-provider'
-            : _modelConfigController.text.trim(),
+        modelConfigId: 'local-default-or-configured-provider',
         outputFormat: outputFormat,
         roleGoal: _roleGoalController.text,
       );
@@ -2905,7 +2933,7 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   @override
   void dispose() {
     _agentNameController.dispose();
-    _modelConfigController.dispose();
+
     _roleGoalController.dispose();
     super.dispose();
   }
@@ -3010,18 +3038,11 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
               ),
           ]),
           const SizedBox(height: 8),
-          TextField(
-            key: const Key('agent-model-config-input'),
-            controller: _modelConfigController,
-            enabled: rc6 != null && !runtime.running,
-            decoration: InputDecoration(
-              labelText: zh ? '模型配置' : 'Model config',
-              helperText: zh
-                  ? '引用设置页已保存的模型服务；密钥仍只掩码显示。'
-                  : 'References saved model service settings; secrets stay masked.',
-              border: const OutlineInputBorder(),
-              isDense: true,
-            ),
+          _FieldRow(
+            label: zh ? 'AI 连接' : 'AI connection',
+            value: zh
+                ? '使用配置页已保存连接；未测试时仍可进行本地知识边界对话。'
+                : 'Uses the saved settings connection; local boundary chat still works before testing.',
           ),
           const SizedBox(height: 8),
           TextField(

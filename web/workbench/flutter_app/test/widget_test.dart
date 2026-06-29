@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -831,6 +832,46 @@ void main() {
     expect(find.textContaining('n8n'), findsNothing);
     expect(find.textContaining('0/'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('agent creation path explains missing model setup',
+      (tester) async {
+    final workspace = Directory.systemTemp
+        .createTempSync('kb_forge_phase2_agent_model_unconfigured_');
+    try {
+      await tester.binding.setSurfaceSize(const Size(1440, 900));
+      await tester.pumpWidget(
+        HeiTangWorkbenchApp(
+          contracts: sampleWorkbenchContracts,
+          providerCapabilityStatus: sampleProviderCapabilityStatus,
+          initialSelectedIndex:
+              pages.indexWhere((page) => page.id == 'agent-factory-runtime'),
+          isWebRuntime: false,
+          enableLocalCoreActions: false,
+          coreWorkspace: workspace.path,
+          coreWorkingDirectory: workspace.path,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('先创建助手'), findsWidgets);
+      await tester.tap(find.byKey(const Key('agent-new-assistant-button')),
+          warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('请先配置模型服务'), findsWidgets);
+      expect(find.textContaining('本地模式可先查看说明'), findsWidgets);
+      expect(find.textContaining('Provider'), findsNothing);
+      expect(find.textContaining('Adapter'), findsNothing);
+      expect(find.textContaining('stack trace'), findsNothing);
+      expect(find.textContaining('exception'), findsNothing);
+      expect(find.textContaining('null'), findsNothing);
+      expect(tester.takeException(), isNull);
+    } finally {
+      if (workspace.existsSync()) {
+        workspace.deleteSync(recursive: true);
+      }
+    }
   });
 
   testWidgets(

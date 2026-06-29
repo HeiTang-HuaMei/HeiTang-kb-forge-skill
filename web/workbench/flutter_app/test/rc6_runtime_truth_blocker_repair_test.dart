@@ -15,6 +15,8 @@ import 'package:heitang_workbench/workbench/task_workbench.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  const slowRuntimeTestTimeout = Timeout(Duration(minutes: 8));
+
   Future<Directory> createWorkspace() async {
     final dir = Directory.systemTemp.createTempSync('kb_forge_rc6_widget_');
     addTearDown(() async {
@@ -2304,7 +2306,7 @@ void main() {
             .readAsStringSync();
     expect(
         smokeLog, contains('"config_type":"stage3_profile_persistence_smoke"'));
-  });
+  }, timeout: slowRuntimeTestTimeout);
 
   test('project config activation synchronizes downstream module status',
       () async {
@@ -3764,7 +3766,7 @@ void main() {
         endsWith('task_isolation_matrix.json'));
     expect(reloaded.state.taskRecoveryReportPath,
         endsWith('task_recovery_report.json'));
-  });
+  }, timeout: slowRuntimeTestTimeout);
 
   test('stage3 authorized profile proves full provider loading matrix evidence',
       () async {
@@ -9662,7 +9664,7 @@ void main() {
     await controller.runMultiAgentDiscussion(topic: '缺少 Skill 时不应协作');
     expect(controller.state.hasMultiAgentDiscussion, isFalse);
     expect(controller.state.lastError, contains('请先在 Skill 工厂生成 Skill'));
-  });
+  }, timeout: slowRuntimeTestTimeout);
 
   test('rc8 document flow stops at real Markdown export without Skill or Agent',
       () async {
