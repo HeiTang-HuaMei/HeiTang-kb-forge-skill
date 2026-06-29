@@ -1,0 +1,8 @@
+﻿{
+    "command":  ".\\packaging\\desktop\\build_tauri.ps1",
+    "start":  "2026-06-29T22:29:51.9868081+08:00",
+    "end":  "2026-06-29T22:31:05.2843708+08:00",
+    "exitCode":  0,
+    "stdoutLog":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\package_gate_b1_retry_logs\\build_tauri_retry_20260629_222951.stdout.log",
+    "stderrLog":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\package_gate_b1_retry_logs\\build_tauri_retry_20260629_222951.stderr.log"
+}
