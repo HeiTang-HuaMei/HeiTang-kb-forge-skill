@@ -1,0 +1,9 @@
+﻿{
+    "command":  ".\\\\packaging\\\\desktop\\\\build_tauri.ps1",
+    "start_time":  "2026-06-30T00:47:22.8191333+08:00",
+    "end_time":  "2026-06-30T00:50:03.9758213+08:00",
+    "exit_code":  0,
+    "stdout_log":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\package_gate_flutter_ui_retry2_logs\\build_tauri_stdout.log",
+    "stderr_log":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\package_gate_flutter_ui_retry2_logs\\build_tauri_stderr.log",
+    "metadata_note":  "Original relative metadata write failed because build_tauri.ps1 ended in desktop/tauri; this file was rewritten with an absolute path after command completion."
+}
