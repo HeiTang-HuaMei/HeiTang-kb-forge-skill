@@ -6,12 +6,54 @@ $FlutterAppDir = Join-Path $Root "web\workbench\flutter_app"
 $FlutterWebDist = Join-Path $FlutterAppDir "build\web"
 $NsisDir = Join-Path $TauriDir "src-tauri\target\release\bundle\nsis"
 
+function Resolve-FlutterExecutable {
+    $candidates = @()
+
+    if ($env:FLUTTER_BIN) {
+        $candidates += $env:FLUTTER_BIN
+    }
+
+    if ($env:FLUTTER_ROOT) {
+        $candidates += (Join-Path $env:FLUTTER_ROOT "bin\flutter.bat")
+    }
+
+    if ($env:FLUTTER_HOME) {
+        $candidates += (Join-Path $env:FLUTTER_HOME "bin\flutter.bat")
+    }
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidate).Path
+        }
+
+        if (Test-Path -LiteralPath $candidate -PathType Container) {
+            $candidateBat = Join-Path $candidate "flutter.bat"
+            if (Test-Path -LiteralPath $candidateBat -PathType Leaf) {
+                return (Resolve-Path -LiteralPath $candidateBat).Path
+            }
+        }
+    }
+
+    foreach ($commandName in @("flutter", "flutter.bat", "flutter.cmd")) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        if ($command) {
+            return $command.Source
+        }
+    }
+
+    [Console]::Error.WriteLine("Flutter executable not found. Set FLUTTER_BIN or add Flutter bin to PATH.")
+    exit 1
+}
+
+$FlutterExecutable = Resolve-FlutterExecutable
+Write-Host "Flutter executable: $FlutterExecutable"
+
 $previousErrorActionPreference = $ErrorActionPreference
 try {
     $ErrorActionPreference = "Continue"
 
     Set-Location $FlutterAppDir
-    flutter.cmd build web
+    & $FlutterExecutable build web
     $flutterBuildExitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
     Write-Host "flutter build web exit code: $flutterBuildExitCode"
 

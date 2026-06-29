@@ -1,0 +1,23 @@
+Package Gate Flutter UI retry console error summary
+
+Command:
+.\packaging\desktop\build_tauri.ps1
+
+Observed exit code:
+1
+
+Direct failure:
+The script attempted to run `flutter.cmd build web`, but `flutter.cmd` was not available on PATH in this environment.
+
+Observed PowerShell error:
+flutter.cmd : The term 'flutter.cmd' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+
+Location:
+packaging\desktop\build_tauri.ps1:14
+
+Environment observation:
+`where.exe flutter` and `where.exe flutter.bat` resolve to `C:\src\flutter\bin\flutter` and `C:\src\flutter\bin\flutter.bat`.
+`where.exe flutter.cmd` does not resolve.
+
+Log caveat:
+The PowerShell terminating error occurred before the wrapper could write metadata. The redirected stdout/stderr log files are empty.
