@@ -71,6 +71,31 @@ def test_quality_gate_strict_fails_zero_chunk_package(tmp_path):
     assert "chunk_count_is_zero" in gate["reasons"]
 
 
+def test_build_records_parse_errors_without_blocking_other_sources(monkeypatch, tmp_path):
+    import heitang_kb_forge.cli_runtime as cli_runtime
+
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    (input_dir / "good.md").write_text("Good source survives parser failure.", encoding="utf-8")
+    (input_dir / "bad.pdf").write_bytes(b"%PDF-1.4 broken")
+    monkeypatch.setitem(cli_runtime.PARSERS, ".pdf", lambda path: (_ for _ in ()).throw(RuntimeError("PDF OCR failed")))
+
+    result = CliRunner().invoke(
+        app,
+        ["build", "--input", str(input_dir), "--output", str(output_dir), "--run-manifest"],
+    )
+
+    assert result.exit_code == 0, result.output
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    errors = json.loads((output_dir / "error_report.json").read_text(encoding="utf-8"))["errors"]
+
+    assert manifest["chunk_count"] == 1
+    assert any("PDF OCR failed" in warning for warning in manifest["warnings"])
+    assert errors[0]["source"].endswith("bad.pdf")
+    assert "PDF OCR failed" in errors[0]["error"]
+
+
 def test_batch_writes_hardening_outputs_and_supports_fail_fast(tmp_path):
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"

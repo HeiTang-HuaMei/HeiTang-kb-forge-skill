@@ -2,8 +2,11 @@ from heitang_kb_forge.schemas.agent_rag_schema import AgentRAGAnswerReport, Agen
 
 
 def answer_from_records(query: str, records: list[AgentRAGRecord], top_k: int, citation_required: bool = False) -> tuple[str, AgentRAGAnswerReport]:
-    citations = [record.citation for record in records if record.citation]
-    insufficient = not records or (citation_required and not citations)
+    positive_records = [record for record in records if record.score > 0]
+    citation_records = positive_records if citation_required else records
+    citations = [record.citation for record in citation_records if record.citation]
+    has_positive_context = any(record.score > 0 for record in records)
+    insufficient = not records or (citation_required and (not citations or not has_positive_context))
     if insufficient:
         answer = "Insufficient cited context to answer from this knowledge package."
     else:

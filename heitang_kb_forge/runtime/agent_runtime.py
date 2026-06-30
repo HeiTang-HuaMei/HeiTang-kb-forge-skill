@@ -15,7 +15,12 @@ def ask_package(package: Path, query: str, top_k: int = 5, provider: str = "fake
         return answer, report, {"query": query, "records": []}
     prompt = build_prompt(query, records)
     citations = [record.citation for record in records if record.citation]
-    answer = _fake_answer(query, records, citations) if provider == "fake" else _openai_compatible_placeholder(provider)
+    if provider != "fake":
+        answer = _model_service_not_configured_answer()
+        report = AnswerReport(query=query, provider=provider, model=model, insufficient_context=True)
+        trace = {"query": query, "top_k": top_k, "prompt": prompt, "records": [record.model_dump(mode="json") for record in records]}
+        return answer, report, trace
+    answer = _fake_answer(query, records, citations)
     report = AnswerReport(query=query, provider=provider, model=model, citations=citations, insufficient_context=False)
     trace = {"query": query, "top_k": top_k, "prompt": prompt, "records": [record.model_dump(mode="json") for record in records]}
     return answer, report, trace
@@ -37,5 +42,5 @@ Based on the retrieved knowledge package, the most relevant context is:
 """
 
 
-def _openai_compatible_placeholder(provider: str) -> str:
-    raise RuntimeError(f"{provider} runtime calls are opt-in and not implemented for default offline tests")
+def _model_service_not_configured_answer() -> str:
+    return "Model service is not configured. Configure a supported model service before running a live Agent call."

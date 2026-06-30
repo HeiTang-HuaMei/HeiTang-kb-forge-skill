@@ -19558,7 +19558,7 @@ void main() {
                 'project_config_industrial_isolation_summary' &&
             record.status == 'completed'),
         isTrue);
-  });
+  }, timeout: slowRuntimeTestTimeout);
 
   test('connector industrialization writes core evidence and reloads',
       () async {

@@ -49081,9 +49081,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     required Map<String, dynamic> provider,
     required Map<String, dynamic> exporter,
   }) async {
-    final configDir = Directory(_join(workspace.path, 'config'));
-    await configDir.create(recursive: true);
     final path = _projectConfigAssetsPath(workspace);
+    await File(path).parent.create(recursive: true);
     final storageProbe = await _probeStoragePath(workspace);
     final redis = _mapValue(storage['redis']);
     final qdrant = _mapValue(storage['qdrant']);

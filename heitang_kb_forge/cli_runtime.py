@@ -2954,6 +2954,7 @@ def _build_package(
         overlap_chars = profile.overlap_chars
     all_chunks: list[Chunk] = []
     warnings: list[str] = []
+    parse_errors: list[dict] = []
 
     for source_index, source in enumerate(source_files, start=1):
         parser = _active_parsers().get(source.suffix.lower())
@@ -2978,7 +2979,16 @@ def _build_package(
                 continue
             if progress_reporter:
                 progress_reporter.emit("failed", "failed", f"Source parsing failed: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), error=str(exc))
-            raise
+            warning = f"Source parsing failed: {source}: {exc}"
+            warnings.append(warning)
+            parse_errors.append(
+                {
+                    "source": str(source).replace("\\", "/"),
+                    "error": str(exc),
+                    "error_type": type(exc).__name__,
+                }
+            )
+            continue
         if progress_reporter:
             progress_reporter.emit("clean_text", "running", f"Cleaning text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files))
         cleaned = clean_text(raw)
@@ -3182,7 +3192,7 @@ def _build_package(
     ):
         files.extend(V21_OUTPUT_FILES)
     if contract_options.version == "v2" or contract_options.check:
-        files.extend(["evidence_map.json", "source_inventory.json", "quality_report.md"])
+        files.extend(["evidence_map.json", "source_trace.json", "source_inventory.json", "quality_report.md"])
     if contract_options.check:
         files.extend(["contract_check_result.json", "contract_check_report.md"])
     if governance_options.enabled:
@@ -3432,6 +3442,7 @@ def _build_package(
         )
     if contract_enabled:
         write_json(output / "evidence_map.json", _make_evidence_map(all_chunks))
+        write_json(output / "source_trace.json", _make_source_trace(all_chunks))
         write_json(output / "source_inventory.json", _make_source_inventory(source_files))
         (output / "quality_report.md").write_text(_render_quality_report_md(quality_report), encoding="utf-8")
     if any(
@@ -3555,7 +3566,7 @@ def _build_package(
             }
         write_json(output / "run_manifest.json", make_run_manifest(run_id, "build", str(input).replace("\\", "/"), str(output).replace("\\", "/"), status, manifest.warnings))
         write_jsonl(output / "stage_trace.jsonl", [stage])
-        write_json(output / "error_report.json", {"error_report_version": "1.2.1", "run_id": run_id, "errors": []})
+        write_json(output / "error_report.json", {"error_report_version": "1.2.1", "run_id": run_id, "errors": parse_errors})
     if hardening_options.quality_gate_strict and quality_gate_report and quality_gate_report["status"] == "fail":
         raise RuntimeError("Quality gate failed")
 
@@ -3597,6 +3608,24 @@ def _make_evidence_map(chunks: list[Chunk]) -> dict:
             }
             for chunk in chunks
         },
+    }
+
+
+def _make_source_trace(chunks: list[Chunk]) -> dict:
+    return {
+        "source_trace_version": "1.0",
+        "sources": [
+            {
+                "source_id": chunk.chunk_id,
+                "source_path": chunk.source_path,
+                "source_type": chunk.source_type,
+                "chunk_id": chunk.chunk_id,
+                "citation": f"{chunk.source_path}#chunk={chunk.chunk_id}",
+                "order": chunk.order,
+                "title": chunk.title,
+            }
+            for chunk in chunks
+        ],
     }
 
 
