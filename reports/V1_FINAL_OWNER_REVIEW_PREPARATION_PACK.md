@@ -1,128 +1,160 @@
 # V1 Final Owner Review Preparation Pack
 
-Generated: 2026-06-29
+Generated: 2026-06-30
 
-## Scope
+## 1. Scope
 
-This is a Final Owner Review preparation pack only.
+This is a partial preparation pack generated before the DeepSeek Edge CDP blocker.
 
-It does not execute Final Owner Review, does not push, does not tag/release, does not modify code, and does not modify `capability_chain_status.json`.
+It does not execute the Owner final review, does not push, does not tag, does not publish a release, does not modify code, and does not modify `capability_chain_status.json`.
 
-Current target state after pack creation:
+DeepSeek Web/CDP external review is currently blocked because Microsoft Edge DevTools endpoints were unavailable.
 
-`v1_final_owner_review_preparation_pack_created_pending_owner_review`
+DeepSeek final-review enum:
 
-## 1. V1.0 Positioning
+not obtained
 
-V1.0 means:
+Current state:
 
-- local installable;
-- main workflow can run;
-- failure states are explainable;
-- evidence is traceable;
-- future versions can evolve from a stable baseline.
+`v1_long_run_blocked_by_deepseek_edge_cdp_unavailable`
 
-V1.0 does not mean a complete commercial edition.
+## 2. V1.0 Positioning
 
-V1.0 does not declare:
+V1.0 is a stable local baseline:
 
-- `production_ready`
-- `release_ready`
-- `runtime_ready`
+- local EXE can be packaged and launched
+- current Flutter V1 UI is packaged
+- primary navigation is reachable
+- Agent missing-model / assistant-not-created state is user-friendly
+- failures and invalidated evidence are traceable
+- later versions can evolve from a verified baseline
 
-Final Owner Review is still pending Owner execution and decision.
+V1.0 is not a complete commercial edition, not full AI knowledge supply-chain completion, and not an Owner approval.
 
-## 2. Currently Verified Facts
+V1.0 does not declare production, release, or runtime readiness.
+
+## 3. Current Valid Artifact
+
+Artifact path:
+
+`desktop/tauri/src-tauri/target/release/bundle/nsis/HeiTang KB Forge Desktop_1.2.3_x64-setup.exe`
+
+Artifact size:
+
+`14541425` bytes
+
+Artifact SHA256:
+
+`DA01679B48E01AE70159C8A1E22EFB45727679E36A95932CA72E6B606CD0FBC4`
+
+Artifact evidence:
+
+- `reports/V1_PACKAGE_GATE_FLUTTER_UI_RETRY2_RESULT_REPORT.md`
+- `reports/V1_PACKAGE_GATE_FLUTTER_UI_RETRY2_DEEPSEEK_RESULT.md`
+- `reports/V1_LONG_RUN_EVIDENCE_INVENTORY.md`
+
+## 4. Current Verified Facts
 
 | Fact | Result | Evidence |
 | --- | --- | --- |
-| HEAD | `99a5a29 docs: record v1 package gate result evidence` | `git log -1 --oneline` |
-| Git status | clean before this pack | `git status --short` |
-| rc6 regression | `136 passed / 1 skipped` | `reports/rc6_blocker_fix_validation_logs/full_rc6_after_timeout_fix.log` |
-| widget test | `28 passed` | `reports/rc6_blocker_fix_validation_logs/widget_test_after_rc6_fix.log` |
-| Flutter analyze | pass | `reports/rc6_blocker_fix_validation_logs/flutter_analyze_after_rc6_fix.log` |
-| Tauri typecheck | pass | `reports/rc6_blocker_fix_validation_logs/npm_typecheck_after_rc6_fix.log` |
-| Package Gate B1 retry2 | exit code `0` | `reports/V1_PACKAGE_GATE_B1_RETRY2_RESULT_REPORT.md` |
-| NSIS artifact | exists | `reports/V1_PACKAGE_GATE_B1_RETRY2_RESULT_REPORT.md` |
-| NSIS artifact path | `desktop\tauri\src-tauri\target\release\bundle\nsis\HeiTang KB Forge Desktop_1.2.3_x64-setup.exe` | Package Gate retry2 report |
-| NSIS artifact size | `1992001` bytes | Package Gate retry2 report |
-| DeepSeek result | `PASS_PACKAGE_GATE_RESULT` | `reports/V1_PACKAGE_GATE_B1_RETRY2_DEEPSEEK_REVIEW_RESULT.md` |
-| `capability_chain_status.json` diff | empty | post-check |
-| ready-claim scan | clean; report/doc matches are non-claim only | post-check |
+| HEAD | `dddf82a docs: record computer use acceptance rerun evidence` | `git log -1 --oneline` |
+| Git status at long-run entry | clean | Phase 0 entry check |
+| `capability_chain_status.json` diff | empty | Phase 0 entry check |
+| ready-claim scan | clean / non-claim only, `claim_like_matches=0` | Phase 0 entry check |
+| Package Gate Flutter UI retry2 | pass | `reports/V1_PACKAGE_GATE_FLUTTER_UI_RETRY2_RESULT_REPORT.md` |
+| DeepSeek Package Gate review | `PASS_PACKAGE_GATE_FLUTTER_UI_RESULT` | `reports/V1_PACKAGE_GATE_FLUTTER_UI_RETRY2_DEEPSEEK_RESULT.md` |
+| Computer Use Acceptance rerun | pass | `reports/V1_COMPUTER_USE_ACCEPTANCE_RERUN_REPORT.md` |
+| DeepSeek Computer Use review | `PASS_COMPUTER_USE_ACCEPTANCE_RERUN` | `reports/V1_COMPUTER_USE_ACCEPTANCE_RERUN_DEEPSEEK_RESULT.md` |
+| DeepSeek Edge Web/CDP final-review gate | blocked | `reports/V1_DEEPSEEK_EDGE_CDP_AUTOMATION_BLOCKER.md` |
+| DeepSeek final-review enum | not obtained | no raw DeepSeek result was captured |
+| UI provenance | current Flutter V1 UI confirmed | Package Gate and Computer Use reports |
+| Old React/Vite shell | invalidated and removed | `reports/V1_INVALIDATED_ACCEPTANCE_EVIDENCE_REPORT.md` |
+| Agent friendly failure-state | pass | `output/v1_computer_use_acceptance_rerun/screenshots/09_agent_config_or_missing_model_state.png` |
 
-## 3. V1.0 Capability Landing List
+## 5. V1.0 Covered Scope
 
-| Domain | Status | Notes | Evidence |
-| --- | --- | --- | --- |
-| Install package / startup | 已验证 | NSIS installer produced by B1 retry2; Owner still needs manual install/start check. | Package Gate retry2 report/logs |
-| Page entry | 待 Owner 手工验收 | Main navigation entries exist in workbench app; Owner should verify installed app UI. | `web/workbench/flutter_app/lib/features/*` |
-| Import entry | 待 Owner 手工验收 | Import/parsing entry exists; V1.0 acceptance is entry visibility and basic operability, not full commercial ingestion. | `import_parsing` feature |
-| Knowledge base entry | 待 Owner 手工验收 | KB entry exists; advanced OKF semantic chunking is not V1.0 scope. | `knowledge_base` feature |
-| Artifacts entry | 待 Owner 手工验收 | Artifact/results entry exists for generated outputs and evidence navigation. | `artifacts` feature |
-| Skill entry | 待 Owner 手工验收 | Skill Builder entry exists; V1.0 validates entry and baseline workflow presence. | `skill` feature |
-| Agent entry | 已验证 + 待 Owner 手工验收 | Agent missing model-service path is tested; Owner should verify visible prompt in installed app. | widget test + Phase 2 packet |
-| Settings entry | 待 Owner 手工验收 | Settings entry exists; Owner should verify model-service guidance path. | `settings` feature |
-| Evidence / source / reports | 已验证 | Reports, logs, DeepSeek packets, and Package Gate evidence are committed. | `reports/` |
-| Failure-state prompts | 已验证 + 待 Owner 手工验收 | Agent unconfigured model-service prompt verified by widget test; Owner should confirm installed app text. | widget test + UI closure packet |
-| Complete commercial edition | 不在 V1.0 范围 | Full commercial feature depth belongs to later versions and should not block V1.0 baseline acceptance. | this pack |
-| Product Workflow Operator Thinning | 后续版本 | Planned for V1.1, not V1.0 acceptance. | roadmap boundary |
-| Implemented Capability to UI Operability Matrix | 后续版本 | Planned for V1.2. | roadmap boundary |
-| OKF Semantic Chunking | 后续版本 | Planned for V1.2/V1.3. | roadmap boundary |
-| Modular Runtime Architecture | 后续版本 | Planned for V2. | roadmap boundary |
+| Domain | Status | Evidence |
+| --- | --- | --- |
+| Install package artifact | verified package output | Package Gate Flutter UI retry2 evidence |
+| Launchable desktop shell | verified by Computer Use launch | Computer Use acceptance rerun report |
+| Current Flutter V1 UI identity | verified | screenshots under `output/v1_computer_use_acceptance_rerun/screenshots/` |
+| 导入资料 | covered | `02_nav_import.png` |
+| 知识库 | covered | `03_nav_knowledge.png` |
+| Skill | covered | `04_nav_skill.png` |
+| Agent | covered | `05_nav_agent.png`, `09_agent_config_or_missing_model_state.png` |
+| 文档生成 | covered | `06_nav_document_generation.png` |
+| 任务工作台 | covered | `01_home_task_workbench.png`, `07_nav_task_workbench.png` |
+| 配置 | covered | `08_nav_settings.png` |
+| Old UI exclusion | covered | Computer Use rerun report |
+| Evidence traceability | covered | reports and screenshots listed in this pack |
 
-## 4. Future Version Boundaries
+## 6. V1.0 Not Covered Scope
 
-- V1.1: Product Workflow Operator Thinning.
-- V1.2: Implemented Capability to UI Operability Matrix.
-- V1.2/V1.3: OKF Semantic Chunking.
-- V2: Modular Runtime Architecture.
+The following are not V1.0 baseline acceptance requirements:
 
-These future-version items must not be mixed into V1.0 Final Owner Review acceptance.
+- complete commercial product depth
+- full data lifecycle guarantees beyond current L0 evidence
+- full OKF semantic chunking implementation
+- full modular runtime architecture
+- repository/service/controller thinning
+- V1.1 / V1.2 / V2 implementation work
+- push, tag, release publication, or GitHub Release creation
 
-## 5. V1.0 Acceptance Matrix
+## 7. L1 Hardening Status
 
-| Acceptance item | Steps | Expected result | Evidence file | Pass standard | Fail standard | Owner |
-| --- | --- | --- | --- | --- | --- | --- |
-| Install EXE | Run the NSIS installer from the Package Gate artifact path. | Installer opens and completes without blocking error. | `reports/V1_PACKAGE_GATE_B1_RETRY2_RESULT_REPORT.md` | Owner can install locally. | Installer cannot run or install. | Owner |
-| Launch app | Start the installed app. | App opens to main workbench window. | Owner screenshot/log | Main window visible. | App fails to launch. | Owner |
-| Main page | Inspect main workbench/home area. | Main navigation and current page render coherently. | Owner screenshot | No blank screen or blocking crash. | Blank screen, crash, or unusable navigation. | Owner |
-| Page entries | Check sidebar/top-level entries. | Import, KB, artifacts, Skill, Agent, Settings entries are reachable. | Owner screenshots | Entries open without blocking crash. | Required entry missing or crashes. | Owner |
-| Import entry | Open import/parsing page. | Entry renders expected import surface. | Owner screenshot | Page reachable and understandable. | Entry missing or unusable. | Owner |
-| Knowledge base entry | Open KB page. | Entry renders KB surface. | Owner screenshot | Page reachable and understandable. | Entry missing or unusable. | Owner |
-| Artifacts/results entry | Open artifacts/results page. | Entry renders output/evidence area. | Owner screenshot | Page reachable and understandable. | Entry missing or unusable. | Owner |
-| Skill entry | Open Skill page. | Entry renders Skill workflow surface. | Owner screenshot | Page reachable and understandable. | Entry missing or unusable. | Owner |
-| Agent unconfigured model prompt | Open Agent page and create/use assistant without configured model service. | Product-facing guidance appears; no raw Provider/Adapter/stack trace wording. | `reports/V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md`; Owner screenshot | Guidance is clear and non-technical. | Internal/debug wording or confusing failure. | Owner / Codex |
-| Settings page | Open settings page. | Settings entry renders and supports model-service check path. | Owner screenshot | Page reachable and understandable. | Entry missing or unusable. | Owner |
-| Close app | Close installed app. | App exits normally. | Owner note/log | No hang or crash on close. | Cannot close or crashes. | Owner |
-| Evidence traceability | Review reports and logs. | Package Gate and validation evidence can be traced. | `reports/` | Evidence files present and consistent. | Missing or contradictory evidence. | Codex / DeepSeek |
-| Final external review | Review Package Gate result. | DeepSeek result is `PASS_PACKAGE_GATE_RESULT`. | `reports/V1_PACKAGE_GATE_B1_RETRY2_DEEPSEEK_REVIEW_RESULT.md` | No blocking issue. | DeepSeek blocks or requires fixes. | DeepSeek |
+L1 post-package hardening is planned for the long-run sequence and is not yet complete in this preparation pack.
 
-## 6. Owner Manual Acceptance Steps
+Current L1 status:
 
-1. Install the EXE:
-   `desktop\tauri\src-tauri\target\release\bundle\nsis\HeiTang KB Forge Desktop_1.2.3_x64-setup.exe`
-2. Launch the installed application.
-3. Check the main page.
-4. Check the import/material entry.
-5. Check the knowledge base entry.
-6. Check the artifacts/results entry.
-7. Check the Skill entry.
-8. Check the Agent page and confirm the unconfigured model-service prompt.
-9. Check the Settings page.
-10. Close the application.
-11. Record screenshots and any logs needed for the final Owner decision.
+placeholder pending Phase 6 long-run hardening probe.
 
-## 7. Current Risks
+If Phase 6 finds P0 or P1 issues, those issues must enter the auto-repair loop before this pack can remain final-decision-ready.
 
-| Risk | Current handling |
-| --- | --- |
-| PowerShell NativeCommandError informational output | Known Package Gate log behavior; hardened script returns native build exit code `0`; DeepSeek accepted Package Gate result. |
-| Evidence residue status | A1/A2, B1 failure/RCA/fix, retry, EOL normalization, retry2, logs, and DeepSeek PASS evidence have been committed through `99a5a29`. This preparation pack is newly generated and uncommitted until Owner decides. |
-| V1.0 is not a complete commercial edition | Explicitly out of V1.0 acceptance; do not expand Final Owner Review to full commercial completeness. |
-| Future capabilities mixed into V1.0 acceptance | V1.1/V1.2/V1.3/V2 items are listed as future boundaries and must not block V1.0 baseline acceptance. |
-| Manual acceptance not yet performed | This pack prepares the checklist; Owner still must perform and decide. |
+## 8. Future Version Boundaries
 
-## 8. Final Owner Decision Template
+V1.1:
+
+- Product Workflow Operator Thinning
+- workflow/operator slimming
+- actions / sections / state helpers / text constants
+- no behavior change
+
+V1.2:
+
+- Implemented Capability to UI Operability Matrix
+- map implemented capabilities to visible user operations
+- identify output, export, source, and evidence visibility
+
+V1.2 / V1.3:
+
+- OKF Semantic Chunking
+- canonical parsed document structure
+- semantic chunks, heading paths, block ids, source document ids, source trace ids, lineage
+
+V2:
+
+- Modular Runtime Architecture
+- repository extraction
+- service extraction
+- runtime boundary cleanup
+
+These future-version boundaries must not be pulled back into V1.0 final acceptance.
+
+## 9. Owner Review Checklist
+
+Owner may inspect these materials, but the Owner final decision is not ready until DeepSeek review succeeds or Owner explicitly changes the gate.
+
+1. Valid artifact path, size, and SHA256.
+2. Package Gate Flutter UI retry2 result.
+3. DeepSeek Package Gate result.
+4. Computer Use Acceptance rerun screenshots.
+5. DeepSeek Computer Use result.
+6. Old shell invalidation report.
+7. Agent missing-model / assistant-not-created prompt evidence.
+8. DeepSeek Edge CDP blocker evidence.
+9. Current risks and L1 hardening status.
+
+## 10. Owner Decision Template
 
 Owner must choose exactly one:
 
@@ -138,23 +170,27 @@ CONDITIONAL_PASS_WITH_FIXES
 BLOCK_V1_ACCEPTANCE
 ```
 
-Required Owner notes:
+Owner notes:
 
 - decision:
 - blocking issues, if any:
 - required fixes, if any:
-- screenshots/logs captured:
+- screenshots/logs reviewed:
 - final recommendation:
 
-## Non-Claims
+## 11. Safety Notes
 
-This preparation pack does not claim:
+This pack:
 
-- `production_ready`
-- `release_ready`
-- `runtime_ready`
-- `final_owner_review_passed`
+- does not select the Owner decision
+- does not authorize push/tag/release
+- does not treat the missing DeepSeek enum as a pass
+- does not mark the Owner final decision as ready
+- does not rely on the invalidated stale-shell artifact
+- does not use invalidated Computer Use evidence as pass evidence
+- does not modify `capability_chain_status.json`
+- keeps later-version implementation out of V1.0 scope
 
-## Final State
+## 12. Final State
 
-`v1_final_owner_review_preparation_pack_created_pending_owner_review`
+`v1_long_run_blocked_by_deepseek_edge_cdp_unavailable`
