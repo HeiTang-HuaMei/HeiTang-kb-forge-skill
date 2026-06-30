@@ -4,7 +4,7 @@ Generated: 2026-06-30
 
 ## 1. Current State
 
-`v1_l1_deepwater_deepseek_passed_pending_final_owner_redecision`
+`v1_l1_final_capability_evidence_passed_pending_final_owner_redecision`
 
 ## 2. Owner Original Condition
 
@@ -94,7 +94,44 @@ Owner must choose one:
 - Owner option only, not selected by this pack: `CONDITIONAL_PASS_WITH_FIXES`
 - Owner option only, not selected by this pack: `BLOCK_V1_ACCEPTANCE`
 
-## 10. Boundary
+## 10. Final Capability Evidence Before PASS_FINAL_OWNER_REVIEW
+
+Owner added one final condition before considering `PASS_FINAL_OWNER_REVIEW`: L1 reports must prove real capability chains for Document Library, Knowledge Base, Task Workbench, Document Generation, Skill, and Agent. Entry reachability alone is not enough.
+
+Final capability evidence matrix:
+
+`reports/V1_L1_FINAL_CAPABILITY_EVIDENCE_MATRIX.md`
+
+Supplement reports:
+
+- `reports/V1_L1_DOCUMENT_LIBRARY_SUPPLEMENT_REPORT.md`
+- `reports/V1_L1_KNOWLEDGE_BASE_SUPPLEMENT_REPORT.md`
+- `reports/V1_L1_TASK_WORKBENCH_SUPPLEMENT_REPORT.md`
+- `reports/V1_L1_DOCUMENT_GENERATION_SUPPLEMENT_REPORT.md`
+- `reports/V1_L1_SKILL_SUPPLEMENT_REPORT.md`
+- `reports/V1_L1_AGENT_SUPPLEMENT_REPORT.md`
+
+Capability results:
+
+- Document Library real chain verified: real file import, parsing, splitting, abnormal file failure record, `source_trace.json`, `manifest.json`, and `source_inventory.json`.
+- Knowledge Base real chain verified: real chunks/cards/qa pairs, `evidence_map.json`, source trace back to original files, rebuild evidence, and RAG citation/refusal evidence.
+- Task Workbench real chain verified: batch task manifests and progress events prove real task/status flow, not static mock cards.
+- Document Generation real chain verified: at least one non-empty generated `demo_report.md` artifact with source trace, plus empty-input warning/failure-state evidence.
+- Skill real chain verified: real `skill_manifest.yaml`, source package reference, validation evidence, and missing-source non-silent failure behavior.
+- Agent real chain verified: friendly no-assistant / unconfigured-model guidance, no Provider / Adapter / stack trace / internal exception exposure in packaged UI evidence, and explicit live LLM smoke condition handling.
+
+LLM smoke boundary:
+
+The CLI automation path did not expose live provider env vars, so this pack does not claim a real external LLM call passed. It records one retry plus explicit external service unavailable handling and does not fake a pass.
+
+Current boundary:
+
+- no `production_ready` claim
+- no `release_ready` claim
+- no `runtime_ready` claim
+- Owner still must choose one final re-decision option
+
+## 11. Boundary
 
 This pack does not automatically pass Final Owner Review.
 
@@ -108,6 +145,6 @@ This pack does not authorize:
 
 Owner must make the final re-decision.
 
-## 11. Final State
+## 12. Final State
 
-`v1_l1_deepwater_deepseek_passed_pending_final_owner_redecision`
+`v1_l1_final_capability_evidence_passed_pending_final_owner_redecision`

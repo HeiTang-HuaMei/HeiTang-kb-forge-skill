@@ -1,0 +1,12 @@
+{
+  "provider_live_smoke_version": "2.6.0",
+  "generated_at": "2026-06-30T05:41:33.890806+00:00",
+  "provider_id": "openai_compatible_generic",
+  "status": "fail",
+  "live": true,
+  "allow_network": true,
+  "network_called": false,
+  "api_key_leak_detected": false,
+  "warnings": [],
+  "error": "Provider base URL or API key environment variable is not configured."
+}

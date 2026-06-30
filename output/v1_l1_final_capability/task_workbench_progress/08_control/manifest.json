@@ -1,0 +1,30 @@
+{
+  "package_version": "0.1.0",
+  "generated_at": "2026-06-30T05:43:08.847398+00:00",
+  "domain": "general",
+  "mode": "reference",
+  "source_count": 1,
+  "chunk_count": 1,
+  "card_count": 1,
+  "qa_pair_count": 1,
+  "glossary_count": 2,
+  "files": [
+    "chunks.jsonl",
+    "cards.jsonl",
+    "qa_pairs.jsonl",
+    "glossary.jsonl",
+    "manifest.json",
+    "ingest_report.md",
+    "quality_report.json",
+    "pdf_preflight_report.json",
+    "pdf_page_classification.jsonl",
+    "ocr_cache_manifest.json",
+    "ocr_failed_pages.jsonl",
+    "ocr_resume_report.md",
+    "large_file_performance_report.md",
+    "progress_events.jsonl"
+  ],
+  "quality_report_file": "quality_report.json",
+  "warnings": [],
+  "chunk_profile": "default"
+}

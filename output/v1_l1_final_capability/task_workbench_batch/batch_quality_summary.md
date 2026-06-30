@@ -1,0 +1,8 @@
+# Batch Quality Summary
+
+- knowledge_quality_score: 100
+- low_quality_chunk_count: 0
+- missing_evidence_count: 0
+- review_required_count: 0
+- failed_source_count: 0
+- partial_source_count: 0

@@ -1,0 +1,5 @@
+{
+  "retry_manifest_version": "1.2.1",
+  "items": [],
+  "manual_retry_hint": "Re-run batch with the listed source files or source groups."
+}
