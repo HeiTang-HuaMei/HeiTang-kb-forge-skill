@@ -1,0 +1,143 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    },
+    "chunk_1": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "chunk_id": "d20ffb4c1283d884cf66b041"
+    },
+    "chunk_2": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850"
+    },
+    "chunk_3": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9"
+    },
+    "card_4": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    },
+    "card_5": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "chunk_id": "d20ffb4c1283d884cf66b041"
+    },
+    "card_6": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850"
+    },
+    "card_7": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9"
+    },
+    "qa_pair_8": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    },
+    "qa_pair_9": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "chunk_id": "d20ffb4c1283d884cf66b041"
+    },
+    "qa_pair_10": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850"
+    },
+    "qa_pair_11": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9"
+    },
+    "glossary_12": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    },
+    "glossary_13": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9"
+    },
+    "glossary_14": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850"
+    },
+    "glossary_15": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    },
+    "glossary_16": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b"
+    }
+  },
+  "by_chunk_id": {
+    "c52d72a9ad7847fc8215b09b": [
+      "chunk_0",
+      "card_4",
+      "qa_pair_8",
+      "glossary_12",
+      "glossary_15",
+      "glossary_16"
+    ],
+    "d20ffb4c1283d884cf66b041": [
+      "chunk_1",
+      "card_5",
+      "qa_pair_9"
+    ],
+    "2ece690c7deb5d2ffcad3850": [
+      "chunk_2",
+      "card_6",
+      "qa_pair_10",
+      "glossary_14"
+    ],
+    "f5268dc470a1d90fdb199bf9": [
+      "chunk_3",
+      "card_7",
+      "qa_pair_11",
+      "glossary_13"
+    ]
+  },
+  "by_source_path": {
+    "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md": [
+      "chunk_0",
+      "card_4",
+      "qa_pair_8",
+      "glossary_12",
+      "glossary_15",
+      "glossary_16"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md": [
+      "chunk_1",
+      "card_5",
+      "qa_pair_9"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md": [
+      "chunk_2",
+      "card_6",
+      "qa_pair_10",
+      "glossary_14"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md": [
+      "chunk_3",
+      "card_7",
+      "qa_pair_11",
+      "glossary_13"
+    ]
+  }
+}

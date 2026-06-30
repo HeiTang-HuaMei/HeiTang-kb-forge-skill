@@ -1,0 +1,9 @@
+﻿{
+    "raw_issue_count":  36,
+    "unexpected_issue_count":  0,
+    "result":  "pass_with_pdf_fixture_xref_spacing_classified",
+    "classification":  "raw_pdf_fixture_xref_spacing_only",
+    "unexpected":  [
+
+                   ]
+}

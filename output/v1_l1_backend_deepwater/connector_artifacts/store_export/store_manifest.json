@@ -1,0 +1,8 @@
+{
+  "store_version": "1.4.0",
+  "generated_at": "2026-06-30T02:54:58.991685+00:00",
+  "db_path": "output/v1_l1_backend_deepwater/connector_artifacts/l1_store.sqlite",
+  "package_count": 1,
+  "source_count": 0,
+  "chunk_count": 5
+}

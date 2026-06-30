@@ -1,0 +1,11 @@
+{
+  "error_report_version": "1.2.1",
+  "run_id": "run_076493d6f8dc",
+  "errors": [
+    {
+      "source": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/corrupt.pdf",
+      "error": "PDF OCR failed for output\\v1_l1_backend_deepwater\\workspaces\\phase2_with_failure_input\\corrupt.pdf: Failed to load document (PDFium: Data format error).",
+      "error_type": "RuntimeError"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "trace_version": "1.7.0",
+  "generated_at": "2026-06-30T02:54:49.155820+00:00",
+  "query": "Summarize this knowledge package.",
+  "route": "summary",
+  "selected_ids": [
+    "chunk_0",
+    "qa_pair_2",
+    "glossary_3",
+    "card_1"
+  ],
+  "warnings": []
+}

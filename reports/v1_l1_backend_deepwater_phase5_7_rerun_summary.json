@@ -1,0 +1,16 @@
+﻿[
+    {
+        "phase":  "phase5",
+        "name":  "empty_input_failure_state_rerun",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\empty_input_failure_state_rerun.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\empty_input_failure_state_rerun.stderr.log"
+    },
+    {
+        "phase":  "phase7",
+        "name":  "agent_openai_placeholder_rerun",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_openai_placeholder_rerun.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_openai_placeholder_rerun.stderr.log"
+    }
+]

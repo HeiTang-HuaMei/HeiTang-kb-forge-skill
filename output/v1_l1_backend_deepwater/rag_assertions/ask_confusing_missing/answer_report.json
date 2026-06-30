@@ -1,0 +1,14 @@
+{
+  "agent_rag_version": "1.5.0",
+  "query": "Which source says the moon is made of basalt cheese?",
+  "top_k": 5,
+  "citation_required": true,
+  "insufficient_context": false,
+  "citation_count": 5,
+  "output_files": [
+    "answer.md",
+    "answer_report.json",
+    "retrieval_trace.json",
+    "citation_trace.json"
+  ]
+}

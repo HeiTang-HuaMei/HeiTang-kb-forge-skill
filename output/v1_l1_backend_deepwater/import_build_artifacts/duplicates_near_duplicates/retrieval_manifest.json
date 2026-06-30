@@ -1,0 +1,12 @@
+{
+  "retrieval_version": "1.7.0",
+  "generated_at": "2026-06-30T02:43:46.458392+00:00",
+  "package": "output/v1_l1_backend_deepwater/import_build_artifacts/duplicates_near_duplicates",
+  "total_records": 17,
+  "asset_type_counts": {
+    "chunk": 4,
+    "card": 4,
+    "qa_pair": 4,
+    "glossary": 5
+  }
+}

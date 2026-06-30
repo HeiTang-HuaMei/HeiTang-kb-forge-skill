@@ -1,0 +1,16 @@
+{
+  "runtime_version": "1.1.0",
+  "query": "What codename does HT-L1-FACT-002 use?",
+  "provider": "fake",
+  "model": "fake-model",
+  "answer_file": "answer.md",
+  "retrieval_trace_file": "retrieval_trace.json",
+  "citations": [
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463"
+  ],
+  "insufficient_context": false
+}

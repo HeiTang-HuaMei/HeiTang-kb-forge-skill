@@ -1,0 +1,50 @@
+{
+  "source_trace_version": "1.0",
+  "sources": [
+    {
+      "source_id": "e283f0af13bd7df7d6f82134",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/01_cn_control.md",
+      "source_type": "md",
+      "chunk_id": "e283f0af13bd7df7d6f82134",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/01_cn_control.md#chunk=e283f0af13bd7df7d6f82134",
+      "order": 0,
+      "title": "????????"
+    },
+    {
+      "source_id": "2d01cc7c49d925ee680d8803",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/02_en_control.md",
+      "source_type": "md",
+      "chunk_id": "2d01cc7c49d925ee680d8803",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/02_en_control.md#chunk=2d01cc7c49d925ee680d8803",
+      "order": 0,
+      "title": "L1 Backend Fixture"
+    },
+    {
+      "source_id": "20c0cb2d88b57ccdda404686",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/03_plain_fact.txt",
+      "source_type": "txt",
+      "chunk_id": "20c0cb2d88b57ccdda404686",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/03_plain_fact.txt#chunk=20c0cb2d88b57ccdda404686",
+      "order": 0,
+      "title": "Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused."
+    },
+    {
+      "source_id": "0d98b4c1331e3ad68eb45ccd",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/07_control.docx",
+      "source_type": "docx",
+      "chunk_id": "0d98b4c1331e3ad68eb45ccd",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/07_control.docx#chunk=0d98b4c1331e3ad68eb45ccd",
+      "order": 0,
+      "title": "DOCX Control Fixture"
+    },
+    {
+      "source_id": "07d667a6e2da56ffca3a1b64",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/08_control.pdf",
+      "source_type": "pdf",
+      "chunk_id": "07d667a6e2da56ffca3a1b64",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/08_control.pdf#chunk=07d667a6e2da56ffca3a1b64",
+      "order": 0,
+      "title": "HT-L1-FACT-008 PDF source trace fixture."
+    }
+  ]
+}

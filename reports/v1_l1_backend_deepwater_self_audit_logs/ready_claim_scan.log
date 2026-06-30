@@ -1,0 +1,21 @@
+﻿reports\V1_ACCEPTANCE_AND_HARDENING_MASTER_PLAN.md:236:- `PASS_FINAL_OWNER_REVIEW`
+reports\V1_FINAL_OWNER_REVIEW_CONDITIONAL_RESULT.md:35:- `PASS_FINAL_OWNER_REVIEW` not granted
+reports\V1_FINAL_OWNER_REVIEW_PREPARATION_PACK.md:162:PASS_FINAL_OWNER_REVIEW
+reports\V1_L1_BACKEND_DEEPWATER_ACCEPTANCE_SUMMARY.md:11:It does not grant `PASS_FINAL_OWNER_REVIEW`, does not push, does not tag, does not release, and does not claim production/release/runtime readiness.
+reports\V1_L1_BACKEND_DEEPWATER_ACCEPTANCE_SUMMARY.md:138:- not claimed: `PASS_FINAL_OWNER_REVIEW`
+reports\V1_L1_BACKEND_DEEPWATER_DEEPSEEK_REVIEW_PACKET.md:29:- not granted: `PASS_FINAL_OWNER_REVIEW`
+reports\V1_L1_BACKEND_DEEPWATER_RISK_MATRIX.md:82:This does not grant `PASS_FINAL_OWNER_REVIEW`, push, tag, release, or any production/release/runtime readiness claim.
+reports\V1_L1_BACKEND_DEEPWATER_SKILL_SNAPSHOT_REPORT.md:61:This field is not a V1.0 release decision, not a Package / Release Gate decision, not `PASS_FINAL_OWNER_REVIEW`, and not authorization to push, tag, or release.
+reports\V1_OWNER_FINAL_DECISION_READY_PACK.md:71:PASS_FINAL_OWNER_REVIEW
+reports\V1_LONG_RUN_EVIDENCE_INVENTORY.md:152:- `PASS_FINAL_OWNER_REVIEW`
+reports\V1_PACKAGE_GATE_EXECUTION_PLAN.md:41:rg "production_ready=true|release_ready=true|runtime_ready=true|package_gate_passed|final_owner_review_passed|PASS_TO_PACKAGE_GATE|CONDITIONAL_PASS_WITH_REQUIRED_FIXES|BLOCK_PACKAGE_GATE" web heitang_kb_forge tests docs reports capability_chain_status.json
+reports\V1_PACKAGE_GATE_EXECUTION_PLAN.md:125:rg "production_ready=true|release_ready=true|runtime_ready=true|package_gate_passed|final_owner_review_passed|PASS_TO_PACKAGE_GATE|CONDITIONAL_PASS_WITH_REQUIRED_FIXES|BLOCK_PACKAGE_GATE" web heitang_kb_forge tests docs reports capability_chain_status.json
+reports\V1_PACKAGE_GATE_EXECUTION_PLAN_DEEPSEEK_REVIEW_PACKET.md:130:production_ready=true|release_ready=true|runtime_ready=true|package_gate_passed|final_owner_review_passed|PASS_TO_PACKAGE_GATE|CONDITIONAL_PASS_WITH_REQUIRED_FIXES|BLOCK_PACKAGE_GATE
+reports\V1_PACKAGE_GATE_PREFLIGHT_READINESS_REPORT.md:57:rg "production_ready=true|release_ready=true|runtime_ready=true|package_gate_passed|final_owner_review_passed" web heitang_kb_forge tests
+reports\V1_PACKAGE_GATE_PREPARATION_CHECKLIST.md:20:  `rg "production_ready=true|release_ready=true|runtime_ready=true" web heitang_kb_forge tests`
+reports\V1_PACKAGE_GATE_PREPARATION_WORKTREE_PARTITION_REPORT.md:21:| `rg "production_ready=true|release_ready=true|runtime_ready=true" web heitang_kb_forge tests` | no matches; exit code 1 from ripgrep means pass/no matches |
+reports\V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md:157:| Product ready-claim rerun | `rg "production_ready=true|release_ready=true|runtime_ready=true" web heitang_kb_forge tests` | pass_no_matches | `ready_claim_product_scan_after_rc6_fix.result.json` |
+reports\V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md:160:| Product ready-claim scan | `rg "production_ready=true|release_ready=true|runtime_ready=true" web heitang_kb_forge tests` | pass_no_matches | `ready_claim_product_scan.result.json` |
+reports\V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md:161:| Full repo ready-claim scan | `rg "production_ready=true|release_ready=true|runtime_ready=true" .` | match in existing scan report self-reference | `ready_claim_scan.result.json` |
+reports\V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md:220:rg "production_ready=true|release_ready=true|runtime_ready=true" web heitang_kb_forge tests
+reports\V1_UI_CLOSURE_PHASE2_DEEPSEEK_REVIEW_PACKET.md:228:rg "production_ready=true|release_ready=true|runtime_ready=true" .

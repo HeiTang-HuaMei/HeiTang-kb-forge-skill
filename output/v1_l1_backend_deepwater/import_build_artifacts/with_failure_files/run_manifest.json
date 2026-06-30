@@ -1,0 +1,13 @@
+{
+  "run_manifest_version": "1.2.1",
+  "run_id": "run_076493d6f8dc",
+  "command": "build",
+  "input": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input",
+  "output": "output/v1_l1_backend_deepwater/import_build_artifacts/with_failure_files",
+  "status": "success",
+  "generated_at": "2026-06-30T02:43:45.463354+00:00",
+  "warnings": [
+    "Source parsing failed: output\\v1_l1_backend_deepwater\\workspaces\\phase2_with_failure_input\\corrupt.pdf: PDF OCR failed for output\\v1_l1_backend_deepwater\\workspaces\\phase2_with_failure_input\\corrupt.pdf: Failed to load document (PDFium: Data format error).",
+    "Source produced no text: output\\v1_l1_backend_deepwater\\workspaces\\phase2_with_failure_input\\empty.md"
+  ]
+}

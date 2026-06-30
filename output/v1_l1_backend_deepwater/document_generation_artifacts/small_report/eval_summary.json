@@ -1,0 +1,14 @@
+{
+  "eval_version": "0.8.0",
+  "generated_at": "2026-06-30T02:54:49.142655+00:00",
+  "eval_cases_file": null,
+  "eval_cases_count": 0,
+  "required_citation_count": 0,
+  "source_path_coverage": 0.0,
+  "chunk_id_coverage": 0.0,
+  "status": "warning",
+  "warnings": [
+    "Agent Template is not enabled",
+    "No eval cases generated"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "package_version": "0.1.0",
+  "generated_at": "2026-06-30T02:57:04.387876+00:00",
+  "domain": "general",
+  "mode": "reference",
+  "source_count": 1,
+  "chunk_count": 0,
+  "card_count": 0,
+  "qa_pair_count": 0,
+  "glossary_count": 0,
+  "files": [
+    "chunks.jsonl",
+    "cards.jsonl",
+    "qa_pairs.jsonl",
+    "glossary.jsonl",
+    "manifest.json",
+    "ingest_report.md",
+    "quality_report.json",
+    "run_manifest.json",
+    "stage_trace.jsonl",
+    "error_report.json",
+    "evidence_map.json",
+    "source_trace.json",
+    "source_inventory.json",
+    "quality_report.md"
+  ],
+  "quality_report_file": "quality_report.json",
+  "warnings": [
+    "Source produced no text: output\\v1_l1_backend_deepwater\\test_dataset\\failure_cases\\empty.md"
+  ],
+  "chunk_profile": "default",
+  "contract_version": "2.0",
+  "package_id": "pkg_empty_input_rerun",
+  "created_at": "2026-06-30T02:57:04.387876+00:00",
+  "table_count": 0,
+  "asset_count": 0,
+  "multimodal_asset_count": 0,
+  "parser_versions": {
+    "contract": "v2",
+    "multimodal": "v1.6"
+  },
+  "quality_status": "fair",
+  "review_status": "none",
+  "progress_status": "not_enabled",
+  "ocr_status": "not_enabled",
+  "multimodal_status": "not_enabled",
+  "rag_status": "not_enabled",
+  "agent_template_status": "not_enabled"
+}

@@ -1,0 +1,35 @@
+{
+  "citation_trace_version": "1.5.0",
+  "citations": [
+    {
+      "embedding_id": "chunk_1",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f"
+    },
+    {
+      "embedding_id": "card_6",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f"
+    },
+    {
+      "embedding_id": "qa_pair_11",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f"
+    },
+    {
+      "embedding_id": "chunk_2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463"
+    },
+    {
+      "embedding_id": "card_7",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463"
+    }
+  ]
+}

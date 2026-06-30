@@ -1,0 +1,57 @@
+{
+  "evidence_version": "2.0",
+  "chunks": {
+    "c52d72a9ad7847fc8215b09b": {
+      "evidence_id": "ev_c52d72a9ad7847fc8215b09b",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "d20ffb4c1283d884cf66b041": {
+      "evidence_id": "ev_d20ffb4c1283d884cf66b041",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "2ece690c7deb5d2ffcad3850": {
+      "evidence_id": "ev_2ece690c7deb5d2ffcad3850",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "f5268dc470a1d90fdb199bf9": {
+      "evidence_id": "ev_f5268dc470a1d90fdb199bf9",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    }
+  }
+}

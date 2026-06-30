@@ -1,0 +1,52 @@
+{
+  "package_version": "0.1.0",
+  "generated_at": "2026-06-30T02:55:00.233656+00:00",
+  "domain": "general",
+  "mode": "reference",
+  "source_count": 5,
+  "chunk_count": 5,
+  "card_count": 5,
+  "qa_pair_count": 5,
+  "glossary_count": 18,
+  "files": [
+    "chunks.jsonl",
+    "cards.jsonl",
+    "qa_pairs.jsonl",
+    "glossary.jsonl",
+    "manifest.json",
+    "ingest_report.md",
+    "quality_report.json",
+    "embedding_input.jsonl",
+    "retrieval_metadata.jsonl",
+    "citation_map.json",
+    "rag_manifest.json",
+    "embeddings.jsonl",
+    "embedding_manifest.json",
+    "vector_store_records.jsonl",
+    "vector_store_manifest.json"
+  ],
+  "quality_report_file": "quality_report.json",
+  "warnings": [],
+  "chunk_profile": "default",
+  "rag_export_enabled": true,
+  "rag_profile": "basic",
+  "rag_export_files": [
+    "embedding_input.jsonl",
+    "retrieval_metadata.jsonl",
+    "citation_map.json",
+    "rag_manifest.json"
+  ],
+  "embedding_enabled": true,
+  "embedding_provider": "fake",
+  "embedding_model": "fake-embedding-model",
+  "embedding_files": [
+    "embeddings.jsonl",
+    "embedding_manifest.json"
+  ],
+  "vector_export_enabled": true,
+  "vector_store": "local_json",
+  "vector_export_files": [
+    "vector_store_records.jsonl",
+    "vector_store_manifest.json"
+  ]
+}

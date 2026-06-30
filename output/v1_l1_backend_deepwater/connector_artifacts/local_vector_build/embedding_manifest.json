@@ -1,0 +1,11 @@
+{
+  "embedding_version": "0.9.0",
+  "generated_at": "2026-06-30T02:55:00.233656+00:00",
+  "provider": "fake",
+  "model": "fake-embedding-model",
+  "dimensions": 8,
+  "total_records": 33,
+  "source_file": "embedding_input.jsonl",
+  "output_file": "embeddings.jsonl",
+  "warnings": []
+}

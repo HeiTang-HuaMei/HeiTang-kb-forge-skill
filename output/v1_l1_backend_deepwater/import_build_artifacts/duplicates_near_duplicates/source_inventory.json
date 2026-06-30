@@ -1,0 +1,26 @@
+{
+  "source_inventory_version": "2.0",
+  "source_count": 4,
+  "sources": [
+    {
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "source_type": "md"
+    }
+  ]
+}

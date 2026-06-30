@@ -1,0 +1,70 @@
+{
+  "evidence_version": "2.0",
+  "chunks": {
+    "e283f0af13bd7df7d6f82134": {
+      "evidence_id": "ev_e283f0af13bd7df7d6f82134",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/01_cn_control.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/01_cn_control.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "2d01cc7c49d925ee680d8803": {
+      "evidence_id": "ev_2d01cc7c49d925ee680d8803",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/02_en_control.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/02_en_control.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "20c0cb2d88b57ccdda404686": {
+      "evidence_id": "ev_20c0cb2d88b57ccdda404686",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/03_plain_fact.txt",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/03_plain_fact.txt",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "0d98b4c1331e3ad68eb45ccd": {
+      "evidence_id": "ev_0d98b4c1331e3ad68eb45ccd",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/07_control.docx",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/07_control.docx",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "07d667a6e2da56ffca3a1b64": {
+      "evidence_id": "ev_07d667a6e2da56ffca3a1b64",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/08_control.pdf",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_with_failure_input/08_control.pdf",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    }
+  }
+}

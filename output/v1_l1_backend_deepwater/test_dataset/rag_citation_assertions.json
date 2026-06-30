@@ -1,0 +1,34 @@
+{
+  "hit_questions": [
+    {
+      "question": "????????????????",
+      "expected_fact": "HT-L1-FACT-001 -> ?????",
+      "expected_source": "01_cn_control.md"
+    },
+    {
+      "question": "What codename does HT-L1-FACT-002 use?",
+      "expected_fact": "Obsidian Bench",
+      "expected_source": "02_en_control.md"
+    },
+    {
+      "question": "What is the recovery keyword?",
+      "expected_fact": "clean-restart",
+      "expected_source": "03_plain_fact.txt"
+    }
+  ],
+  "miss_questions": [
+    {
+      "question": "HT-L1-MISSING-999 ???????",
+      "expected_behavior": "refuse or state insufficient evidence"
+    },
+    {
+      "question": "Which source says the moon is made of basalt cheese?",
+      "expected_behavior": "refuse or state no supporting source"
+    }
+  ],
+  "citation_rules": [
+    "answers for hit questions must cite a real source file or source trace record",
+    "miss questions must not invent source files",
+    "citation/source_trace/evidence_map links must be closed if generated"
+  ]
+}

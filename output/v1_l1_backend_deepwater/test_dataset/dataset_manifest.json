@@ -1,0 +1,135 @@
+{
+  "generated": "2026-06-30",
+  "purpose": "V1 L1 backend deepwater acceptance reproducible dataset",
+  "dataset_root": "output/v1_l1_backend_deepwater/test_dataset",
+  "workspace_root": "output/v1_l1_backend_deepwater/workspaces",
+  "case_count": 14,
+  "cases": [
+    {
+      "id": "zh_markdown_control_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "relative_path": "01_cn_control.md",
+      "kind": "markdown",
+      "size": 195,
+      "sha256": "12400639723D6CED3600ABB3CE57290D86324B01DD9DD30F61CFF45A930981D3",
+      "expected_behavior": "success: should parse headings, quote, table, and controlled Chinese fact"
+    },
+    {
+      "id": "en_markdown_control_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/02_en_control.md",
+      "relative_path": "02_en_control.md",
+      "kind": "markdown",
+      "size": 196,
+      "sha256": "95CC65C6E2E1225E2F4E02D330B9492516DD7A79088DB4434B1F65BF052736FF",
+      "expected_behavior": "success: should parse English controlled fact and numbered list"
+    },
+    {
+      "id": "txt_plain_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/03_plain_fact.txt",
+      "relative_path": "03_plain_fact.txt",
+      "kind": "txt",
+      "size": 121,
+      "sha256": "A3E79FE9B63DC69D377A3165E69D00919E22B0B223DEAAF4D67335CF7C9D3F09",
+      "expected_behavior": "success: should parse TXT controlled fact"
+    },
+    {
+      "id": "csv_table_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/04_table.csv",
+      "relative_path": "04_table.csv",
+      "kind": "csv",
+      "size": 77,
+      "sha256": "4A5678B4F7025E7E060205E0ED2AB4056F8062C1D9EB9F6B3ADF3291B84AE174",
+      "expected_behavior": "success or friendly unsupported: CSV/TSV table path must not corrupt build"
+    },
+    {
+      "id": "tsv_table_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/05_table.tsv",
+      "relative_path": "05_table.tsv",
+      "kind": "tsv",
+      "size": 78,
+      "sha256": "9B12E29D4A97C5DC2FBCDEA82DD9849BB5A647EFECCBFB6817D595BDAA16BDE4",
+      "expected_behavior": "success or friendly unsupported: CSV/TSV table path must not corrupt build"
+    },
+    {
+      "id": "duplicate_name_a",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/duplicates/A/same_name.md",
+      "relative_path": "duplicates/A/same_name.md",
+      "kind": "markdown",
+      "size": 51,
+      "sha256": "341EF49CB0225A1CBE402A10DAB0F026E9D6BDE8AC7754B4ADE80D85EACD3503",
+      "expected_behavior": "success: duplicate basename should keep distinct source path"
+    },
+    {
+      "id": "duplicate_name_b",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/duplicates/B/same_name.md",
+      "relative_path": "duplicates/B/same_name.md",
+      "kind": "markdown",
+      "size": 51,
+      "sha256": "B0172C43B3D8626B0FBE1A7CB62BBC7282C175BD11BA0740DAD478C1EC2039DD",
+      "expected_behavior": "success: duplicate basename should keep distinct source path"
+    },
+    {
+      "id": "near_duplicate_a",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/near_duplicate_a.md",
+      "relative_path": "near_duplicate_a.md",
+      "kind": "markdown",
+      "size": 82,
+      "sha256": "9F439929FE569E406C6F3AAB3D90FBF7CA46E844F0D0521741FD0E6AE7AA59E1",
+      "expected_behavior": "success: near duplicate should remain explainable"
+    },
+    {
+      "id": "near_duplicate_b",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/near_duplicate_b.md",
+      "relative_path": "near_duplicate_b.md",
+      "kind": "markdown",
+      "size": 82,
+      "sha256": "BAD7B5F30378C19CE066F1C5D13BAEAD58B994162681D3E95DE388A6B57418A8",
+      "expected_behavior": "success: near duplicate should remain explainable"
+    },
+    {
+      "id": "empty_file_failure_state",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/failure_cases/empty.md",
+      "relative_path": "failure_cases/empty.md",
+      "kind": "markdown_empty",
+      "size": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "expected_behavior": "friendly failure or empty-input warning; must not poison successful files"
+    },
+    {
+      "id": "corrupt_file_failure_state",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/failure_cases/corrupt.pdf",
+      "relative_path": "failure_cases/corrupt.pdf",
+      "kind": "pdf_corrupt",
+      "size": 87,
+      "sha256": "61FE4B2D9774F30E940B0482702A789667337BB763EEF07CB7977D7CDA12B005",
+      "expected_behavior": "friendly failure; must not mark corrupt file as successful artifact"
+    },
+    {
+      "id": "xlsx_table_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/06_table.xlsx",
+      "relative_path": "06_table.xlsx",
+      "kind": "xlsx",
+      "size": 4901,
+      "sha256": "04865476480D394A5E4DA06F201675C07E9993FD29EA8617B1426059753AC61F",
+      "expected_behavior": "success or friendly unsupported: XLSX table path must not corrupt build"
+    },
+    {
+      "id": "docx_control_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/07_control.docx",
+      "relative_path": "07_control.docx",
+      "kind": "docx",
+      "size": 36666,
+      "sha256": "955414B118BA68F615586CBB3B46F9D90C3DFD1E1283760653C391668A6F651D",
+      "expected_behavior": "success if DOCX parser available; otherwise friendly unsupported without poisoning build"
+    },
+    {
+      "id": "pdf_control_fact",
+      "path": "output/v1_l1_backend_deepwater/test_dataset/08_control.pdf",
+      "relative_path": "08_control.pdf",
+      "kind": "pdf_text_minimal",
+      "size": 615,
+      "sha256": "8496481B982080F0C924A04F33C3105264CACA308F18CB0CE874A96D703A3C63",
+      "expected_behavior": "success if PDF text parser available; otherwise friendly unsupported without poisoning build"
+    }
+  ]
+}

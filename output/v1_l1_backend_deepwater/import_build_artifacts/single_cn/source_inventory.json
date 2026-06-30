@@ -1,0 +1,11 @@
+{
+  "source_inventory_version": "2.0",
+  "source_count": 1,
+  "sources": [
+    {
+      "source_id": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "source_file": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "source_type": "md"
+    }
+  ]
+}

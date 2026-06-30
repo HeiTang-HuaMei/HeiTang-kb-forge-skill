@@ -1,0 +1,1 @@
+Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused.

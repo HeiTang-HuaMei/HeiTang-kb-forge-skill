@@ -1,0 +1,12 @@
+{
+  "retrieval_version": "1.7.0",
+  "generated_at": "2026-06-30T02:54:49.155820+00:00",
+  "package": "output/v1_l1_backend_deepwater/document_generation_artifacts/small_report",
+  "total_records": 4,
+  "asset_type_counts": {
+    "chunk": 1,
+    "card": 1,
+    "qa_pair": 1,
+    "glossary": 1
+  }
+}

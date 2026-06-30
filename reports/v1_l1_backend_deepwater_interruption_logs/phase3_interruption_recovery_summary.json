@@ -1,0 +1,12 @@
+﻿{
+    "killed":  true,
+    "interrupted_output":  "output\\v1_l1_backend_deepwater\\workspaces\\phase3_interrupted_output",
+    "interrupted_manifest_exists":  false,
+    "interrupted_partial_file_count":  1,
+    "interrupted_partial_files":  "output\\v1_l1_backend_deepwater\\workspaces\\phase3_interrupted_output\\progress_events.jsonl",
+    "recovery_output":  "output\\v1_l1_backend_deepwater\\workspaces\\phase3_recovered_output",
+    "recovery_exit_code":  0,
+    "recovery_manifest_exists":  true,
+    "recovery_source_trace_exists":  true,
+    "recovery_evidence_map_exists":  true
+}

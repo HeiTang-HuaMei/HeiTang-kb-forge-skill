@@ -1,0 +1,10 @@
+{
+  "run_manifest_version": "1.2.1",
+  "run_id": "run_5598e24a9787",
+  "command": "build",
+  "input": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input",
+  "output": "output/v1_l1_backend_deepwater/workspaces/phase3_recovered_output",
+  "status": "success",
+  "generated_at": "2026-06-30T02:45:07.426907+00:00",
+  "warnings": []
+}

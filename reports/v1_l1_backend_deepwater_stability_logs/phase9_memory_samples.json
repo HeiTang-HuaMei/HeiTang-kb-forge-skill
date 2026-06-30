@@ -1,0 +1,38 @@
+﻿[
+    {
+        "sample":  0,
+        "timestamp":  "2026-06-30T11:02:12.4258406+08:00",
+        "id":  35620,
+        "process_name":  "heitang-kb-forge-desktop",
+        "path":  "D:\\heitang-codex-workspace\\project_01_heitang_kb_forge\\kb-forge-skill-ui-v1-clean-reconstruction\\desktop\\tauri\\src-tauri\\target\\release\\heitang-kb-forge-desktop.exe",
+        "working_set_bytes":  31666176,
+        "responding":  true
+    },
+    {
+        "sample":  1,
+        "timestamp":  "2026-06-30T11:02:17.4891192+08:00",
+        "id":  35620,
+        "process_name":  "heitang-kb-forge-desktop",
+        "path":  "D:\\heitang-codex-workspace\\project_01_heitang_kb_forge\\kb-forge-skill-ui-v1-clean-reconstruction\\desktop\\tauri\\src-tauri\\target\\release\\heitang-kb-forge-desktop.exe",
+        "working_set_bytes":  31649792,
+        "responding":  true
+    },
+    {
+        "sample":  2,
+        "timestamp":  "2026-06-30T11:02:22.5498070+08:00",
+        "id":  35620,
+        "process_name":  "heitang-kb-forge-desktop",
+        "path":  "D:\\heitang-codex-workspace\\project_01_heitang_kb_forge\\kb-forge-skill-ui-v1-clean-reconstruction\\desktop\\tauri\\src-tauri\\target\\release\\heitang-kb-forge-desktop.exe",
+        "working_set_bytes":  31649792,
+        "responding":  true
+    },
+    {
+        "sample":  3,
+        "timestamp":  "2026-06-30T11:02:27.5873468+08:00",
+        "id":  35620,
+        "process_name":  "heitang-kb-forge-desktop",
+        "path":  "D:\\heitang-codex-workspace\\project_01_heitang_kb_forge\\kb-forge-skill-ui-v1-clean-reconstruction\\desktop\\tauri\\src-tauri\\target\\release\\heitang-kb-forge-desktop.exe",
+        "working_set_bytes":  31621120,
+        "responding":  true
+    }
+]

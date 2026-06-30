@@ -1,0 +1,35 @@
+{
+  "citation_trace_version": "1.5.0",
+  "citations": [
+    {
+      "embedding_id": "chunk_0",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2"
+    },
+    {
+      "embedding_id": "chunk_1",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f"
+    },
+    {
+      "embedding_id": "chunk_2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463"
+    },
+    {
+      "embedding_id": "chunk_3",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e"
+    },
+    {
+      "embedding_id": "chunk_4",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984"
+    }
+  ]
+}

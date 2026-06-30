@@ -1,0 +1,32 @@
+﻿[
+    {
+        "name":  "retrieve_hit_en",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_rag_logs\\retrieve_hit_en.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_rag_logs\\retrieve_hit_en.stderr.log"
+    },
+    {
+        "name":  "ask_hit_en",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_hit_en.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_hit_en.stderr.log"
+    },
+    {
+        "name":  "ask_hit_txt",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_hit_txt.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_hit_txt.stderr.log"
+    },
+    {
+        "name":  "ask_missing",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_missing.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_missing.stderr.log"
+    },
+    {
+        "name":  "ask_confusing_missing",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_confusing_missing.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_rag_logs\\ask_confusing_missing.stderr.log"
+    }
+]

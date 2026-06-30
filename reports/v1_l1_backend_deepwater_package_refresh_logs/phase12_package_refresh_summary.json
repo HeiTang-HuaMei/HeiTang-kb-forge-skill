@@ -1,0 +1,21 @@
+﻿{
+    "command":  ".\\packaging\\desktop\\build_tauri.ps1",
+    "observed_exit_code":  0,
+    "stdout_log":  "reports/v1_l1_backend_deepwater_package_refresh_logs/build_tauri_after_l1_fix.stdout.log",
+    "stderr_log":  "reports/v1_l1_backend_deepwater_package_refresh_logs/build_tauri_after_l1_fix.stderr.log",
+    "flutter_build_web_ran":  true,
+    "tauri_build_ran":  true,
+    "flutter_output":  "web/workbench/flutter_app/build/web",
+    "artifact":  {
+                     "path":  "desktop/tauri/src-tauri/target/release/bundle/nsis/HeiTang KB Forge Desktop_1.2.3_x64-setup.exe",
+                     "size_bytes":  14541484,
+                     "last_write_time":  "2026-06-30T12:44:54.4818686+08:00",
+                     "sha256":  "F8632E6AA939D6D4BB3B6677F1B85608D0CF8E76440CC1B8B5DD65AFD8423452"
+                 },
+    "release_exe":  {
+                        "path":  "desktop/tauri/src-tauri/target/release/heitang-kb-forge-desktop.exe",
+                        "size_bytes":  20818944,
+                        "last_write_time":  "2026-06-30T12:44:54.5486473+08:00",
+                        "sha256":  "9DFBD27816CC20C998931C99A53CBC74894D14E0FB0DB2C4575F0A5DC912E9DD"
+                    }
+}

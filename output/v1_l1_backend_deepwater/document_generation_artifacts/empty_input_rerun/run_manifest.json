@@ -1,0 +1,12 @@
+{
+  "run_manifest_version": "1.2.1",
+  "run_id": "run_78e199fd4253",
+  "command": "build",
+  "input": "output/v1_l1_backend_deepwater/test_dataset/failure_cases/empty.md",
+  "output": "output/v1_l1_backend_deepwater/document_generation_artifacts/empty_input_rerun",
+  "status": "success",
+  "generated_at": "2026-06-30T02:57:04.394581+00:00",
+  "warnings": [
+    "Source produced no text: output\\v1_l1_backend_deepwater\\test_dataset\\failure_cases\\empty.md"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md#chunk=37cdb8b3b9f700279cc81276",
+      "source_path": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "chunk_id": "37cdb8b3b9f700279cc81276"
+    },
+    "card_1": {
+      "citation": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md#chunk=37cdb8b3b9f700279cc81276",
+      "source_path": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "chunk_id": "37cdb8b3b9f700279cc81276"
+    },
+    "qa_pair_2": {
+      "citation": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md#chunk=37cdb8b3b9f700279cc81276",
+      "source_path": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "chunk_id": "37cdb8b3b9f700279cc81276"
+    },
+    "glossary_3": {
+      "citation": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md#chunk=37cdb8b3b9f700279cc81276",
+      "source_path": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "chunk_id": "37cdb8b3b9f700279cc81276"
+    }
+  },
+  "by_chunk_id": {
+    "37cdb8b3b9f700279cc81276": [
+      "chunk_0",
+      "card_1",
+      "qa_pair_2",
+      "glossary_3"
+    ]
+  },
+  "by_source_path": {
+    "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md": [
+      "chunk_0",
+      "card_1",
+      "qa_pair_2",
+      "glossary_3"
+    ]
+  }
+}

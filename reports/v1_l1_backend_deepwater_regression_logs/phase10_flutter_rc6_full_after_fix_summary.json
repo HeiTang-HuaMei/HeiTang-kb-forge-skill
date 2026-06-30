@@ -1,0 +1,7 @@
+﻿{
+    "name":  "flutter_rc6_test_no_proxy_full_after_fix",
+    "exit_code":  0,
+    "stdout":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_rc6_test_no_proxy_full_after_fix.stdout.log",
+    "stderr":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_rc6_test_no_proxy_full_after_fix.stderr.log",
+    "no_proxy":  "127.0.0.1,localhost,::1"
+}

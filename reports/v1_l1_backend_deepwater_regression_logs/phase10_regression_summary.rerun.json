@@ -1,0 +1,34 @@
+﻿[
+    {
+        "name":  "python_l1_affected_tests_rerun",
+        "exit_code":  0,
+        "stdout":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\python_l1_affected_tests_rerun.stdout.log",
+        "stderr":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\python_l1_affected_tests_rerun.stderr.log"
+    },
+    {
+        "name":  "flutter_analyze_rerun",
+        "exit_code":  0,
+        "stdout":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_analyze_rerun.stdout.log",
+        "stderr":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_analyze_rerun.stderr.log"
+    },
+    {
+        "name":  "flutter_widget_test_rerun",
+        "exit_code":  1,
+        "stdout":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_widget_test_rerun.stdout.log",
+        "stderr":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_widget_test_rerun.stderr.log"
+    },
+    {
+        "name":  "flutter_rc6_test_rerun",
+        "exit_code":  1,
+        "stdout":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_rc6_test_rerun.stdout.log",
+        "stderr":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui-v1-clean-reconstruction\\reports\\v1_l1_backend_deepwater_regression_logs\\flutter_rc6_test_rerun.stderr.log"
+    },
+    {
+        "name":  "npm_run_typecheck",
+        "exit_code":  null,
+        "stdout":  null,
+        "stderr":  null,
+        "status":  "not_applicable",
+        "reason":  "desktop/tauri/package.json has no typecheck script and repo root has no package.json"
+    }
+]

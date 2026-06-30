@@ -1,0 +1,70 @@
+{
+  "evidence_version": "2.0",
+  "chunks": {
+    "21662704372bc053a2b9a6f2": {
+      "evidence_id": "ev_21662704372bc053a2b9a6f2",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "863e7834c8fd0e4102c7df7f": {
+      "evidence_id": "ev_863e7834c8fd0e4102c7df7f",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "b5de8e3b04a37b173f60f463": {
+      "evidence_id": "ev_b5de8e3b04a37b173f60f463",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "c8ca81a937312775de11a81e": {
+      "evidence_id": "ev_c8ca81a937312775de11a81e",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "f8d3021e79b84d007de46984": {
+      "evidence_id": "ev_f8d3021e79b84d007de46984",
+      "source_file": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "source_id": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    }
+  }
+}

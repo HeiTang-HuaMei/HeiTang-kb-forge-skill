@@ -1,0 +1,19 @@
+{
+  "demo_version": "0.8.0",
+  "generated_at": "2026-06-30T02:54:50.303791+00:00",
+  "package_path": "output/v1_l1_backend_deepwater/document_generation_artifacts/multi_report",
+  "domain": "general",
+  "mode": "reference",
+  "source_count": 5,
+  "chunk_count": 5,
+  "quality_score": 100,
+  "quality_level": "excellent",
+  "rag_export_enabled": true,
+  "agent_template_enabled": false,
+  "eval_cases_count": 0,
+  "final_status": "warning",
+  "warnings": [
+    "Agent Template is not enabled",
+    "No eval cases generated"
+  ]
+}

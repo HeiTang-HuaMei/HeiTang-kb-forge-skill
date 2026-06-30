@@ -1,0 +1,65 @@
+{
+  "retrieval_trace_version": "1.5.0",
+  "source": "package",
+  "query": "What is the recovery keyword?",
+  "top_k": 5,
+  "scope": {},
+  "records": [
+    {
+      "embedding_id": "chunk_2",
+      "text": "Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "score": 2,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "card_7",
+      "text": "Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused.\nPlain TXT fixture.",
+      "asset_type": "card",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "score": 2,
+      "metadata": {
+        "card_id": "card_c322b89a003e626eacac23d3",
+        "card_type": "rule"
+      }
+    },
+    {
+      "embedding_id": "qa_pair_12",
+      "text": "Q: What should readers know about Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused.?\nA: Plain TXT fixture.",
+      "asset_type": "qa_pair",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "score": 2,
+      "metadata": {
+        "qa_id": "qa_c97b5d69e9c67b32a7c50bde",
+        "qa_type": "factual"
+      }
+    },
+    {
+      "embedding_id": "chunk_0",
+      "text": "# ????????\n\n## ??\n\n?? V1 ????????? HT-L1-FACT-001 ???????????????\n\n## ??\n\n> source_trace ??????????\n\n| ?? | ? |\n| --- | --- |\n| owner | L1 backend deepwater |\n| risk | controlled |",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "score": 0,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "chunk_1",
+      "text": "# L1 Backend Fixture\n\nThe controlled English fact is: HT-L1-FACT-002 uses the codename Obsidian Bench.\n\n1. Import must preserve traceability.\n2. Citation checks must avoid invented sources.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "score": 0,
+      "metadata": {}
+    }
+  ]
+}

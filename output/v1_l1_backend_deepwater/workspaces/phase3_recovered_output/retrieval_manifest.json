@@ -1,0 +1,12 @@
+{
+  "retrieval_version": "1.7.0",
+  "generated_at": "2026-06-30T02:45:07.419216+00:00",
+  "package": "output/v1_l1_backend_deepwater/workspaces/phase3_recovered_output",
+  "total_records": 33,
+  "asset_type_counts": {
+    "chunk": 5,
+    "card": 5,
+    "qa_pair": 5,
+    "glossary": 18
+  }
+}

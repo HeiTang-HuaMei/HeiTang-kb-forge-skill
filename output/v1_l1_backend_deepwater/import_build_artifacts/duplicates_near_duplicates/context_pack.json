@@ -1,0 +1,131 @@
+{
+  "context_pack_version": "1.7.0",
+  "package": "output/v1_l1_backend_deepwater/import_build_artifacts/duplicates_near_duplicates",
+  "query": "Summarize this knowledge package.",
+  "selected_count": 5,
+  "records": [
+    {
+      "retrieval_id": "chunk_3",
+      "asset_type": "chunk",
+      "text": "# Duplicate A\n\nHT-L1-DUP-A belongs to folder A.",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "keywords": [
+        "duplicate",
+        "ht",
+        "l1",
+        "dup",
+        "belongs",
+        "to",
+        "folder"
+      ],
+      "confidence": "high",
+      "review_required": false,
+      "score": 2
+    },
+    {
+      "retrieval_id": "chunk_2",
+      "asset_type": "chunk",
+      "text": "# Duplicate B\n\nHT-L1-DUP-B belongs to folder B.",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "keywords": [
+        "duplicate",
+        "ht",
+        "l1",
+        "dup",
+        "belongs",
+        "to",
+        "folder"
+      ],
+      "confidence": "high",
+      "review_required": false,
+      "score": 2
+    },
+    {
+      "retrieval_id": "chunk_1",
+      "asset_type": "chunk",
+      "text": "# Near Duplicate\n\nHT-L1-NEAR-DUP says alpha beta gamma with one unique tail B.",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "chunk_id": "d20ffb4c1283d884cf66b041",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "keywords": [
+        "near",
+        "duplicate",
+        "ht",
+        "l1",
+        "dup",
+        "says",
+        "alpha",
+        "beta",
+        "gamma",
+        "with",
+        "one",
+        "unique",
+        "tail"
+      ],
+      "confidence": "high",
+      "review_required": false,
+      "score": 2
+    },
+    {
+      "retrieval_id": "chunk_0",
+      "asset_type": "chunk",
+      "text": "# Near Duplicate\n\nHT-L1-NEAR-DUP says alpha beta gamma with one unique tail A.",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "keywords": [
+        "near",
+        "duplicate",
+        "ht",
+        "l1",
+        "dup",
+        "says",
+        "alpha",
+        "beta",
+        "gamma",
+        "with",
+        "one",
+        "unique",
+        "tail"
+      ],
+      "confidence": "high",
+      "review_required": false,
+      "score": 2
+    },
+    {
+      "retrieval_id": "qa_pair_9",
+      "asset_type": "qa_pair",
+      "text": "Q: What should readers know about Near Duplicate?\nA: # Near Duplicate HT-L1-NEAR-DUP says alpha beta gamma with one unique tail B.",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "chunk_id": "d20ffb4c1283d884cf66b041",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "keywords": [
+        "what",
+        "should",
+        "readers",
+        "know",
+        "about",
+        "near",
+        "duplicate",
+        "ht",
+        "l1",
+        "dup",
+        "says",
+        "alpha",
+        "beta",
+        "gamma",
+        "with",
+        "one",
+        "unique",
+        "tail"
+      ],
+      "confidence": "medium",
+      "review_required": false,
+      "score": 1
+    }
+  ]
+}

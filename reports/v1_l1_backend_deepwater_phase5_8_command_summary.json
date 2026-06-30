@@ -1,0 +1,93 @@
+﻿[
+    {
+        "phase":  "phase5",
+        "name":  "small_report_build",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\small_report_build.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\small_report_build.stderr.log"
+    },
+    {
+        "phase":  "phase5",
+        "name":  "multi_report_build",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\multi_report_build.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\multi_report_build.stderr.log"
+    },
+    {
+        "phase":  "phase5",
+        "name":  "empty_input_failure_state",
+        "exit_code":  2,
+        "stdout":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\empty_input_failure_state.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_document_generation_logs\\empty_input_failure_state.stderr.log"
+    },
+    {
+        "phase":  "phase6",
+        "name":  "generate_skill",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_skill_logs\\generate_skill.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_skill_logs\\generate_skill.stderr.log"
+    },
+    {
+        "phase":  "phase6",
+        "name":  "validate_skill",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_skill_logs\\validate_skill.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_skill_logs\\validate_skill.stderr.log"
+    },
+    {
+        "phase":  "phase7",
+        "name":  "generate_agent",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_agent_logs\\generate_agent.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_agent_logs\\generate_agent.stderr.log"
+    },
+    {
+        "phase":  "phase7",
+        "name":  "agent_fake_ask",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_fake_ask.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_fake_ask.stderr.log"
+    },
+    {
+        "phase":  "phase7",
+        "name":  "agent_openai_placeholder",
+        "exit_code":  1,
+        "stdout":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_openai_placeholder.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_agent_logs\\agent_openai_placeholder.stderr.log"
+    },
+    {
+        "phase":  "phase8",
+        "name":  "store_init",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_init.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_init.stderr.log"
+    },
+    {
+        "phase":  "phase8",
+        "name":  "store_import",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_import.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_import.stderr.log"
+    },
+    {
+        "phase":  "phase8",
+        "name":  "store_export",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_export.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_connector_logs\\store_export.stderr.log"
+    },
+    {
+        "phase":  "phase8",
+        "name":  "local_vector_build",
+        "exit_code":  0,
+        "stdout":  "reports\\v1_l1_backend_deepwater_connector_logs\\local_vector_build.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_connector_logs\\local_vector_build.stderr.log"
+    },
+    {
+        "phase":  "phase8",
+        "name":  "planned_qdrant_boundary",
+        "exit_code":  1,
+        "stdout":  "reports\\v1_l1_backend_deepwater_connector_logs\\planned_qdrant_boundary.stdout.log",
+        "stderr":  "reports\\v1_l1_backend_deepwater_connector_logs\\planned_qdrant_boundary.stderr.log"
+    }
+]

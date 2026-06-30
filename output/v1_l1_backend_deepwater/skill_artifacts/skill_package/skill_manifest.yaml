@@ -1,0 +1,19 @@
+skill_id: l1-deepwater-skill
+skill_name: L1 Deepwater Skill
+skill_version: 1.8.0
+source_package_id: pkg_success_mixed
+source_contract_version: 2.0
+created_at: 2026-06-30T02:54:52.444992+00:00
+supported_tasks:
+  - backend-deepwater
+  - answer_with_citations
+  - boundary_aware_refusal
+required_assets:
+  - chunks.jsonl
+  - cards.jsonl
+  - qa_pairs.jsonl
+  - glossary.jsonl
+  - manifest.json
+evidence_policy: cite package evidence for factual answers
+boundary_policy: refuse or ask for review outside package scope
+validation_status: not_validated

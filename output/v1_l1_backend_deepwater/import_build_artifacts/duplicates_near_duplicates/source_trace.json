@@ -1,0 +1,41 @@
+{
+  "source_trace_version": "1.0",
+  "sources": [
+    {
+      "source_id": "c52d72a9ad7847fc8215b09b",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md",
+      "source_type": "md",
+      "chunk_id": "c52d72a9ad7847fc8215b09b",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_a.md#chunk=c52d72a9ad7847fc8215b09b",
+      "order": 0,
+      "title": "Near Duplicate"
+    },
+    {
+      "source_id": "d20ffb4c1283d884cf66b041",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md",
+      "source_type": "md",
+      "chunk_id": "d20ffb4c1283d884cf66b041",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/near_duplicate_b.md#chunk=d20ffb4c1283d884cf66b041",
+      "order": 0,
+      "title": "Near Duplicate"
+    },
+    {
+      "source_id": "2ece690c7deb5d2ffcad3850",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md",
+      "source_type": "md",
+      "chunk_id": "2ece690c7deb5d2ffcad3850",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/nested/same_name.md#chunk=2ece690c7deb5d2ffcad3850",
+      "order": 0,
+      "title": "Duplicate B"
+    },
+    {
+      "source_id": "f5268dc470a1d90fdb199bf9",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md",
+      "source_type": "md",
+      "chunk_id": "f5268dc470a1d90fdb199bf9",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_duplicate_input/same_name.md#chunk=f5268dc470a1d90fdb199bf9",
+      "order": 0,
+      "title": "Duplicate A"
+    }
+  ]
+}

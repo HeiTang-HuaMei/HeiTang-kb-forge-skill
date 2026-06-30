@@ -1,0 +1,15 @@
+{
+  "evidence_gate_version": "1.7.0",
+  "generated_at": "2026-06-30T02:54:49.158809+00:00",
+  "package": "output/v1_l1_backend_deepwater/document_generation_artifacts/small_report",
+  "query": "Summarize this knowledge package.",
+  "decision": "refuse",
+  "reason": "The query is outside the package evidence boundary.",
+  "evidence_ids": [
+    "chunk_0",
+    "qa_pair_2",
+    "glossary_3",
+    "card_1"
+  ],
+  "warnings": []
+}

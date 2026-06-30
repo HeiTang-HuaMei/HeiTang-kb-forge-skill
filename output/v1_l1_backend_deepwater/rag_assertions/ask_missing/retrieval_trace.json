@@ -1,0 +1,59 @@
+{
+  "retrieval_trace_version": "1.5.0",
+  "source": "package",
+  "query": "HT-L1-MISSING-999 的答案是什么？",
+  "top_k": 5,
+  "scope": {},
+  "records": [
+    {
+      "embedding_id": "chunk_0",
+      "text": "# ????????\n\n## ??\n\n?? V1 ????????? HT-L1-FACT-001 ???????????????\n\n## ??\n\n> source_trace ??????????\n\n| ?? | ? |\n| --- | --- |\n| owner | L1 backend deepwater |\n| risk | controlled |",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "score": 1,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "chunk_1",
+      "text": "# L1 Backend Fixture\n\nThe controlled English fact is: HT-L1-FACT-002 uses the codename Obsidian Bench.\n\n1. Import must preserve traceability.\n2. Citation checks must avoid invented sources.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "score": 1,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "chunk_2",
+      "text": "Plain TXT fixture. HT-L1-FACT-003 says the recovery keyword is clean-restart. Missing-answer questions must be refused.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "score": 1,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "chunk_3",
+      "text": "DOCX Control Fixture\n\nHT-L1-FACT-007 says DOCX source trace must remain visible.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "score": 1,
+      "metadata": {}
+    },
+    {
+      "embedding_id": "chunk_4",
+      "text": "HT-L1-FACT-008 PDF source trace fixture.",
+      "asset_type": "chunk",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984",
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "score": 1,
+      "metadata": {}
+    }
+  ]
+}

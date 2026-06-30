@@ -1,0 +1,259 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2"
+    },
+    "chunk_1": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "chunk_2": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "chunk_3": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "chunk_4": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984"
+    },
+    "card_5": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2"
+    },
+    "card_6": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "card_7": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "card_8": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "card_9": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984"
+    },
+    "qa_pair_10": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2"
+    },
+    "qa_pair_11": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "qa_pair_12": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "qa_pair_13": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "qa_pair_14": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984"
+    },
+    "glossary_15": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_16": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_17": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_18": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "glossary_19": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "glossary_20": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_21": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_22": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md#chunk=21662704372bc053a2b9a6f2",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md",
+      "chunk_id": "21662704372bc053a2b9a6f2"
+    },
+    "glossary_23": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_24": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "glossary_25": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx#chunk=c8ca81a937312775de11a81e",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx",
+      "chunk_id": "c8ca81a937312775de11a81e"
+    },
+    "glossary_26": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984"
+    },
+    "glossary_27": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_28": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "glossary_29": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md#chunk=863e7834c8fd0e4102c7df7f",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md",
+      "chunk_id": "863e7834c8fd0e4102c7df7f"
+    },
+    "glossary_30": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf#chunk=f8d3021e79b84d007de46984",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf",
+      "chunk_id": "f8d3021e79b84d007de46984"
+    },
+    "glossary_31": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    },
+    "glossary_32": {
+      "citation": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt#chunk=b5de8e3b04a37b173f60f463",
+      "source_path": "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt",
+      "chunk_id": "b5de8e3b04a37b173f60f463"
+    }
+  },
+  "by_chunk_id": {
+    "21662704372bc053a2b9a6f2": [
+      "chunk_0",
+      "card_5",
+      "qa_pair_10",
+      "glossary_22"
+    ],
+    "863e7834c8fd0e4102c7df7f": [
+      "chunk_1",
+      "card_6",
+      "qa_pair_11",
+      "glossary_15",
+      "glossary_16",
+      "glossary_17",
+      "glossary_20",
+      "glossary_21",
+      "glossary_23",
+      "glossary_27",
+      "glossary_29"
+    ],
+    "b5de8e3b04a37b173f60f463": [
+      "chunk_2",
+      "card_7",
+      "qa_pair_12",
+      "glossary_24",
+      "glossary_28",
+      "glossary_31",
+      "glossary_32"
+    ],
+    "c8ca81a937312775de11a81e": [
+      "chunk_3",
+      "card_8",
+      "qa_pair_13",
+      "glossary_18",
+      "glossary_19",
+      "glossary_25"
+    ],
+    "f8d3021e79b84d007de46984": [
+      "chunk_4",
+      "card_9",
+      "qa_pair_14",
+      "glossary_26",
+      "glossary_30"
+    ]
+  },
+  "by_source_path": {
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/01_cn_control.md": [
+      "chunk_0",
+      "card_5",
+      "qa_pair_10",
+      "glossary_22"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/02_en_control.md": [
+      "chunk_1",
+      "card_6",
+      "qa_pair_11",
+      "glossary_15",
+      "glossary_16",
+      "glossary_17",
+      "glossary_20",
+      "glossary_21",
+      "glossary_23",
+      "glossary_27",
+      "glossary_29"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/03_plain_fact.txt": [
+      "chunk_2",
+      "card_7",
+      "qa_pair_12",
+      "glossary_24",
+      "glossary_28",
+      "glossary_31",
+      "glossary_32"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/07_control.docx": [
+      "chunk_3",
+      "card_8",
+      "qa_pair_13",
+      "glossary_18",
+      "glossary_19",
+      "glossary_25"
+    ],
+    "output/v1_l1_backend_deepwater/workspaces/phase2_success_input/08_control.pdf": [
+      "chunk_4",
+      "card_9",
+      "qa_pair_14",
+      "glossary_26",
+      "glossary_30"
+    ]
+  }
+}

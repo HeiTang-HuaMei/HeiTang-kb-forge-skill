@@ -1,0 +1,18 @@
+{
+  "evidence_version": "2.0",
+  "chunks": {
+    "37cdb8b3b9f700279cc81276": {
+      "evidence_id": "ev_37cdb8b3b9f700279cc81276",
+      "source_file": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "source_id": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    }
+  }
+}

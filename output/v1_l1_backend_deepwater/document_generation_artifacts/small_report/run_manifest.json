@@ -1,0 +1,10 @@
+{
+  "run_manifest_version": "1.2.1",
+  "run_id": "run_1cdc5148dc48",
+  "command": "build",
+  "input": "output/v1_l1_backend_deepwater/test_dataset/01_cn_control.md",
+  "output": "output/v1_l1_backend_deepwater/document_generation_artifacts/small_report",
+  "status": "success",
+  "generated_at": "2026-06-30T02:54:49.159924+00:00",
+  "warnings": []
+}

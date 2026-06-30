@@ -1,0 +1,14 @@
+{
+  "agent_rag_version": "1.5.0",
+  "query": "What is the recovery keyword?",
+  "top_k": 5,
+  "citation_required": true,
+  "insufficient_context": false,
+  "citation_count": 3,
+  "output_files": [
+    "answer.md",
+    "answer_report.json",
+    "retrieval_trace.json",
+    "citation_trace.json"
+  ]
+}

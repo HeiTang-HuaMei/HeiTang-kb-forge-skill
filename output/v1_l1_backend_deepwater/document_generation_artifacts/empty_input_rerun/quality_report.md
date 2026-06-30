@@ -1,0 +1,20 @@
+# Quality Report
+
+- quality_version: 0.3.1
+- generated_at: 2026-06-30T02:57:04.387876+00:00
+- source_count: 1
+- chunk_count: 0
+- card_count: 0
+- qa_count: 0
+- glossary_count: 0
+- empty_chunk_count: 0
+- empty_card_count: 0
+- empty_qa_count: 0
+- duplicate_card_count: 0
+- duplicate_qa_count: 0
+- duplicate_glossary_count: 0
+- citation_coverage: 1.0
+- source_path_coverage: 1.0
+- warnings: ['No chunks generated', 'No cards generated', 'No qa_pairs generated', 'No glossary generated']
+- quality_score: 60
+- quality_level: fair
